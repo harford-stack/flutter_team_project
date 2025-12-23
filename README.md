@@ -23,48 +23,65 @@
 
 ---
 
-## 프로젝트 구조
+## 프로젝트 구조 (실습용 라이트 버전)
 
-### 📁 전체 디렉토리 구조
+### 📁 추천 폴더 구조 (2주 실습용, 최대한 단순하게)
 
 ```
 lib/
-├── main.dart                    # 앱 시작점
+├── main.dart            # 앱 시작점
+├── screens/             # 모든 화면(페이지) 모음
+│   ├── splash_screen.dart
+│   ├── login_screen.dart
+│   ├── home_screen.dart
+│   ├── ingredient_add_screen.dart
+│   ├── ingredient_select_screen.dart
+│   ├── recipe_shake_screen.dart
+│   ├── recipe_result_screen.dart
+│   ├── community_list_screen.dart
+│   ├── community_detail_screen.dart
+│   ├── community_create_screen.dart
+│   ├── bookmark_list_screen.dart
+│   └── profile_screen.dart
 │
-├── core/                        # 핵심 공통 기능
-│   ├── constants/              # 상수 정의
-│   ├── theme/                  # 앱 테마
-│   └── utils/                  # 유틸리티 함수
+├── widgets/             # 재사용 위젯
+│   ├── loading_widget.dart
+│   ├── error_widget.dart
+│   ├── empty_state_widget.dart
+│   ├── ingredient_camera_widget.dart
+│   ├── ingredient_manual_input_widget.dart
+│   └── google_sign_in_button.dart
 │
-├── features/                    # 기능별 모듈
-│   ├── auth/                   # 인증 (로그인)
-│   ├── home/                   # 홈 화면
-│   ├── ingredients/            # 재료 관리
-│   ├── recipes/                # 레시피
-│   ├── community/              # 커뮤니티
-│   ├── bookmarks/              # 북마크
-│   ├── profile/                # 프로필
-│   ├── splash/                 # 시작 화면
-│   └── challenges/             # 챌린지
+├── models/              # 데이터 모델
+│   ├── ingredient.dart
+│   ├── recipe.dart
+│   ├── community_post.dart
+│   └── user_model.dart
 │
-├── models/                      # 데이터 모델
-├── services/                    # 서비스 레이어
-├── widgets/                     # 공통 위젯
-└── routes/                      # 화면 이동 경로
+├── services/            # 비즈니스 로직
+│   ├── ai_service.dart
+│   ├── auth_service.dart
+│   ├── firestore_service.dart
+│   └── sensor_service.dart
+│
+└── core/                # (선택) 공통 유틸, 테마, 상수
+    ├── app_theme.dart
+    ├── app_constants.dart
+    └── utils.dart
 ```
 
-### 📂 각 폴더 역할
+> **실제 저장소에는 `features/`, `core/*/`, `widgets/common/` 같은 좀 더 깊은 구조가 미리 만들어져 있습니다.**  
+> 이번 **2주 실습**에서는 위에 나온 **라이트 구조만 신경 쓰고**, 나머지 폴더는 *참고용/확장용*으로만 봐도 됩니다.
+
+### 📂 각 폴더 역할 (라이트 버전 기준)
 
 | 폴더 | 역할 | 예시 |
 |-----|------|------|
-| `features/[기능]/screens/` | 화면(페이지) 파일 | `home_screen.dart`, `login_screen.dart` |
-| `features/[기능]/widgets/` | 기능 전용 위젯 | `ingredient_card_widget.dart` |
-| `widgets/common/` | 공통 위젯 | `loading_widget.dart` |
+| `screens/` | 화면(페이지) 파일 | `home_screen.dart`, `login_screen.dart` |
+| `widgets/` | 재사용 가능한 위젯 | `loading_widget.dart`, `ingredient_camera_widget.dart` |
 | `models/` | 데이터 구조 정의 | `ingredient.dart`, `recipe.dart` |
 | `services/` | 비즈니스 로직 | `auth_service.dart`, `firestore_service.dart` |
-| `core/constants/` | 상수 값 | 컬렉션 이름, 카테고리 목록 |
-| `core/theme/` | 색상, 스타일 | 앱 테마 설정 |
-| `core/utils/` | 유틸리티 함수 | 날짜 포맷팅, 입력 검증 |
+| `core/` | (선택) 상수/테마/유틸 | `app_theme.dart`, `app_constants.dart`, `utils.dart` |
 
 ---
 
@@ -72,9 +89,9 @@ lib/
 
 ### ⚠️ 중요: 각 파일은 명확한 역할이 있습니다!
 
-### 1. 화면 파일 (screens/)
+### 1. 화면 파일 (`screens/`)
 
-**위치**: `features/[기능]/screens/[화면명]_screen.dart`
+**위치**: `screens/[화면명]_screen.dart`
 
 **작성 내용**:
 - ✅ UI 레이아웃과 화면 구성
@@ -110,11 +127,10 @@ class _HomeBannerWidget extends StatelessWidget {
 
 ---
 
-### 2. 위젯 파일 (widgets/)
+### 2. 위젯 파일 (`widgets/`)
 
 **위치**: 
-- `features/[기능]/widgets/` - 기능 전용 위젯
-- `widgets/common/` - 공통 위젯
+- `widgets/` - 재사용 가능한 위젯은 전부 여기 한 곳에 둡니다.
 
 **작성 내용**:
 - ✅ 여러 화면에서 재사용 가능한 UI 컴포넌트
@@ -126,7 +142,7 @@ class _HomeBannerWidget extends StatelessWidget {
 
 ---
 
-### 3. 모델 파일 (models/)
+### 3. 모델 파일 (`models/`)
 
 **위치**: `models/[모델명].dart`
 
@@ -141,7 +157,7 @@ class _HomeBannerWidget extends StatelessWidget {
 
 ---
 
-### 4. 서비스 파일 (services/)
+### 4. 서비스 파일 (`services/`)
 
 **위치**: `services/[서비스명]_service.dart`
 
@@ -157,40 +173,22 @@ class _HomeBannerWidget extends StatelessWidget {
 
 ---
 
-## 위젯 작성 위치 가이드
+## 위젯 작성 위치 가이드 (라이트 버전)
 
-### 🤔 3단계 판단 방법
+이번 실습에서는 **위치 고민을 최소화**하기 위해 규칙을 아주 단순하게 가져갑니다.
 
-#### 1단계: "다른 기능에서도 쓸 수 있나?"
-- ✅ **예** → **공통 위젯** (`widgets/common/`)
-  - 예: 로딩 표시, 오류 메시지, 빈 상태 표시
-- ❌ **아니오** → 2단계로
+### 🤔 어디에 만들면 되나요?
 
-#### 2단계: "같은 기능의 다른 화면에서도 쓸 수 있나?"
-- ✅ **예** → **기능 전용 위젯** (`features/[기능]/widgets/`)
-  - 예: 재료 카드, 레시피 카드, 커뮤니티 게시글 카드
-- ❌ **아니오** → 3단계로
+- **이 화면에서만 쓰는 위젯**  
+  → 해당 `screen` 파일 안에 **private 클래스**로 작성  
+  → 예: `_HomeBannerWidget`
 
-#### 3단계: "이 화면에서만 쓰나?"
-- ✅ **예** → **일회용 위젯** (화면 파일 안에 private 클래스)
-  - 예: 홈 화면 배너, 특정 화면 전용 폼
+- **여러 화면에서 재사용하는 위젯**  
+  → `widgets/` 폴더에 **새 파일**로 작성  
+  → 예: `loading_widget.dart`, `ingredient_camera_widget.dart`
 
-### 📊 판단 기준표
-
-| 판단 기준 | 일회용 위젯 | 기능 전용 위젯 | 공통 위젯 |
-|---------|-----------|-------------|---------|
-| **사용 횟수** | 1개 화면에서만 | 같은 기능의 2개 이상 화면 | 여러 기능의 화면 |
-| **의존성** | 특정 화면에 강하게 결합 | 특정 기능에만 관련 | 기능과 무관 |
-| **작성 위치** | 화면 파일 안 (private) | `features/[기능]/widgets/` | `widgets/common/` |
-
-### 💡 실용적인 팁
-
-**확실하지 않으면?**
-1. **일회용으로 시작** (화면 파일 안에)
-2. 다른 화면에서도 필요하면 **기능 전용으로 이동**
-3. 여러 기능에서 필요하면 **공통 위젯으로 이동**
-
-**리팩토링 OK!** 처음에 잘못 판단해도 나중에 이동하면 됩니다.
+이 정도만 지켜도 충분합니다.  
+`features/`, `widgets/common/` 같은 더 복잡한 구조는 **신경 쓰지 않아도 됩니다.**
 
 ---
 
@@ -243,11 +241,11 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 코드를 작성할 때:
 
-- [ ] 화면 파일에 비즈니스 로직이 없나요?
-- [ ] 재사용 가능한 위젯을 별도 파일로 분리했나요?
-- [ ] 일회용 위젯은 private 클래스로 작성했나요?
-- [ ] 데이터 모델은 models/ 폴더에 있나요?
-- [ ] 서비스 로직은 services/ 폴더에 있나요?
+- [ ] 화면 파일(`screens/`)에 비즈니스 로직이 없나요?
+- [ ] 재사용 가능한 위젯은 `widgets/` 폴더에 분리했나요?
+- [ ] 일회용 위젯은 해당 화면 파일 안에 private 클래스로 작성했나요?
+- [ ] 데이터 모델은 `models/` 폴더에 있나요?
+- [ ] 서비스 로직은 `services/` 폴더에 있나요?
 
 ---
 
