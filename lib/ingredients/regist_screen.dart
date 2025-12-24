@@ -15,11 +15,37 @@ class regist extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade300, // 버튼 배경색
+                    foregroundColor: Colors.black,         // 글자색
+                    elevation: 0,                          // 그림자
+                    minimumSize: const Size(200, 50),      // 버튼 크기
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6), // 둥글기
+                    ),
+                  ),
+                  onPressed: (){
+                    
+                  }, 
+                  child: Text("사진 등록")
               ),
+              SizedBox(height: 20,),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade300, // 버튼 배경색
+                    foregroundColor: Colors.black,         // 글자색
+                    elevation: 0,                          // 그림자
+                    minimumSize: const Size(200, 50),      // 버튼 크기
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6), // 둥글기
+                    ),
+                  ),
+                  onPressed: (){
 
-              Container()
+                  },
+                  child: Text("목록에서 선택")
+              )
             ],
           ),
         )
