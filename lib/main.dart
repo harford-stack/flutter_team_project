@@ -10,13 +10,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '냉장고를 부탁해',
+      title: '플러터 팀 프로젝트',
       theme: ThemeData(
         useMaterial3: true,
       ),
       home: const Scaffold(
         body: Center(
-          child: Text('냉장고를 부탁해'),
+          child: Text('플러터 팀 프로젝트'),
         ),
       ),
     );
