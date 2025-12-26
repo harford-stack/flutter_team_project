@@ -52,8 +52,9 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
             ],
           ),
 
-          SizedBox(height: 8),
+          SizedBox(height: 12),
 
+          //두번째 행의 dropdown
           // 第二行：右侧对齐的 Dropdown
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -69,9 +70,9 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
                   ),
                   isExpanded: true,
                   items: const [
-                    DropdownMenuItem(value: '시간순', child: Text('시간순', style: TextStyle(fontSize: 11))),
-                    DropdownMenuItem(value: '조회순', child: Text('조회순', style: TextStyle(fontSize: 11))),
-                    DropdownMenuItem(value: '인기순', child: Text('인기순', style: TextStyle(fontSize: 11))),
+                    DropdownMenuItem(value: '시간순', child: Text('시간순', style: TextStyle(fontSize: 14))),
+                    DropdownMenuItem(value: '조회순', child: Text('조회순', style: TextStyle(fontSize: 14))),
+                    DropdownMenuItem(value: '인기순', child: Text('인기순', style: TextStyle(fontSize: 14))),
                   ],
                   onChanged: (value) {
                     setState(() {

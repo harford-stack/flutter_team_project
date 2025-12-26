@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 ///post是一个数据模型,专门负责数据形状,不负责ui,不负责逻辑
 
 /// “一篇帖子，由这些信息组成：
-//1️⃣ 定义字段名
-// 2️⃣ 定义字段类型
-// 3️⃣ 规定哪些一定有、哪些可以没有
+//1.定义字段名
+//2.定义字段类型
+//3.规定哪些一定有、哪些可以没有
 class Post {
   final String id;
   final String title;
@@ -35,6 +35,7 @@ class Post {
   });
 
   // 从 Firestore 转换
+  //进来
   //这整个 fromFirestore 的作用只有一个：把 Firestore 里的一条 document，翻译成一个 Dart 世界里的 Post 对象。
   factory Post.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -48,24 +49,27 @@ class Post {
       nickName:data['nickName'] ??'익명',
       commentCount: data['commentCount'] ?? 0,
       bookmarkCount: data['bookmarkCount'] ?? 0,
-      cdate: (data['cdate'] as Timestamp).toDate(),
+      cdate: (data['cdate'] as Timestamp).toDate(),//Firestore 里的时间不是 DateTime，而是 Timestamp，Flutter 里要用，必须手动把它“转型”。
       udate: data['udate'] != null
           ? (data['udate'] as Timestamp).toDate()
           : null,
     );
   }
 
-  // 转换为 Map
-  // Map<String, dynamic> toMap() {
-  //   return {
-  //     'title': title,
-  //     'content': content,
-  //     'authorUid': authorUid,
-  //     'authorName': authorName,
-  //     'createdAt': Timestamp.fromDate(createdAt),
-  //     'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
-  //     'views': views,
-  //     'likes': likes,
-  //   };
-  // }
+  //转换为 Map
+  //出去
+  Map<String, dynamic> toMap() {
+    return {
+      //不要往里面存id
+      'title': title,
+      'content': content,
+      'category': category,
+      'userId': userId,
+      'nickName': nickName,
+      'commentCount':commentCount,
+      'bookmarkCount':bookmarkCount,
+      'cdate': Timestamp.fromDate(cdate),
+      'udate': udate != null ? Timestamp.fromDate(udate!) : null,
+    };
+  }
 }
