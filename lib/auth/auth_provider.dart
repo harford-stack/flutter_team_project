@@ -45,59 +45,16 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 네이버 로그인
-  // 네이버 SDK로 로그인 후 받은 사용자 정보를 전달
-  Future<bool> signInWithNaver({
-    required String email,
-    required String name,
-    String? photoUrl,
-    String? naverId,
-  }) async {
+
+  // 이메일/비밀번호 로그인
+  Future<bool> signInWithEmailAndPassword(String email, String password) async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      final userCredential = await _authService.signInWithNaver(
-        email: email,
-        name: name,
-        photoUrl: photoUrl,
-        naverId: naverId,
-      );
-      
-      if (userCredential != null) {
-        _user = userCredential.user;
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-      
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      rethrow;
-    }
-  }
-
-  // 카카오 로그인
-  // 카카오 SDK로 로그인 후 받은 사용자 정보를 전달
-  Future<bool> signInWithKakao({
-    required String email,
-    required String name,
-    String? photoUrl,
-    String? kakaoId,
-  }) async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      final userCredential = await _authService.signInWithKakao(
-        email: email,
-        name: name,
-        photoUrl: photoUrl,
-        kakaoId: kakaoId,
+      final userCredential = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
       );
       
       if (userCredential != null) {

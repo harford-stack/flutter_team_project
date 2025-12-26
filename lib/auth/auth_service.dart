@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_naver_login/flutter_naver_login.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -60,91 +59,72 @@ class AuthService {
     }
   }
 
-  // 네이버 로그인 (백엔드 없이 구현)
-  // 네이버 SDK로 로그인 후 받은 사용자 정보로 Firebase 사용자 생성
-  Future<UserCredential?> signInWithNaver({
-    required String email,
-    required String name,
-    String? photoUrl,
-    String? naverId,
-  }) async {
-    try {
-      // 이메일이 없으면 에러
-      if (email.isEmpty) {
-        throw Exception('네이버 로그인: 이메일 정보가 없습니다');
-      }
 
+  // 이메일/비밀번호 로그인 (회원가입 페이지 없이 자동 처리)
+  // 사용자가 없으면 자동으로 회원가입
+  Future<UserCredential?> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
       UserCredential? userCredential;
 
       try {
-        // 먼저 이메일로 로그인 시도 (이미 가입된 사용자)
+        // 먼저 로그인 시도
         userCredential = await _auth.signInWithEmailAndPassword(
           email: email,
-          password: _generateTemporaryPassword(email), // 임시 비밀번호
+          password: password,
         );
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
-          // 사용자가 없거나 비밀번호가 틀린 경우, 또는 다른 provider로 이미 가입된 경우 새로 생성
-          // invalid-credential은 이미 다른 provider(구글 등)로 같은 이메일로 가입된 경우 발생할 수 있음
-          // 임시 비밀번호 생성 (이메일 기반으로 일관성 유지)
-          final tempPassword = _generateTemporaryPassword(email);
-          
+        if (e.code == 'user-not-found' || 
+            e.code == 'wrong-password' || 
+            e.code == 'invalid-credential') {
+          // 사용자가 없거나 비밀번호가 틀린 경우 회원가입 시도
           try {
             userCredential = await _auth.createUserWithEmailAndPassword(
               email: email,
-              password: tempPassword,
+              password: password,
             );
           } on FirebaseAuthException catch (createError) {
-            // 이미 같은 이메일로 가입된 경우 (다른 provider로)
             if (createError.code == 'email-already-in-use') {
-              // Anonymous Authentication 사용
-              print('이미 다른 방식으로 가입된 이메일입니다. Anonymous Authentication을 사용합니다.');
-              userCredential = await _auth.signInAnonymously();
-              
-              // Firestore에 이메일 정보 저장 (이메일은 검증되지 않음)
+              // 이미 가입된 이메일인 경우 비밀번호가 틀린 것으로 판단
+              throw Exception('비밀번호가 올바르지 않습니다. 다시 확인해주세요.');
+            } else if (createError.code == 'weak-password') {
+              throw Exception('비밀번호가 너무 약합니다. 6자 이상 입력해주세요.');
+            } else if (createError.code == 'invalid-email') {
+              throw Exception('올바른 이메일 형식이 아닙니다.');
             } else {
               rethrow;
             }
           }
-        } else if (e.code == 'operation-not-allowed') {
-          // 이메일/비밀번호 방식이 비활성화된 경우 Anonymous Authentication 사용
-          print('이메일/비밀번호 방식이 비활성화되어 있습니다. Anonymous Authentication을 사용합니다.');
-          userCredential = await _auth.signInAnonymously();
-          
-          // Anonymous 사용자에 이메일 연결 시도 (실패해도 계속 진행)
-          if (userCredential.user != null) {
-            try {
-              await userCredential.user!.updateEmail(email);
-            } catch (updateError) {
-              print('이메일 업데이트 실패 (무시): $updateError');
-            }
-          }
+        } else if (e.code == 'invalid-email') {
+          throw Exception('올바른 이메일 형식이 아닙니다.');
+        } else if (e.code == 'user-disabled') {
+          throw Exception('이 계정은 비활성화되었습니다.');
+        } else if (e.code == 'too-many-requests') {
+          throw Exception('너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.');
         } else {
           rethrow;
         }
       }
 
-      if (userCredential.user != null) {
-        // Firestore에 사용자 정보 저장
-        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? true;
-        
+      if (userCredential != null && userCredential.user != null) {
+        // 첫 로그인인지 확인
+        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+
         if (isNewUser) {
-          // 새 사용자일 경우 Firestore에 저장
+          // 새 사용자일 경우 Firestore에 사용자 정보 저장
           await _firestore.collection('users').doc(userCredential.user!.uid).set({
             'uid': userCredential.user!.uid,
             'email': email,
-            'displayName': name,
-            'photoURL': photoUrl,
-            'provider': 'naver',
-            'naverId': naverId,
+            'displayName': email.split('@')[0], // 이메일의 @ 앞부분을 기본 이름으로
+            'provider': 'email',
             'createdAt': FieldValue.serverTimestamp(),
           });
         } else {
           // 기존 사용자 정보 업데이트
           await _firestore.collection('users').doc(userCredential.user!.uid).update({
-            'displayName': name,
-            'photoURL': photoUrl,
-            'provider': 'naver',
+            'provider': 'email',
             'updatedAt': FieldValue.serverTimestamp(),
           });
         }
@@ -152,86 +132,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      print('네이버 로그인 오류: $e');
-      rethrow;
-    }
-  }
-
-  // 카카오 로그인 (백엔드 없이 구현)
-  // 카카오 SDK로 로그인 후 받은 사용자 정보로 Firebase 사용자 생성
-  Future<UserCredential?> signInWithKakao({
-    required String email,
-    required String name,
-    String? photoUrl,
-    String? kakaoId,
-  }) async {
-    try {
-      // 이메일이 없으면 에러
-      if (email.isEmpty) {
-        throw Exception('카카오 로그인: 이메일 정보가 없습니다');
-      }
-
-      UserCredential? userCredential;
-
-      try {
-        // 먼저 이메일로 로그인 시도 (이미 가입된 사용자)
-        userCredential = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: _generateTemporaryPassword(email), // 임시 비밀번호
-        );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-          // 사용자가 없거나 비밀번호가 틀린 경우 새로 생성
-          // 임시 비밀번호 생성 (이메일 기반으로 일관성 유지)
-          final tempPassword = _generateTemporaryPassword(email);
-          
-          userCredential = await _auth.createUserWithEmailAndPassword(
-            email: email,
-            password: tempPassword,
-          );
-        } else if (e.code == 'operation-not-allowed') {
-          // 이메일/비밀번호 방식이 비활성화된 경우 Anonymous Authentication 사용
-          print('이메일/비밀번호 방식이 비활성화되어 있습니다. Anonymous Authentication을 사용합니다.');
-          userCredential = await _auth.signInAnonymously();
-          
-          // Anonymous 사용자에 이메일 연결 (이메일이 검증되지 않음)
-          if (userCredential.user != null) {
-            await userCredential.user!.updateEmail(email);
-          }
-        } else {
-          rethrow;
-        }
-      }
-
-      if (userCredential.user != null) {
-        // Firestore에 사용자 정보 저장
-        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? true;
-        
-        if (isNewUser) {
-          // 새 사용자일 경우 Firestore에 저장
-          await _firestore.collection('users').doc(userCredential.user!.uid).set({
-            'uid': userCredential.user!.uid,
-            'email': email,
-            'displayName': name,
-            'photoURL': photoUrl,
-            'provider': 'kakao',
-            'kakaoId': kakaoId,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        } else {
-          // 기존 사용자 정보 업데이트
-          await _firestore.collection('users').doc(userCredential.user!.uid).update({
-            'displayName': name,
-            'photoURL': photoUrl,
-            'provider': 'kakao',
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
-      return userCredential;
-    } catch (e) {
-      print('카카오 로그인 오류: $e');
+      print('이메일/비밀번호 로그인 오류: $e');
       rethrow;
     }
   }
@@ -242,7 +143,7 @@ class AuthService {
     // 이메일을 기반으로 일관된 비밀번호 생성
     // 실제로는 더 복잡한 해시 함수 사용 권장
     final hash = email.hashCode.abs().toString();
-    return 'temp_${hash}_naver_kakao';
+    return 'temp_${hash}';
   }
 
   // 닉네임 설정 (첫 로그인 시)
@@ -272,11 +173,6 @@ class AuthService {
   // 로그아웃
   Future<void> signOut() async {
     await _googleSignIn.signOut();
-    try {
-      await FlutterNaverLogin.logOut(); // 네이버 로그아웃
-    } catch (e) {
-      // 네이버 로그인을 사용하지 않은 경우 무시
-    }
     await _auth.signOut();
   }
 

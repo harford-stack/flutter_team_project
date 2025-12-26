@@ -1,9 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 네이버 로그인 설정 -->
-    <!-- 빌드 시 .env 파일의 값으로 자동 치환됩니다 -->
-    <string name="client_id">2_vgrXvVMJ9qGa3oQXio</string>
-    <string name="client_secret">mck8hO2sfY</string>
-    <string name="client_name">íë¬í°_ë¤ì´ë² ë¡ê·¸ì¸</string>
 </resources>
-

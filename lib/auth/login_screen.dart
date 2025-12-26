@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_naver_login/flutter_naver_login.dart';
-import 'package:flutter_naver_login/interface/types/naver_login_result.dart';
-import 'package:flutter_naver_login/interface/types/naver_account_result.dart';
-import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 import '../common/app_colors.dart';
 import 'auth_provider.dart';
 import 'home_screen.dart';
+import 'nickname_input_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,61 +14,24 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _nicknameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _nicknameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  // 닉네임 입력 다이얼로그
+  // 닉네임 입력 화면으로 이동
   Future<void> _showNicknameInputDialog(AuthProvider authProvider) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('닉네임 입력'),
-          content: TextField(
-            controller: _nicknameController,
-            decoration: const InputDecoration(
-              hintText: '닉네임을 입력하세요',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('확인'),
-              onPressed: () async {
-                if (_nicknameController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('닉네임을 입력해주세요')),
-                  );
-                  return;
-                }
-
-                // 닉네임 중복 체크
-                final nicknameExists =
-                    await authProvider.checkNicknameExists(
-                        _nicknameController.text.trim());
-
-                if (nicknameExists) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('이미 사용 중인 닉네임입니다. 다시 입력해주세요.')),
-                  );
-                } else {
-                  await authProvider.setNickname(_nicknameController.text.trim());
-                  Navigator.of(context).pop();
-                  _handleLoginSuccess(authProvider, '회원가입');
-                }
-              },
-            ),
-          ],
-        );
-      },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NicknameInputScreen(),
+      ),
     );
   }
 
@@ -110,117 +70,30 @@ class _LoginScreenState extends State<LoginScreen> {
               .get();
           isNewUser = !userDoc.exists || userDoc.data()?['nickname'] == null;
         }
-      } else if (provider == 'naver') {
+      } else if (provider == 'email') {
         try {
-          print('네이버 로그인 시작...');
-          // 네이버 SDK로 로그인 (최신 버전 API)
-          final NaverLoginResult loginResult = await FlutterNaverLogin.logIn().timeout(
-            const Duration(seconds: 60),
-            onTimeout: () {
-              print('네이버 로그인 타임아웃');
-              return NaverLoginResult(
-                status: NaverLoginStatus.error,
-                errorMessage: '로그인 시간이 초과되었습니다.',
-              );
-            },
+          print('이메일/비밀번호 로그인 시작...');
+          success = await authProvider.signInWithEmailAndPassword(
+            _emailController.text.trim(),
+            _passwordController.text,
           );
-          print('네이버 로그인 결과: status=${loginResult.status}, errorMessage=${loginResult.errorMessage}');
-          print('네이버 로그인 결과 상세: accessToken=${loginResult.accessToken}, account=${loginResult.account}');
           
-          // 로그인 성공 확인
-          if (loginResult.status == NaverLoginStatus.loggedIn) {
-            print('네이버 로그인 성공');
-            // NaverLoginResult에 이미 account가 포함되어 있음
-            final account = loginResult.account;
-            print('네이버 계정 정보: account=${account?.email}');
-            
-            if (account != null) {
-              // 이메일이 없으면 에러
-              if (account.email == null || account.email!.isEmpty) {
-                throw Exception('네이버 로그인: 이메일 정보가 없습니다. 네이버 계정 설정에서 이메일 제공을 허용해주세요.');
-              }
-              
-              // AuthProvider를 통해 Firebase에 사용자 생성 및 Firestore 저장
-              success = await authProvider.signInWithNaver(
-                email: account.email!,
-                name: account.name ?? account.nickname ?? '네이버 사용자',
-                photoUrl: account.profileImage,
-                naverId: account.id,
-              );
-              
-              // Firestore에서 닉네임 확인
-              if (success && authProvider.user != null) {
-                final userDoc = await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(authProvider.user!.uid)
-                    .get();
-                isNewUser = !userDoc.exists || userDoc.data()?['nickname'] == null;
-              }
-            } else {
-              // account가 없으면 getCurrentAccount()로 다시 시도
-              final NaverAccountResult accountResult = await FlutterNaverLogin.getCurrentAccount();
-              
-              // 이메일이 없으면 에러
-              if (accountResult.email == null || accountResult.email!.isEmpty) {
-                throw Exception('네이버 로그인: 이메일 정보가 없습니다. 네이버 계정 설정에서 이메일 제공을 허용해주세요.');
-              }
-              
-              // AuthProvider를 통해 Firebase에 사용자 생성 및 Firestore 저장
-              success = await authProvider.signInWithNaver(
-                email: accountResult.email!,
-                name: accountResult.name ?? accountResult.nickname ?? '네이버 사용자',
-                photoUrl: accountResult.profileImage,
-                naverId: accountResult.id,
-              );
-              
-              // Firestore에서 닉네임 확인
-              if (success && authProvider.user != null) {
-                final userDoc = await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(authProvider.user!.uid)
-                    .get();
-                isNewUser = !userDoc.exists || userDoc.data()?['nickname'] == null;
-              }
-            }
-          } else {
-            // 사용자가 로그인 취소 또는 오류
-            print('네이버 로그인 실패 또는 취소: status=${loginResult.status}, errorMessage=${loginResult.errorMessage}');
-            success = false;
-            if (loginResult.errorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('네이버 로그인 실패: ${loginResult.errorMessage}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
+          // Firestore에서 닉네임 확인
+          if (success && authProvider.user != null) {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(authProvider.user!.uid)
+                .get();
+            isNewUser = !userDoc.exists || userDoc.data()?['nickname'] == null;
           }
         } catch (e, stackTrace) {
-          print('네이버 로그인 예외 발생: $e');
+          print('이메일/비밀번호 로그인 예외 발생: $e');
           print('스택 트레이스: $stackTrace');
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('네이버 로그인 실패: ${e.toString()}'),
+              content: Text('로그인 실패: ${e.toString()}'),
               backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-      } else if (provider == 'kakao') {
-        try {
-          // 카카오 로그인은 아직 구현되지 않음
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('카카오 로그인은 추후 구현 예정입니다'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          return;
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('카카오 로그인은 추후 구현 예정입니다'),
-              backgroundColor: Colors.orange,
             ),
           );
           return;
@@ -228,9 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (success) {
-        if (isNewUser && (provider == 'google' || provider == 'naver')) {
-          // 첫 로그인 시 닉네임 입력
-          _nicknameController.clear();
+        if (isNewUser && (provider == 'google' || provider == 'email')) {
+          // 첫 로그인 시 닉네임 입력 화면으로 이동
           await _showNicknameInputDialog(authProvider);
         } else {
           _handleLoginSuccess(authProvider, '로그인');
@@ -356,6 +228,93 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 40),
+                  // 이메일/비밀번호 로그인
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.none,
+                    decoration: const InputDecoration(
+                      labelText: '이메일',
+                      hintText: '이메일을 입력하세요',
+                      prefixIcon: Icon(Icons.email),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    keyboardType: TextInputType.visiblePassword,
+                    textInputAction: TextInputAction.done,
+                    textCapitalization: TextCapitalization.none,
+                    decoration: InputDecoration(
+                      labelText: '비밀번호',
+                      hintText: '비밀번호를 입력하세요',
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // 이메일/비밀번호 로그인 버튼
+                  ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            if (_emailController.text.trim().isEmpty ||
+                                _passwordController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('이메일과 비밀번호를 입력해주세요'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                              return;
+                            }
+                            _handleSocialLogin(authProvider, 'email');
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      '이메일로 로그인',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textWhite,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // 구분선
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          '또는',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   // 구글 로그인 버튼
                   _buildSocialLoginButton(
                     '구글 로그인',
@@ -363,24 +322,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     Colors.black87,
                     Icons.g_mobiledata,
                     () => _handleSocialLogin(authProvider, 'google'),
-                  ),
-                  const SizedBox(height: 12),
-                  // 네이버 로그인 버튼
-                  _buildSocialLoginButton(
-                    '네이버 로그인',
-                    const Color(0xFF03C75A),
-                    Colors.white,
-                    Icons.account_circle,
-                    () => _handleSocialLogin(authProvider, 'naver'),
-                  ),
-                  const SizedBox(height: 12),
-                  // 카카오 로그인 버튼
-                  _buildSocialLoginButton(
-                    '카카오 로그인',
-                    const Color(0xFFFEE500),
-                    Colors.black87,
-                    Icons.chat_bubble,
-                    () => _handleSocialLogin(authProvider, 'kakao'),
                   ),
                   const SizedBox(height: 24),
                   // 안내 문구
