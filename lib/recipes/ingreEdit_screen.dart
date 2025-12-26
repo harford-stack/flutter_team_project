@@ -5,6 +5,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/shakeCheck_widget.dart';
+import 'package:flutter_team_project/recipes/ingreTextList_widget.dart';
 
 class IngreeditScreen extends StatefulWidget {
   const IngreeditScreen({super.key});
@@ -14,6 +15,9 @@ class IngreeditScreen extends StatefulWidget {
 }
 
 class _IngreeditScreenState extends State<IngreeditScreen> {
+
+  List<String> _selectedIngredients = []; // 화면에서 관리하는 선택 재료 리스트
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

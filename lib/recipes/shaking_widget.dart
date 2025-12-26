@@ -1,7 +1,10 @@
-// 쉐킷중(로딩바) 화면 흔들기 팝업
+// 쉐킷중(로딩바) 화면 흔들기 팝업 위젯
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/recipes/recipesList_screen.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:shake/shake.dart';
 
 class ShakingWidget extends StatefulWidget {
   const ShakingWidget({super.key});
@@ -11,6 +14,48 @@ class ShakingWidget extends StatefulWidget {
 }
 
 class _ShakingWidgetState extends State<ShakingWidget> {
+  double _percent = 0.0;
+  late ShakeDetector detector;
+  bool _hasNavigated = false; // 한 번만 이동하도록 플래그
+
+  @override
+  void initState() {
+    super.initState();
+
+    detector = ShakeDetector.autoStart(
+      shakeThresholdGravity: 1.5, // 민감도를 높임 (shake 패키지의 기본 민감도(shakeThresholdGravity = 2.7))
+      onPhoneShake: (event) {
+
+        // 흔들림 감지 시 로딩바 증가
+        setState(() {
+          _percent += 0.1; // 흔들기마다 10%씩 증가
+          if (_percent > 1.0) {
+            _percent = 1.0;
+            _navigateToRecipes(); // 100% 도달 시 이동
+          }
+        });
+      },
+    );
+  }
+
+  void _navigateToRecipes() {
+    _hasNavigated = true; // 중복 이동 방지
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecipeslistScreen(),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    detector.stopListening(); // 메모리 누수 방지
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -67,7 +112,17 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                       SizedBox(height: 20),
 
                       // 로딩바(percent_indicator) 위젯 가져오기
-
+                      LinearPercentIndicator(
+                        width: MediaQuery.of(context).size.width * 0.65,
+                        animation: false, // true로 하면 로딩바가 0부터 계속 초기화
+                        lineHeight: 30.0,
+                        animationDuration: 300,
+                        percent: _percent,
+                        center: Text("${(_percent * 100).toStringAsFixed(0)}%"),
+                        linearStrokeCap: LinearStrokeCap.roundAll,
+                        progressColor: Colors.blue[100], // 공통컬러 넣을 예정
+                        barRadius: Radius.circular(10.0),
+                      ),
 
                     ],
                   ),
