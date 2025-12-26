@@ -27,7 +27,7 @@ class Regist extends StatefulWidget {
 
 class _RegistState extends State<Regist> {
   final ImagePicker _picker = ImagePicker();
-  // File? _image;
+  File? _image;
 
   Future<void> _pickFromCamera() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
