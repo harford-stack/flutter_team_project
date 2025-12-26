@@ -54,3 +54,9 @@ GoogleService-Info.plist
 
 # API Keys
 lib/config/api_keys.dart
+
+# 네이버 로그인 설정은 strings.xml에 플레이스홀더로 Git에 포함됨
+# 빌드 시 .env 파일의 값으로 자동 치환됩니다
+# android/app/src/main/res/values/strings.xml
+
+pubspec.lock

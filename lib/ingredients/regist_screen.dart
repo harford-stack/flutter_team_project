@@ -2,26 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-void main() {
-  runApp(const MyApp());
-}
-
-// MaterialApp을 별도로 분리
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class IngredientRegistScreen extends StatelessWidget {
+  const IngredientRegistScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Regist(),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.add_circle_outline,
+              size: 80,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '재료 등록 화면',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '추후 구현 예정',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-              )   ,
-            ],
-          ),
-        )
 class Regist extends StatefulWidget {
   const Regist({super.key});
 

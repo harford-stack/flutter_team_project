@@ -1,6 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'auth/splash_screen.dart';
+import 'auth/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,15 +18,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '플러터 팀 프로젝트',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
-      home: Scaffold(
-        body: Center(
-          child: Text('플러터 팀 프로젝트'),
+    return ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
+      child: MaterialApp(
+        title: '어플 이름',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         ),
+        home: const SplashScreen(),
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
