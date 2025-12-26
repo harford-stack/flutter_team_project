@@ -4,6 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/ingreEdit_screen.dart';
 import 'package:flutter_team_project/recipes/shakeCheck_widget.dart';
+import 'package:flutter_team_project/recipes/ingreTextList_widget.dart';
+import '../common/app_colors.dart';
+import '../common/custom_appbar.dart';
+import '../common/custom_footer.dart';
 
 class IngrecheckScreen extends StatefulWidget {
   const IngrecheckScreen({super.key});
@@ -23,6 +27,9 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text("인식 결과", style: TextStyle(fontSize: 25),),
+            SizedBox(height: 30), // 간격 두기
+
             Container(
               width: 300,
               height: 200,
@@ -48,8 +55,10 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                 ),
               ],
             ),
+            SizedBox(height: 30), // 간격 두기
 
-            // 인식된 재료명 나열할거임!(위젯 임포트 예정)
+            // 인식된 재료명 나열할거임!
+            IngreTextListWidget(detectedIngredients: detectedIngredients),
 
             SizedBox(height: 30), // 간격 두기
             Row(
@@ -57,11 +66,23 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
               children: [
                 ElevatedButton(
                     onPressed: (){ // 쉐킷 팝업창 띄우기
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false, // 바깥 터치로 닫히지 않게
-                        builder: (_) => const ShakeCheck(),
-                      );
+                      // 재료가 0개인지 확인
+                      if (detectedIngredients.isEmpty) {
+                        // 0개라면 안내 스낵바 띄우기
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
+                            duration: Duration(seconds: 2), // 2초 동안 표시
+                            behavior: SnackBarBehavior.floating, // 떠 있는 스타일 (선택사항)
+                          ),
+                        );
+                    } else { // 재료가 1개 이상일 시
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false, // 바깥 터치로 닫히지 않게
+                          builder: (_) => ShakeCheck(),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(140, 60),
@@ -69,6 +90,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                     child: Text("이대로\n레시피 추천받기", textAlign: TextAlign.center)
                 ),
                 SizedBox(width: 25), // 간격 두기
+
                 ElevatedButton(
                     onPressed: (){
                       Navigator.push(

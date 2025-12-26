@@ -29,7 +29,7 @@ class ShakeCheck extends StatelessWidget {
                   Expanded(
                     flex: 8,
                     child: Image.asset(
-                      'assets/shake_chk.png',
+                      "assets/shake_chk.png",
                       fit: BoxFit.contain, // 세로 긴 이미지 안전
                     ),
                   ),
