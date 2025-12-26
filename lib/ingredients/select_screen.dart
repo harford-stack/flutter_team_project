@@ -24,15 +24,19 @@ class _SelectScreenState extends State<SelectScreen> {
   List<String> categoryList = [];
   List<String> categoryTabs = [];
 
+  List<String> ingredientList = [];
+
   int selectedCategoryIndex = 0;
+
+  final Set<int> selectedIngredients = {};
 
   Future<void> _getCategory() async {
     final snapshot = await fs.collection('ingredients').get();
 
     final List<String> categories = snapshot.docs
-      .map((doc) => doc['category'] as String)
-      .toSet()
-      .toList();
+        .map((doc) => doc['category'] as String)
+        .toSet()
+        .toList();
 
     categories.remove('기타');
 
@@ -42,17 +46,29 @@ class _SelectScreenState extends State<SelectScreen> {
       categoryList = categories;
       categoryTabs = ['전체', ...categoryList, '기타'];
       print(categoryTabs);
+      _getIngredients();
     });
   }
 
   Future<void> _getIngredients() async {
-    final snapshot = await fs.collection('name').get();
+    String selectedCategory = categoryTabs[selectedCategoryIndex];
+
+    Query query = fs.collection('ingredients');
+
+    if (selectedCategory != "전체") {
+      query = query.where('category', isEqualTo: selectedCategory);
+    }
+
+    final snapshot = await query.get();
 
     final List<String> ingredients = snapshot.docs
-      .map((doc)=>doc['name'] as String)
-      .toList();
+        .map((doc)=>doc['name'] as String)
+        .toList();
 
-
+    setState(() {
+      ingredientList = ingredients;
+      print(ingredientList);
+    });
   }
 
   @override
@@ -61,15 +77,18 @@ class _SelectScreenState extends State<SelectScreen> {
     super.initState();
     _getCategory();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         body: Column(
           children: [
-            // SizedBox(height: 50,),
-            _categoryBar()
+            searchIngredients(),
+            _categoryBar(),
+            Expanded(
+                child: ingredientsGrid()
+            )
           ],
         ),
       ),
@@ -80,37 +99,103 @@ class _SelectScreenState extends State<SelectScreen> {
     return SizedBox(
       height: 44,
       child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: categoryTabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: categoryTabs.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final isSelected = index == selectedCategoryIndex;
+            return GestureDetector(
+              onTap: (){
+                setState(() {
+                  selectedCategoryIndex = index;
+                  print(categoryTabs[selectedCategoryIndex]);
+                  _getIngredients();
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.blueAccent : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.blueAccent),
+                ),
+                child: Text(
+                  categoryTabs[index],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+
+                  ),
+                ),
+              ),
+            );
+          }
+      ),
+    );
+  }
+
+  Widget ingredientsGrid() {
+    return GridView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: ingredientList.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1
+        ),
         itemBuilder: (context, index) {
-          final isSelected = index == selectedCategoryIndex;
+          final isSelected = selectedIngredients.contains(index);
+
           return GestureDetector(
             onTap: (){
               setState(() {
-                selectedCategoryIndex = index;
+                if (isSelected) {
+                  selectedIngredients.remove(index);
+                } else {
+                  selectedIngredients.add(index);
+                }
+
+                final selectedNames = selectedIngredients.map((i)=>ingredientList[i]).toList();
+                print('$selectedNames');
               });
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isSelected ? Colors.blueAccent : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blueAccent),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(12),
+                border: isSelected
+                    ? Border.all(color: Colors.blueAccent, width: 2)
+                    : null,
               ),
-              child: Text(
-                categoryTabs[index],
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
-
-                ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      ingredientList[index],
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if(isSelected)
+                    const Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.blueAccent,
+                        size: 20,
+                      )
+                    )
+                ],
               ),
             ),
           );
         }
-      ),
     );
+  }
+
+  Widget searchIngredients() {
+    return TextField();
   }
 }
