@@ -18,6 +18,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
+              )   ,
+            ],
+          ),
+        )
 class Regist extends StatefulWidget {
   const Regist({super.key});
 
