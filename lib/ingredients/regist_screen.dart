@@ -17,9 +17,7 @@ class regist extends StatelessWidget {
             children: [
               Container(
 
-              ),
-
-              Container()
+              )   ,
             ],
           ),
         )
