@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_team_project/community/community_list_screen.dart';
+import 'package:firebase_core/firebase_core.dart';  // ✅ 添加这个导入
+import 'package:flutter_team_project/community/screens/community_list_screen.dart';
+import '../firebase_options.dart';  // ✅ 改成 ../ (返回上一级目录)
 
-void main() {
-  runApp(const TempMain());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const TempMain());  // ✅ 改成 TempMain
 }
 
 class TempMain extends StatelessWidget {

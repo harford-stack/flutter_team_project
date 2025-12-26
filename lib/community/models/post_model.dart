@@ -15,6 +15,7 @@ class Post {
   final String nickName;
   final int commentCount;
   final int bookmarkCount;
+  final String thumbnailUrl;
   final DateTime cdate;
   final DateTime? udate; // 更新时间（可能为null）=>type后面加问号
 
@@ -30,6 +31,7 @@ class Post {
     required this.nickName,
     required this.commentCount,
     required this.bookmarkCount,
+    required this.thumbnailUrl,
     required this.cdate,
     this.udate,
   });
@@ -49,6 +51,7 @@ class Post {
       nickName:data['nickName'] ??'익명',
       commentCount: data['commentCount'] ?? 0,
       bookmarkCount: data['bookmarkCount'] ?? 0,
+      thumbnailUrl: data['thumbnailUrl'] ?? '',
       cdate: (data['cdate'] as Timestamp).toDate(),//Firestore 里的时间不是 DateTime，而是 Timestamp，Flutter 里要用，必须手动把它“转型”。
       udate: data['udate'] != null
           ? (data['udate'] as Timestamp).toDate()
@@ -68,6 +71,7 @@ class Post {
       'nickName': nickName,
       'commentCount':commentCount,
       'bookmarkCount':bookmarkCount,
+      'thumbnailUrl':thumbnailUrl,
       'cdate': Timestamp.fromDate(cdate),
       'udate': udate != null ? Timestamp.fromDate(udate!) : null,
     };
