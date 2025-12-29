@@ -1,6 +1,27 @@
+//재료 입력 화면
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../common/app_colors.dart';
+import '../common/custom_appbar.dart';
+
+import 'select_screen.dart';
+// import 'image_confirm.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(const MaterialApp(
+    home: Regist(),  // 또는 IngredientRegistScreen()
+  ));
+}
 
 class IngredientRegistScreen extends StatelessWidget {
   const IngredientRegistScreen({super.key});
@@ -74,14 +95,18 @@ class _RegistState extends State<Regist> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      appBar: CustomAppBar(
+        appName: '재료 등록',
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade300,
-                foregroundColor: Colors.black,
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: AppColors.textWhite,
                 elevation: 0,
                 minimumSize: const Size(200, 50),
                 shape: RoundedRectangleBorder(
@@ -106,8 +131,8 @@ class _RegistState extends State<Regist> {
                               width: 150,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFF7A7A),
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: AppColors.textWhite,
                                   elevation: 0,
                                   // minimumSize: const Size(20, 48),
                                   shape: RoundedRectangleBorder(
@@ -125,8 +150,8 @@ class _RegistState extends State<Regist> {
                               width: 150,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFF7A7A),
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: AppColors.textWhite,
                                   elevation: 0,
                                   // minimumSize: const Size(20, 48),
                                   shape: RoundedRectangleBorder(
@@ -151,15 +176,20 @@ class _RegistState extends State<Regist> {
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade300,
-                foregroundColor: Colors.black,
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: AppColors.textWhite,
                 elevation: 0,
                 minimumSize: const Size(200, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_)=>SelectScreen())
+                );
+              },
               child: const Text("목록에서 선택"),
             ),
           ],
