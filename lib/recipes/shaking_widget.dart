@@ -3,12 +3,13 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/recipes/recipe_model.dart';
 import 'package:flutter_team_project/recipes/recipesList_screen.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:shake/shake.dart';
 
 class ShakingWidget extends StatefulWidget {
-  final Future<List<dynamic>> recipeTask; // 추가) AI 작업 수신
+  final Future<List<RecipeModel>> recipeTask; // 추가) AI 작업 수신
   const ShakingWidget({super.key, required this.recipeTask});
 
   @override
@@ -19,7 +20,7 @@ class _ShakingWidgetState extends State<ShakingWidget> {
   double _percent = 0.0;
   late ShakeDetector detector;
   bool _hasNavigated = false; // 한 번만 이동하도록 플래그
-  List<dynamic>? _aiResult; // 데이터 임시 저장(AI 결과를 담아둘 변수 추가)
+  List<RecipeModel>? _aiResult; // 데이터 임시 저장(AI 결과를 담아둘 변수 추가)
 
   @override
   void initState() {
@@ -30,7 +31,8 @@ class _ShakingWidgetState extends State<ShakingWidget> {
       _aiResult = data;
       _navigateToRecipes(); // 혹시 이미 100%면 이동
     }).catchError((e) {
-      Navigator.pop(context); // 에러 시 닫기
+      debugPrint('AI error: $e'); // 에러 시 로그 남기고
+      Navigator.pop(context); //  닫기
     });
 
     detector = ShakeDetector.autoStart(
@@ -39,7 +41,7 @@ class _ShakingWidgetState extends State<ShakingWidget> {
 
         // 흔들림 감지 시 로딩바 증가
         setState(() {
-          _percent += 0.1; // 흔들기마다 10%씩 증가
+          _percent += 0.2; // 흔들기마다 20%씩 증가
           if (_percent > 1.0) {
             _percent = 1.0;
             _navigateToRecipes(); // 100% 도달 시 이동
@@ -50,8 +52,10 @@ class _ShakingWidgetState extends State<ShakingWidget> {
   }
 
   void _navigateToRecipes() {
-    // [중요 수정] 데이터가 아직 없거나 이미 이동 중이면 실행하지 않음
-    if (_aiResult == null || _hasNavigated) return;
+    // 데이터가 아직 없거나(ai응답이 없거나) 이미 이동 중이면 실행하지 않음
+    if (!mounted || _hasNavigated) return;
+    if (_aiResult == null) return;
+    if (_percent < 1.0) return;
 
     _hasNavigated = true; // 중복 이동 방지
     Future.delayed(const Duration(milliseconds: 300), () {

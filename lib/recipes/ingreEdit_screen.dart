@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
+import '../ingredients/select_screen.dart';
 import '../providers/temp_ingre_provider.dart';
 
 class IngreeditScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                 children: [
                   ElevatedButton(
                       onPressed: (){
-                        // 로그인 여부 확인 위
+                        // 로그인 여부 확인 위해
                         final authProvider = context.read<AuthProvider>();
 
                         showDialog(
@@ -80,7 +81,11 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(context);
-                                      Navigator.pushNamed(context, " "); // 재료목록 화면으로 이동 예정
+                                      // 재료목록 화면으로 이동
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => SelectScreen()),
+                                      );
                                     },
                                     child: Text("재료 목록에서 선택하기"),
                                   ),
@@ -136,11 +141,23 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                   // 레시피 추천받기 버튼
                   ElevatedButton(
                       onPressed: (){
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false, // 바깥 터치로 닫히지 않게
-                          builder: (_) => const ShakeCheck(), // 지금 쉐킷하기 팝업
-                        );
+                        // 재료가 0개인지 확인
+                        if (ingredients.isEmpty) {
+                          // 0개라면 안내 스낵바 띄우기
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
+                              duration: Duration(seconds: 2), // 2초 동안 표시
+                              behavior: SnackBarBehavior.floating, // 떠 있는 스타일 (선택사항)
+                            ),
+                          );
+                        } else { // 재료가 1개 이상일 시
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false, // 바깥 터치로 닫히지 않게
+                            builder: (_) => ShakeCheck(),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(140, 60),
@@ -149,7 +166,21 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                   ),
                   SizedBox(width: 25), // 간격 두기
                   ElevatedButton(
-                      onPressed: (){ },
+                      onPressed: (){
+                        // 로그인 여부 확인 위해
+                        final authProvider = context.read<AuthProvider>();                        
+                        
+                        if (authProvider.isAuthenticated) {
+                          // 로그인 상태면 내 냉장고로 재료등록 함수.. (차후 넣을 예정)
+                          Navigator.pushNamed(context, ""); // 내용 수정 예정
+                        } else {
+                          // 비로그인 상태면 로그인 화면으로 이동
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginScreen()),
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(140, 60),
                       ),

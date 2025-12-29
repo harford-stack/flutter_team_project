@@ -3,9 +3,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/recipeDetail_screen.dart';
+import 'recipe_model.dart'; // ★ 추가: 모델 임포트
 
 class RecipeslistScreen extends StatefulWidget {
-  final List<dynamic> recipes; // 데이터를 받을 변수 추가
+  final List<RecipeModel> recipes; // 데이터를 받을 변수 추가
   const RecipeslistScreen({super.key, required this.recipes}); // 생성자 수정
 
   @override
@@ -57,14 +58,18 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
   }
 }
 // 레시피 카드 위젯 (데이터 반영, 인자에 recipe 추가)
-Widget _buildRecipeCard(BuildContext context, dynamic recipe) {
+Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
+  // ★ 추가: 파생값은 함수 맨 위에서 계산
+  final extraCount = recipe.ingredients.length - 1;
+
   return GestureDetector(
     onTap: () {
       // 개별 카드를 눌렀을 때 상세페이지로 이동
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const RecipedetailScreen(),
+          // ★ 상세화면 생성자에서 RecipeModel을 받도록 수정하면 데이터 전달 가능
+          builder: (context) => RecipedetailScreen(recipe: recipe),
         ),
       );
     },
@@ -83,7 +88,7 @@ Widget _buildRecipeCard(BuildContext context, dynamic recipe) {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                recipe["요리 제목"] ?? "제목 없음", // JSON 키값 적용
+                recipe.title, // ★ 변경: JSON 키값 대신 모델 속성 사용
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               // 북마크 아이콘 버튼
@@ -99,7 +104,7 @@ Widget _buildRecipeCard(BuildContext context, dynamic recipe) {
           ),
           SizedBox(height: 10),
           Text(
-            recipe["과정"][0] ?? "상세 내용 없음", // 첫 번째 조리 과정 미리보기
+            recipe.description, // ★ 변경: 모델에 저장된 요약(첫 번째 과정) 사용
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 14, color: Colors.black87),
@@ -108,12 +113,22 @@ Widget _buildRecipeCard(BuildContext context, dynamic recipe) {
           Row(
             children: [
               // 첫 번째 재료 이름 표시
-              _buildIngredientTag(recipe["재료"][0]["이름"]),
-              const SizedBox(width: 12),
-              Text(
-                "외 ${recipe["재료"].length - 1}개",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+              _buildIngredientTag(
+                  recipe.ingredients.isNotEmpty
+                  ? recipe.ingredients[0]["이름"]!
+                  : "재료"
               ),
+              const SizedBox(width: 12),
+
+              // ~ 외 n개 표시할 때, 재료 개수가 0개나 마이너스인 경우 피하도록
+              if (extraCount > 0)
+                Text(
+                  "외 $extraCount개",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
+                ),
             ],
           ),
         ],
