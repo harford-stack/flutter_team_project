@@ -124,6 +124,7 @@ class _NicknameInputScreenState extends State<NicknameInputScreen> {
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
                 textCapitalization: TextCapitalization.none,
+                enableInteractiveSelection: true,
                 enabled: !_isLoading,
                 maxLength: 20,
                 decoration: const InputDecoration(

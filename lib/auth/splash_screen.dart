@@ -51,34 +51,9 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // GIF 아이콘 (임시로 아이콘 사용, 나중에 실제 GIF로 교체 가능)
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.restaurant_menu,
-                size: 80,
-                color: AppColors.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 30),
-            // 어플 이름
-            const Text(
-              '어플 이름',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-          ],
+        child: Image.asset(
+          'assets/image_splash.png',
+          fit: BoxFit.contain,
         ),
       ),
     );
