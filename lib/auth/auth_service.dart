@@ -204,5 +204,35 @@ class AuthService {
       rethrow;
     }
   }
+
+  // 닉네임으로 이메일 찾기
+  Future<String?> findEmailByNickname(String nickname) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('nickname', isEqualTo: nickname)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final userData = querySnapshot.docs.first.data();
+        return userData['email'] as String?;
+      }
+      return null;
+    } catch (e) {
+      print('이메일 찾기 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 비밀번호 재설정 이메일 전송
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('비밀번호 재설정 이메일 전송 오류: $e');
+      rethrow;
+    }
+  }
 }
 

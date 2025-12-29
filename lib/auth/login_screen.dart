@@ -5,6 +5,8 @@ import '../common/app_colors.dart';
 import 'auth_provider.dart';
 import 'home_screen.dart';
 import 'nickname_input_screen.dart';
+import 'find_email_screen.dart';
+import 'reset_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -330,6 +332,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppColors.textWhite,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  // 아이디/비밀번호 찾기 링크
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const FindEmailScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          '이메일 찾기',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 16,
+                        color: Colors.grey[400],
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ResetPasswordScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          '비밀번호 찾기',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   // 구분선

@@ -127,5 +127,23 @@ class AuthProvider extends ChangeNotifier {
       rethrow;
     }
   }
+
+  // 닉네임으로 이메일 찾기
+  Future<String?> findEmailByNickname(String nickname) async {
+    try {
+      return await _authService.findEmailByNickname(nickname);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 비밀번호 재설정 이메일 전송
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _authService.sendPasswordResetEmail(email);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
