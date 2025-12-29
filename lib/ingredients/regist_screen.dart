@@ -7,13 +7,15 @@ import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 
 import 'select_screen.dart';
-// import 'image_confirm.dart';
+import 'image_confirm.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -76,8 +78,15 @@ class _RegistState extends State<Regist> {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
 
     if(pickedFile != null){
+      _image = File(pickedFile.path);
       setState(() {
-        _image = File(pickedFile.path);
+        Navigator.pop(context);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => ImageConfirm(imageFile:_image!),
+            )
+        );
       });
     }
   }
@@ -85,9 +94,17 @@ class _RegistState extends State<Regist> {
   Future<void> _pickFromGallery() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
+
     if(pickedFile != null){
+      _image = File(pickedFile.path);
       setState(() {
-        _image = File(pickedFile.path);
+        Navigator.pop(context);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => ImageConfirm(imageFile:_image!),
+            )
+        );
       });
     }
   }
