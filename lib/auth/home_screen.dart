@@ -4,7 +4,7 @@ import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_footer.dart';
 import '../ingredients/regist_screen.dart';
-import '../community/widgets/community_list_widget.dart';
+// import '../community/widgets/community_list_widget.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
 
@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const IngredientRegistScreen();
       case 2:
-        return const CommunityListWidget();
+        // return const CommunityListWidget();
       default:
         return _buildHomeContent();
     }
