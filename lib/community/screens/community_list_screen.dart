@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/post_model.dart';
 import '../services/post_service.dart';
+import 'community_detail_screen.dart';
 
 //category model
 class Category {
@@ -49,24 +50,42 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     _loadPosts();
   }
 
+
+  // function:postlist를 로드
   Future<void> _loadPosts() async {
+    //步骤1: 开始加载,显示加载动画
+    // setState 会触发页面重新构建
+    // _isLoading = true 会让 _buildPostList() 显示 CircularProgressIndicator
     setState(() => _isLoading = true);
 
+    // 步骤2: 筛选出用户选中的分类
+    // 例如:用户点击了"自由게시판",那么 selectedCategories = ['자유게시판']
     List<String> selectedCategories = categoryList
-        .where((cat) => cat.isSelected)
-        .map((cat) => cat.name)
-        .toList();
+        .where((cat) => cat.isSelected)// 筛选出 isSelected = true 的分类
+        .map((cat) => cat.name)// 只取分类的名字
+        .toList();// 转换成 List<String>
 
+    // 步骤3: 调用 PostService,去 Firestore 查询数据
     final posts = await _postService.getPosts(
-      searchQuery: _searchcontroller.text,
-      sortOrder: _sortOrder,
+      searchQuery: _searchcontroller.text,// 搜索框的内容
+      sortOrder: _sortOrder, // 排序方式 ('시간순' 或 '인기순')
       categories: selectedCategories, // 传递选中的分类
     );
 
+    // 这里会等待 Firestore 返回数据 (await)
+    // getPosts() 函数内部会:
+    // 1. 根据 categories 筛选
+    // 2. 根据 sortOrder 排序
+    // 3. 根据 searchQuery 本地搜索
+    // 4. 返回 List<Post>
+
+    // 步骤4: 数据返回后,更新界面
     setState(() {
-      _posts = posts;
-      _isLoading = false;
+      _posts = posts;   // 把查询到的帖子列表赋值给 _posts
+      _isLoading = false;// 关闭加载动画
     });
+    // setState 再次触发页面重新构建
+    // 这次 _isLoading = false,会显示帖子列表
   }
 
   Future<String> getUserAvatar(String userId) async {
@@ -117,13 +136,32 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
 
           SizedBox(height: 12),
 
-          //두번째 행의 dropdown
-          // 第二行：右侧对齐的 Dropdown
+          //第二行：分类按钮 + 排序
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              //자유게시판-문의사항 필터링
+              Wrap(
+                spacing: 8,
+                children: categoryList.map((cat) {
+                  return CategoryButton(
+                    text: cat.name,
+                    isSelected: cat.isSelected,
+                    onTap: () {
+                      setState(() {
+                        cat.isSelected = !cat.isSelected;
+                        categoryList = List.from(categoryList);
+                      });
+                      _loadPosts();
+                    },
+                  );
+                }).toList(),
+              ),
+
+              Spacer(), // 把排序推到右边
+
+              //dropdown
               SizedBox(
-                width: 100, // 固定宽度
+                width: 100,
                 child: DropdownButtonFormField<String>(
                   value: _sortOrder,
                   decoration: const InputDecoration(
@@ -140,35 +178,10 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
                     setState(() {
                       _sortOrder = value!;
                     });
-                    _loadPosts(); //排序改变时重新加载
+                    _loadPosts();
                   },
                 ),
               ),
-
-              //자유게시판-문의사항 필터링
-              // Row(
-              //   children: [
-              //     Wrap(
-              //       spacing: 8, // 横向间距
-              //       runSpacing: 8, // 换行间距
-              //       children: categoryList.map((cat) {
-              //         return CategoryButton(
-              //           text: cat.name,
-              //           isSelected: cat.isSelected,
-              //           onTap: () {
-              //             setState(() {
-              //               cat.isSelected = !cat.isSelected;
-              //               // 强制触发列表更新
-              //               categoryList = List.from(categoryList);
-              //             });
-              //             _loadPosts();
-              //           },
-              //         );
-              //       }).toList(),
-              //     )
-              //   ],
-              //
-              // )
             ],
           ),
         ],
@@ -212,6 +225,12 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
               child: InkWell(
                 onTap: () {
                   //detail에 들어가기
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PostDetailScreen(postId: post.id),
+                    ),
+                  );
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -302,9 +321,6 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     );
   }
 
-
-
-
   //dispose
   @override
   void dispose(){
@@ -318,13 +334,13 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
 
     return Scaffold(
       //1. 앱바
-        appBar:AppBar(
-          //통일 appBar
+      appBar:AppBar(
+        //통일 appBar
 
-        ),
+      ),
 
-        //2. 바디
-        body: Container(
+      //2. 바디
+      body: Container(
           child:Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -334,14 +350,54 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
               _buildPostList(),
             ],
           )
+      ),
+
+      //밑에 있는 네이버 바
+      bottomNavigationBar: BottomAppBar(
+        //통일 bottomnaverbar
+      ),
+    );
+
+
+  }
+}
+
+
+class CategoryButton extends StatelessWidget {
+  final String text;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const CategoryButton({
+    Key? key,
+    required this.text,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isSelected ? Colors.black : Colors.grey[400]!,
+            width: isSelected ? 2 : 1,
+          ),
         ),
-
-        //밑에 있는 네이버 바
-        bottomNavigationBar: BottomAppBar(
-          //통일 bottomnaverbar
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
-      );
-
-
+      ),
+    );
   }
 }
