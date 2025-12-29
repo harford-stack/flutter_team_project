@@ -1,4 +1,5 @@
 // 쉐킷중(로딩바) 화면 흔들기 팝업 위젯
+// 로딩바 100%와 AI 데이터 수신이 모두 완료되었을 때 레시피 목록으로 화면 넘기기
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,8 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:shake/shake.dart';
 
 class ShakingWidget extends StatefulWidget {
-  const ShakingWidget({super.key});
+  final Future<List<dynamic>> recipeTask; // 추가) AI 작업 수신
+  const ShakingWidget({super.key, required this.recipeTask});
 
   @override
   State<ShakingWidget> createState() => _ShakingWidgetState();
@@ -17,10 +19,19 @@ class _ShakingWidgetState extends State<ShakingWidget> {
   double _percent = 0.0;
   late ShakeDetector detector;
   bool _hasNavigated = false; // 한 번만 이동하도록 플래그
+  List<dynamic>? _aiResult; // 데이터 임시 저장(AI 결과를 담아둘 변수 추가)
 
   @override
   void initState() {
     super.initState();
+
+    // AI 데이터가 도착하면 변수에 담기 & 이동 시도
+    widget.recipeTask.then((data) {
+      _aiResult = data;
+      _navigateToRecipes(); // 혹시 이미 100%면 이동
+    }).catchError((e) {
+      Navigator.pop(context); // 에러 시 닫기
+    });
 
     detector = ShakeDetector.autoStart(
       shakeThresholdGravity: 1.5, // 민감도를 높임 (shake 패키지의 기본 민감도(shakeThresholdGravity = 2.7))
@@ -39,12 +50,16 @@ class _ShakingWidgetState extends State<ShakingWidget> {
   }
 
   void _navigateToRecipes() {
+    // [중요 수정] 데이터가 아직 없거나 이미 이동 중이면 실행하지 않음
+    if (_aiResult == null || _hasNavigated) return;
+
     _hasNavigated = true; // 중복 이동 방지
     Future.delayed(const Duration(milliseconds: 300), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => RecipeslistScreen(),
+          // 결과를 다음 화면으로 넘겨줌
+          builder: (context) => RecipeslistScreen(recipes: _aiResult!),
         ),
       );
     });

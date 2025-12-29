@@ -1,11 +1,12 @@
-// 레시피 생성 목록화면
+// ai 레시피 생성 결과 목록 화면
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/recipeDetail_screen.dart';
 
 class RecipeslistScreen extends StatefulWidget {
-  const RecipeslistScreen({super.key});
+  final List<dynamic> recipes; // 데이터를 받을 변수 추가
+  const RecipeslistScreen({super.key, required this.recipes}); // 생성자 수정
 
   @override
   State<RecipeslistScreen> createState() => _RecipeslistScreenState();
@@ -43,9 +44,10 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20), // 좌우 여백 20
-              itemCount: 3,
+              itemCount: widget.recipes.length, // AI가 준 개수만큼 (기본 3개)
               itemBuilder: (context, index) {
-                return _buildRecipeCard(context); // 현재 화면의 context 전달
+                // 실제 데이터를 카드 위젯에 전달
+                return _buildRecipeCard(context, widget.recipes[index]);
               },
             ),
           ],
@@ -54,8 +56,8 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
     );
   }
 }
-// 레시피 카드 위젯 (↓인자값으로 BuildContext를 받음!)
-Widget _buildRecipeCard(BuildContext context) {
+// 레시피 카드 위젯 (데이터 반영, 인자에 recipe 추가)
+Widget _buildRecipeCard(BuildContext context, dynamic recipe) {
   return GestureDetector(
     onTap: () {
       // 개별 카드를 눌렀을 때 상세페이지로 이동
@@ -80,8 +82,8 @@ Widget _buildRecipeCard(BuildContext context) {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "스크램블 에그",
+              Text(
+                recipe["요리 제목"] ?? "제목 없음", // JSON 키값 적용
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               // 북마크 아이콘 버튼
@@ -95,20 +97,21 @@ Widget _buildRecipeCard(BuildContext context) {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          const Text(
-            "달걀을 깨서 ...... 달걀을 볶아\n소금과 후추로....",
+          SizedBox(height: 10),
+          Text(
+            recipe["과정"][0] ?? "상세 내용 없음", // 첫 번째 조리 과정 미리보기
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 14, color: Colors.black87),
           ),
           const SizedBox(height: 15),
           Row(
             children: [
-              _buildIngredientTag("달걀"),
-              const SizedBox(width: 8),
-              _buildIngredientTag("달걀"),
+              // 첫 번째 재료 이름 표시
+              _buildIngredientTag(recipe["재료"][0]["이름"]),
               const SizedBox(width: 12),
-              const Text(
-                "외 5개",
+              Text(
+                "외 ${recipe["재료"].length - 1}개",
                 style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
             ],
