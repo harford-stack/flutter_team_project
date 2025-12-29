@@ -1,15 +1,28 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import '../firebase_options.dart';
+//재료 선택 화면
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const SelectScreen());
-}
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../common/app_colors.dart';
+import '../common/custom_appbar.dart';
+import 'widget_search_bar.dart';
+import 'widget_category_bar.dart';
+import 'widget_ingredient_grid.dart';
+import 'service_ingredientFirestore.dart';
+
+// import '../recipes/ingreCheck_screen.dart';
+
+// import 'package:firebase_core/firebase_core.dart';
+// import '../firebase_options.dart';
+//
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
+//   runApp(const MaterialApp(
+//     home: SelectScreen(),
+//   ));
+// }
 
 class SelectScreen extends StatefulWidget {
   const SelectScreen({super.key});
@@ -19,183 +32,128 @@ class SelectScreen extends StatefulWidget {
 }
 
 class _SelectScreenState extends State<SelectScreen> {
-  final FirebaseFirestore fs = FirebaseFirestore.instance;
+  final IngredientService _service = IngredientService();
+  final TextEditingController _searchController = TextEditingController();
 
-  List<String> categoryList = [];
   List<String> categoryTabs = [];
-
   List<String> ingredientList = [];
+  List<String> filteredIngredients = [];
 
   int selectedCategoryIndex = 0;
-
-  final Set<int> selectedIngredients = {};
-
-  Future<void> _getCategory() async {
-    final snapshot = await fs.collection('ingredients').get();
-
-    final List<String> categories = snapshot.docs
-        .map((doc) => doc['category'] as String)
-        .toSet()
-        .toList();
-
-    categories.remove('기타');
-
-    categories.sort();
-
-    setState(() {
-      categoryList = categories;
-      categoryTabs = ['전체', ...categoryList, '기타'];
-      print(categoryTabs);
-      _getIngredients();
-    });
-  }
-
-  Future<void> _getIngredients() async {
-    String selectedCategory = categoryTabs[selectedCategoryIndex];
-
-    Query query = fs.collection('ingredients');
-
-    if (selectedCategory != "전체") {
-      query = query.where('category', isEqualTo: selectedCategory);
-    }
-
-    final snapshot = await query.get();
-
-    final List<String> ingredients = snapshot.docs
-        .map((doc)=>doc['name'] as String)
-        .toList();
-
-    setState(() {
-      ingredientList = ingredients;
-      print(ingredientList);
-    });
-  }
+  final Set<String> selectedIngredients = {};
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _getCategory();
+    _loadData();
+    _checkLoginStatus();
+  }
+
+  Future<void> _loadData() async {
+    categoryTabs = await _service.getCategories();
+    await _loadIngredients();
+  }
+
+  Future<void> _loadIngredients() async {
+    final ingredients = await _service.getIngredients(
+        categoryTabs[selectedCategoryIndex]
+    );
+
+    setState(() {
+      ingredientList = ingredients;
+      filteredIngredients = ingredients;
+    });
+  }
+
+  void _checkLoginStatus() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      print("로그인 상태: ${user.displayName}");
+    } else {
+      print("로그아웃 상태");
+    }
+  }
+
+  void _filterIngredients(String query) {
+    setState(() {
+      filteredIngredients = query.isEmpty
+          ? ingredientList
+          : ingredientList.where((name) => name.contains(query)).toList();
+    });
+  }
+
+  void _onCategoryChanged(int index) {
+    setState(() {
+      selectedCategoryIndex = index;
+      _searchController.clear();
+      _filterIngredients('');
+    });
+    _loadIngredients();
+  }
+
+  void _onIngredientTap(String name) {
+    setState(() {
+      if (selectedIngredients.contains(name)) {
+        selectedIngredients.remove(name);
+      } else {
+        selectedIngredients.add(name);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Column(
-          children: [
-            searchIngredients(),
-            _categoryBar(),
-            Expanded(
-                child: ingredientsGrid()
-            )
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      appBar: CustomAppBar(
+        appName: '재료 선택',
       ),
-    );
-  }
-
-  Widget _categoryBar() {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          itemCount: categoryTabs.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final isSelected = index == selectedCategoryIndex;
-            return GestureDetector(
-              onTap: (){
-                setState(() {
-                  selectedCategoryIndex = index;
-                  print(categoryTabs[selectedCategoryIndex]);
-                  _getIngredients();
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blueAccent : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.blueAccent),
-                ),
-                child: Text(
-                  categoryTabs[index],
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-
-                  ),
-                ),
-              ),
-            );
-          }
-      ),
-    );
-  }
-
-  Widget ingredientsGrid() {
-    return GridView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: ingredientList.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1
-        ),
-        itemBuilder: (context, index) {
-          final isSelected = selectedIngredients.contains(index);
-
-          return GestureDetector(
-            onTap: (){
-              setState(() {
-                if (isSelected) {
-                  selectedIngredients.remove(index);
-                } else {
-                  selectedIngredients.add(index);
-                }
-
-                final selectedNames = selectedIngredients.map((i)=>ingredientList[i]).toList();
-                print('$selectedNames');
-              });
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(12),
-                border: isSelected
-                    ? Border.all(color: Colors.blueAccent, width: 2)
-                    : null,
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(
-                      ingredientList[index],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  if(isSelected)
-                    const Positioned(
-                      top: 6,
-                      left: 6,
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Colors.blueAccent,
-                        size: 20,
-                      )
-                    )
-                ],
-              ),
+      body: Column(
+        children: [
+          IngredientSearchBar(
+            controller: _searchController,
+            onChanged: _filterIngredients,
+          ),
+          CategoryBar(
+            categories: categoryTabs,
+            selectedIndex: selectedCategoryIndex,
+            onCategoryChanged: _onCategoryChanged,
+          ),
+          Expanded(
+            child: IngredientGrid(
+              ingredients: filteredIngredients,
+              selectedIngredients: selectedIngredients,
+              onIngredientTap: _onIngredientTap,
             ),
-          );
-        }
+          ),
+        ],
+      ),
+      floatingActionButton: selectedIngredients.isNotEmpty
+          ? ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                backgroundColor: AppColors.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: () {
+                print(selectedIngredients);
+                List<String> selectedList = selectedIngredients.toList();
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (_)=> IngrecheckScreen(selectedIngredients: selectedList)
+                //     )
+                // );
+              },
+              child: const Text(
+                "확인",
+                style: TextStyle(color: AppColors.textWhite),
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-  }
-
-  Widget searchIngredients() {
-    return TextField();
   }
 }

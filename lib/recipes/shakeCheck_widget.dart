@@ -1,7 +1,15 @@
 // 쉐킷하시겠어요? 팝업 (위젯)
+// '지금 쉐-킷!' 버튼 누르는 순간 
+// Provider에서 재료를 가져와 AI 호출을 시작하고, 
+// 그 Future(작업)를 다음 화면으로 넘겨주는 화면
 
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/recipes/recipe_ai_service.dart';
 import 'package:flutter_team_project/recipes/shaking_widget.dart';
+
+import 'package:provider/provider.dart';
+import 'package:flutter_team_project/providers/temp_ingre_provider.dart';
+import 'package:flutter_team_project/recipes/recipe_ai_service.dart';
 
 class ShakeCheck extends StatelessWidget {
   const ShakeCheck({super.key});
@@ -43,15 +51,24 @@ class ShakeCheck extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () async { // 쉐킷 화면 흔들기로 이동
 
+                        // 1. Provider에서 현재 담긴 재료 가져오기
+                        final ingredients = Provider.of<TempIngredientProvider>(context, listen: false).ingredients;
+
+                        // 2. AI 호출 시작 (await를 붙이지 않고 Future 객체만 생성하여 넘김)
+                        final recipeFuture = generateRecipes(ingredients: ingredients);
+
                         Navigator.of(context).pop();
-                        // 우선 이 팝업 닫기 (겹치면 부자연스럽)
+                        // 그  팝업 닫기 (겹치면 부자연스럽)
 
                         await Future.delayed(const Duration(milliseconds: 100));
                         // 딜레이 줘서 닫힘 애니메이션과 겹치지 않게 함
 
                         showFadeDialog(
                           context: context,
-                          child: const ShakingWidget(),
+                          // child: const ShakingWidget(), (기존 내용 주석처리)
+
+                          // ShakingWidget에 진행 중인 작업을 전달
+                          child: ShakingWidget(recipeTask: recipeFuture),
                         );
                       },
                       style: ElevatedButton.styleFrom(
