@@ -6,6 +6,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/shakeCheck_widget.dart';
 import 'package:flutter_team_project/recipes/ingreTextList_widget.dart';
+import 'package:provider/provider.dart';
+
+import '../auth/auth_provider.dart';
+import '../auth/login_screen.dart';
+import '../providers/temp_ingre_provider.dart';
 
 class IngreeditScreen extends StatefulWidget {
   const IngreeditScreen({super.key});
@@ -16,10 +21,12 @@ class IngreeditScreen extends StatefulWidget {
 
 class _IngreeditScreenState extends State<IngreeditScreen> {
 
-  List<String> _selectedIngredients = []; // 화면에서 관리하는 선택 재료 리스트
-
   @override
   Widget build(BuildContext context) {
+
+    // provider에서 임시 재료목록 가져오기
+    final ingredients = context.watch<TempIngredientProvider>().ingredients;
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -36,6 +43,9 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                 children: [
                   ElevatedButton(
                       onPressed: (){
+                        // 로그인 여부 확인 위
+                        final authProvider = context.read<AuthProvider>();
+
                         showDialog(
                           context: context,
                           builder: (context) {
@@ -53,12 +63,15 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                         Navigator.pop(context); // 다이얼로그 닫기
 
                                         // ★ 만약 로그인 상태 관리용 위젯이 만들어졌다면, 임포트해서 작성 예정!
-                                        if (1==1) {
+                                        if (authProvider.isAuthenticated) {
                                           // 로그인 상태면 내 냉장고 화면 이동
-                                          Navigator.pushNamed(context, ""); 
+                                          Navigator.pushNamed(context, ""); // 차후 연결 예정
                                         } else {
                                           // 비로그인 상태면 로그인 화면으로 이동
-                                          Navigator.pushNamed(context, ""); 
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => LoginScreen()),
+                                          );
                                         }
                                       },
                                     child: Text("내 냉장고에서 선택하기"),
@@ -88,7 +101,13 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
               // 인식된(선택된) 재료 목록 (위젯에서 가져올 예정)
               Text("현재 재료 목록", style: TextStyle(fontSize: 20),),
               SizedBox(height: 40),
-              
+
+              // 조건부로 재료목록 위젯 표시
+              ingredients.isEmpty
+                  ? Text("현재 선택된 재료가 없습니다.")
+                  : IngreTextListWidget(detectedIngredients: ingredients),
+              SizedBox(height: 40),
+
               // 키워드 입력받기
               Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20),),
               SizedBox(height: 10),

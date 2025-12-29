@@ -180,5 +180,29 @@ class AuthService {
   Future<void> signInAnonymously() async {
     await _auth.signInAnonymously();
   }
+
+  // 계정 삭제
+  Future<void> deleteAccount() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    try {
+      final uid = user.uid;
+      
+      // Firestore에서 사용자 데이터 삭제
+      await _firestore.collection('users').doc(uid).delete();
+      
+      // Firebase Auth에서 계정 삭제
+      await user.delete();
+      
+      // Google 로그인도 로그아웃
+      await _googleSignIn.signOut();
+    } catch (e) {
+      print('계정 삭제 오류: $e');
+      rethrow;
+    }
+  }
 }
 

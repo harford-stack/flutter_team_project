@@ -4,21 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_footer.dart';
-import '../ingredients/regist_screen.dart';
-// import '../community/widgets/community_list_widget.dart';
 import 'auth_provider.dart';
+import 'home_screen.dart';
 import 'login_screen.dart';
 import 'delete_account_screen.dart';
-import 'recipe_recommend_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class RecipeRecommendScreen extends StatefulWidget {
+  const RecipeRecommendScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<RecipeRecommendScreen> createState() => _RecipeRecommendScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
   int _currentIndex = 0;
 
   void _onFooterTap(int index, AuthProvider authProvider) {
@@ -39,70 +37,17 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
-  Widget _buildCurrentScreen() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildHomeContent();
-      case 1:
-        return const IngredientRegistScreen();
-      case 2:
-        // return const CommunityListWidget();
-        return _buildHomeContent();
-      default:
-        return _buildHomeContent();
+    // 홈 화면으로 이동
+    if (index == 0) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (route) => false,
+      );
+    } else {
+      setState(() {
+        _currentIndex = index;
+      });
     }
-  }
-
-  Widget _buildHomeContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 20),
-          // 레시피 추천 이미지
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/icon_recommendImage.png',
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(height: 24),
-          // "레시피 추천 받기" 버튼 (비로그인 사용자도 이용 가능)
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const RecipeRecommendScreen(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: const Text(
-              '레시피 추천 받기',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textWhite,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -112,7 +57,88 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: _buildDrawer(authProvider),
-      body: _buildCurrentScreen(),
+      backgroundColor: AppColors.backgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40),
+              // 추천 이미지
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/icon_recommend2.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 40),
+              // 버튼 2개 가로로 나란히 배치
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('실시간 추천 기능은 구현 중입니다'),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        '실시간 추천',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textWhite,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('재료 선택 후 추천 기능은 구현 중입니다'),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        '재료 선택 후 추천',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textWhite,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
       bottomNavigationBar: CustomFooter(
         currentIndex: _currentIndex,
         onTap: (index) => _onFooterTap(index, authProvider),
@@ -309,3 +335,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/ingreEdit_screen.dart';
 import 'package:flutter_team_project/recipes/shakeCheck_widget.dart';
 import 'package:flutter_team_project/recipes/ingreTextList_widget.dart';
+import 'package:provider/provider.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_footer.dart';
+import '../providers/temp_ingre_provider.dart';
 
 class IngrecheckScreen extends StatefulWidget {
   const IngrecheckScreen({super.key});
@@ -18,10 +20,11 @@ class IngrecheckScreen extends StatefulWidget {
 
 class _IngrecheckScreenState extends State<IngrecheckScreen> {
 
-  List<String> detectedIngredients = []; // 인식한 재료 이름들
-  
   @override
   Widget build(BuildContext context) {
+    // provider에서 임시 재료목록 가져오기
+    final ingredients = context.watch<TempIngredientProvider>().ingredients;
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -46,7 +49,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                   ),
                 ),
                 Text(
-                  "${detectedIngredients.length}개",
+                  "${ingredients.length}개",
                   style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.w600,
@@ -58,7 +61,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
             SizedBox(height: 30), // 간격 두기
 
             // 인식된 재료명 나열할거임!
-            IngreTextListWidget(detectedIngredients: detectedIngredients),
+            IngreTextListWidget(detectedIngredients: ingredients),
 
             SizedBox(height: 30), // 간격 두기
             Row(
@@ -67,7 +70,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                 ElevatedButton(
                     onPressed: (){ // 쉐킷 팝업창 띄우기
                       // 재료가 0개인지 확인
-                      if (detectedIngredients.isEmpty) {
+                      if (ingredients.isEmpty) {
                         // 0개라면 안내 스낵바 띄우기
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

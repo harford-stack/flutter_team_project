@@ -16,6 +16,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -23,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -171,10 +175,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.kitchen,
-                                size: 40,
-                                color: Colors.blue[700],
+                              Image.asset(
+                                'assets/icon_fridge.png',
+                                width: 40,
+                                height: 40,
                               ),
                               const SizedBox(height: 8),
                               const Text(
@@ -207,10 +211,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.bookmark,
-                                size: 40,
-                                color: Colors.orange[700],
+                              Image.asset(
+                                'assets/icon_boolmark.png',
+                                width: 40,
+                                height: 40,
                               ),
                               const SizedBox(height: 8),
                               const Text(
@@ -231,27 +235,55 @@ class _LoginScreenState extends State<LoginScreen> {
                   // 이메일/비밀번호 로그인
                   TextField(
                     controller: _emailController,
+                    focusNode: _emailFocusNode,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     textCapitalization: TextCapitalization.none,
-                    decoration: const InputDecoration(
+                    enableInteractiveSelection: true,
+                    onSubmitted: (_) {
+                      FocusScope.of(context).requestFocus(_passwordFocusNode);
+                    },
+                    decoration: InputDecoration(
                       labelText: '이메일',
                       hintText: '이메일을 입력하세요',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Image.asset(
+                          'assets/icon_email.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
+                    focusNode: _passwordFocusNode,
                     obscureText: _obscurePassword,
                     keyboardType: TextInputType.visiblePassword,
                     textInputAction: TextInputAction.done,
                     textCapitalization: TextCapitalization.none,
+                    enableInteractiveSelection: true,
+                    onSubmitted: (_) {
+                      if (!_isLoading &&
+                          _emailController.text.trim().isNotEmpty &&
+                          _passwordController.text.isNotEmpty) {
+                        _handleSocialLogin(authProvider, 'email');
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: '비밀번호',
                       hintText: '비밀번호를 입력하세요',
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Image.asset(
+                          'assets/icon_password.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -320,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     '구글 로그인',
                     Colors.white,
                     Colors.black87,
-                    Icons.g_mobiledata,
+                    null,
                     () => _handleSocialLogin(authProvider, 'google'),
                   ),
                   const SizedBox(height: 24),
@@ -337,45 +369,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // 비회원 로그인 버튼
-                  OutlinedButton(
-                    onPressed: () async {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      try {
-                        await authProvider.signInAnonymously();
-                        _handleLoginSuccess(authProvider, '비회원 로그인');
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('로그인 실패: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } finally {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.grey[400]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      '비회원 로그인',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -386,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String text,
     Color backgroundColor,
     Color textColor,
-    IconData icon,
+    IconData? icon,
     VoidCallback onPressed,
   ) {
     return ElevatedButton(
@@ -402,7 +395,14 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: textColor),
+          if (text == '구글 로그인')
+            Image.asset(
+              'assets/icon_google.png',
+              width: 24,
+              height: 24,
+            )
+          else if (icon != null)
+            Icon(icon, color: textColor),
           const SizedBox(width: 8),
           Text(
             text,
