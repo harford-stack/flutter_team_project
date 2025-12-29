@@ -30,19 +30,22 @@ class CustomFooter extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildFooterItem(
-            icon: Icons.home,
+            icon: null,
+            iconAsset: 'assets/icon_home.png',
             label: '홈',
             index: 0,
             isSelected: currentIndex == 0,
           ),
           _buildFooterItem(
-            icon: Icons.add_circle_outline,
+            icon: null,
+            iconAsset: 'assets/icon_add.png',
             label: '재료 등록',
             index: 1,
             isSelected: currentIndex == 1,
           ),
           _buildFooterItem(
-            icon: Icons.people_outline,
+            icon: null,
+            iconAsset: 'assets/icon_community.png',
             label: '커뮤니티',
             index: 2,
             isSelected: currentIndex == 2,
@@ -53,7 +56,8 @@ class CustomFooter extends StatelessWidget {
   }
 
   Widget _buildFooterItem({
-    required IconData icon,
+    required IconData? icon,
+    required String? iconAsset,
     required String label,
     required int index,
     required bool isSelected,
@@ -65,11 +69,18 @@ class CustomFooter extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primaryColor : Colors.grey[600],
-              size: 28,
-            ),
+            if (iconAsset != null)
+              Image.asset(
+                iconAsset,
+                width: 28,
+                height: 28,
+              )
+            else if (icon != null)
+              Icon(
+                icon,
+                color: isSelected ? AppColors.primaryColor : Colors.grey[600],
+                size: 28,
+              ),
             const SizedBox(height: 4),
             Text(
               label,

@@ -18,7 +18,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 1,
       leading: Builder(
         builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.textDark),
+          icon: Image.asset(
+            'assets/icon_menu.png',
+            width: 24,
+            height: 24,
+          ),
           onPressed: () {
             Scaffold.of(context).openDrawer();
           },
@@ -35,7 +39,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: AppColors.textDark),
+          icon: Image.asset(
+            'assets/icon_notification.png',
+            width: 24,
+            height: 24,
+          ),
           onPressed: onNotificationTap ?? () {
             // 알림 기능 (추후 구현)
             ScaffoldMessenger.of(context).showSnackBar(
