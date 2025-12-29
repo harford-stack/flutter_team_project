@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkAuthAndNavigate() async {
     // 스플래시 화면 표시 시간 (최소 2초)
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
@@ -49,11 +49,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/image_splash.png',
+          'assets/image_appLogo.png',
           fit: BoxFit.contain,
+          width: 350,
+          height: 350,
         ),
       ),
     );
