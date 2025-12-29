@@ -1,112 +1,220 @@
-// 레시피 상세보기 화면
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'recipe_model.dart';
+import 'recipe_ai_service.dart';
 
 class RecipedetailScreen extends StatefulWidget {
-  const RecipedetailScreen({super.key});
+  final RecipeModel recipe;
+
+  const RecipedetailScreen({
+    super.key,
+    required this.recipe,
+  });
 
   @override
   State<RecipedetailScreen> createState() => _RecipedetailScreenState();
 }
 
 class _RecipedetailScreenState extends State<RecipedetailScreen> {
-  // 나중에 AI로부터 받을 데이터를 위한 변수 예시
-  final String recipeTitle = "스크램블 에그";
-  final List<String> ingredients = ["달걀", "우유", "소금", "후추", "버터"];
-  final String recipeInstruction = "1. 달걀을 그릇에 풀고 우유와 소금을 넣습니다.\n"
-      "2. 팬을 중불로 달구고 버터를 녹입니다.\n"
-      "3. 달걀물을 붓고 몽글몽글해질 때까지 저어줍니다.\n"
-      "4. 원하는 익힘 정도가 되면 접시에 담아 후추를 뿌립니다.";
+  List<String> _fullInstructions = [];
+  bool _isLoading = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadFullRecipe();
+  }
+
+  Future<void> _loadFullRecipe() async {
+    try {
+      final result = await getFullInstructions(
+        title: widget.recipe.title,
+        ingredients: widget.recipe.ingredients,
+      );
+      if (mounted) {
+        setState(() {
+          _fullInstructions = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _fullInstructions = ["레시피를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요."];
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 나중에 지정색으로 받을거임
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        // 임시 앱바임!!! 나중에 공통 앱바로 넣을거임 (뒤로가기 기능 없음)
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Icon(Icons.arrow_back_ios, color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 제목 및 북마크 아이콘 섹션
+            // 1. 제목 섹션
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  recipeTitle,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    widget.recipe.title,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.bookmark_border, size: 30),
+                  icon: const Icon(Icons.bookmark_border, size: 28),
                 ),
               ],
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 25),
 
-            // 재료 섹션
-            Text(
-              "재료",
+            // 2. 재료 섹션 (데이터가 이미 있으므로 바로 보여줌)
+            const Text(
+              "필요한 재료",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Wrap(
-              spacing: 8.0, // 가로 간격
-              runSpacing: 8.0, // 세로 간격 (줄바꿈 시)
-              children: ingredients.map((item) => _buildIngredientChip(item)).toList(),
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: widget.recipe.ingredients
+                  .map((item) => _buildIngredientChip("${item["이름"]} ${item["용량"]}"))
+                  .toList(),
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 35),
 
-            // 레시피 설명 섹션
-            Text(
-              "레시피 설명",
+            // 3. 상세 레시피 섹션 (이 부분이 핵심!)
+            const Text(
+              "조리 순서",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 15),
+
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(20),
+              constraints: const BoxConstraints(minHeight: 200), // 최소 높이 확보로 덜렁거림 방지
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: Colors.grey[200], // 이미지의 회색 배경 재현
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFF5F5F5), // 연한 회색 배경
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
               ),
-              child: Text(
-                recipeInstruction,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.6, // 줄간격 조절로 가독성 향상
-                  color: Colors.black87,
-                ),
-              ),
+              child: _isLoading
+                  ? _buildLoadingState() // 로딩 중일 때 보여줄 UI
+                  : _buildRecipeList(),  // 로딩 완료 후 보여줄 UI
             ),
-            SizedBox(height: 50), // 하단 여백
+            const SizedBox(height: 50),
           ],
         ),
       ),
     );
   }
 
-  // 재료 칩 위젯 생성 함수
+  // --- UI 컴포넌트 분리 ---
+
+  // 로딩 상태 UI: 사용자가 대기 중임을 인지하고 신뢰감을 갖게 함
+  // 로딩 상태 UI에 이미지(또는 GIF) 추가
+  Widget _buildLoadingState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 10),
+        // 1. 요리 관련 이미지/GIF (인터넷에서 가져오거나 에셋 사용)
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            'assets/recipe_loading.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 20),
+        const CupertinoActivityIndicator(radius: 12),
+        const SizedBox(height: 15),
+        const Text(
+          "AI 셰프가 레시피를\n정성껏 작성하고 있어요",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "약 5초 정도 소요될 수 있습니다",
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  // 레시피 리스트 UI: 깔끔한 단계별 출력
+  Widget _buildRecipeList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: _fullInstructions.map((step) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 텍스트만 뿌리는 대신 줄간격과 스타일 적용
+              Expanded(
+                child: Text(
+                  step,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.7,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // 재료 칩 디자인
   Widget _buildIngredientChip(String label) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 14, color: Colors.black87),
       ),
     );
   }

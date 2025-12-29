@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
+import '../providers/temp_ingre_provider.dart';
 import 'widget_search_bar.dart';
 import 'widget_category_bar.dart';
 import 'widget_ingredient_grid.dart';
@@ -138,14 +140,23 @@ class _SelectScreenState extends State<SelectScreen> {
                 ),
               ),
               onPressed: () {
-                print(selectedIngredients);
-                List<String> selectedList = selectedIngredients.toList();
+                // print(selectedIngredients);
+                // List<String> selectedList = selectedIngredients.toList();
                 // Navigator.push(
                 //     context,
                 //     MaterialPageRoute(
                 //         builder: (_)=> IngrecheckScreen(selectedIngredients: selectedList)
                 //     )
                 // );
+
+                final selectedList = selectedIngredients.toList();
+
+                // Provider에 임시 저장
+                context.read<TempIngredientProvider>().addAll(selectedList);
+
+                // 이전 화면(IngreeditScreen)으로 돌아가기
+                Navigator.pop(context);
+
               },
               child: const Text(
                 "확인",

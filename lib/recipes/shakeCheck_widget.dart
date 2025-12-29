@@ -4,7 +4,6 @@
 // 그 Future(작업)를 다음 화면으로 넘겨주는 화면
 
 import 'package:flutter/material.dart';
-import 'package:flutter_team_project/recipes/recipe_ai_service.dart';
 import 'package:flutter_team_project/recipes/shaking_widget.dart';
 
 import 'package:provider/provider.dart';
