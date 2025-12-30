@@ -3,13 +3,22 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'recipe_model.dart';
 
+// ★ 이미 한 번 생성했는지 체크 (중복 호출 방지용 최소 가드)
+bool _hasGeneratedOnce = false;
+
 // 1. 목록용 프롬프트 (최대한 단순화)
 String buildRecipePrompt({required List<String> ingredients, String? keyword}) {
+  final keywordContext = (keyword != null && keyword.isNotEmpty)
+      ? "'$keyword' 스타일이나 컨셉, 상황에 맞춰서"
+      : "재료와 가장 잘 어울리는 대중적인 방식으로";
+
   return '''
-JSON 리스트만 출력하라. 
-재료: ${ingredients.join(', ')} / 키워드: ${keyword ?? '없음'}
-규칙: 레시피 3개, "과정"은 1문장 요약 후 "..." 붙임.
-형식: [{"요리 제목":"제목","재료":[{"이름":"재료","용량":"양"}],"과정":["요약..."]}]
+반드시 다음 형식을 따르는 JSON 리스트만 출력하라.
+[조건]
+1. 재료: ${ingredients.join(', ')} 
+2. 목표: $keywordContext 레시피 3개를 제안하라.
+3. 규칙: 레시피 3개, "과정"은 1문장 요약 후 "..." 붙임.
+4. 출력 형식: [{"요리 제목":"제목","재료":[{"이름":"재료","용량":"양"}],"과정":["요약..."]}]
 ''';
 }
 
@@ -18,38 +27,75 @@ Future<List<RecipeModel>> generateRecipes({
   required List<String> ingredients,
   String? keyword,
 }) async {
+  // ★ 이미 한 번 성공했다면 재호출 차단
+  if (_hasGeneratedOnce) {
+    print("이미 레시피 생성됨 - API 재호출 차단");
+    return [];
+  }
+
   final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
   final prompt = buildRecipePrompt(ingredients: ingredients, keyword: keyword);
-  final url = Uri.parse('https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$apiKey');
+  final url = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$apiKey');
 
   try {
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.5}
+        "contents": [
+          {
+            "parts": [
+              {"text": prompt}
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.5,
+          "responseMimeType": "application/json" // 이 줄을 추가하면 훨씬 안정적
+        }
       }),
     );
 
     if (response.statusCode != 200) {
       print("API 에러 발생: ${response.statusCode}");
+      print("응답 body: ${response.body}");
       return [];
     }
 
     final decodedResponse = jsonDecode(response.body);
+
     // API 응답 구조 안전하게 추출
     final candidates = decodedResponse['candidates'] as List?;
-    if (candidates == null || candidates.isEmpty) return [];
+    if (candidates == null || candidates.isEmpty) {
+      print("candidates 없음");
+      return [];
+    }
 
-    String responseText = candidates[0]['content']['parts'][0]['text'] ?? '';
+    // ★ parts 전체 text를 합쳐서 사용
+    final parts = candidates[0]['content']['parts'] as List?;
+    if (parts == null || parts.isEmpty) {
+      print("parts 없음");
+      return [];
+    }
+
+    final responseText = parts
+        .map((p) => p['text']?.toString() ?? '')
+        .join('\n')
+        .trim();
 
     // JSON 정제 및 복구
     String cleaned = _forceCleanJson(responseText);
 
     final List<dynamic> jsonList = jsonDecode(cleaned);
-    return jsonList.map((e) => RecipeModel.fromJson(Map<String, dynamic>.from(e))).toList();
 
+    // ★ 여기까지 성공했으면 1회 생성 완료로 간주
+    _hasGeneratedOnce = true;
+
+    return jsonList
+        .map((e) =>
+        RecipeModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   } catch (e) {
     print("목록 로드 실패 상세: $e");
     return [];
@@ -72,8 +118,10 @@ String _forceCleanJson(String input) {
       text += ']';
     }
   }
+
   // 문법 오류 방지 (따옴표 짝수화)
   if ('"'.allMatches(text).length % 2 != 0) text += '"';
+
   return text.replaceAll(',]', ']').replaceAll(',}', '}');
 }
 
@@ -84,7 +132,12 @@ Future<List<String>> getFullInstructions({
   required List<dynamic> ingredients,
 }) async {
   final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
-  final ingredientsStr = ingredients.map((e) => "${e['이름']}").join(', ');
+
+  final ingredientsStr = ingredients
+      .whereType<Map>()
+      .map((e) => e['이름']?.toString() ?? '')
+      .where((s) => s.isNotEmpty)
+      .join(', ');
 
   final prompt = '''
 $title 레시피를 완성된 형태로 요약해줘.
@@ -97,34 +150,57 @@ $title 레시피를 완성된 형태로 요약해줘.
 4. 설명이 길어지면 핵심 단어 위주로 요약하되 내용은 끝까지 전달하라.
 ''';
 
-  final url = Uri.parse('https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$apiKey');
+  final url = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$apiKey');
 
   try {
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": [
+          {
+            "parts": [
+              {"text": prompt}
+            ]
+          }
+        ],
         "generationConfig": {
-          "temperature": 0.5,      // 약간의 창의성을 허용해 문장을 자연스럽게 만듦
-          "maxOutputTokens": 800   // 잘림 방지를 위해 500에서 800으로 상향
+          "temperature": 0.5,
+          "maxOutputTokens": 800
         }
       }),
     );
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      String fullText = decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+      // ★ parts 전체를 안전하게 합침
+      final candidates = decoded['candidates'] as List?;
+      if (candidates == null || candidates.isEmpty) {
+        throw Exception("candidates 비어있음");
+      }
+
+      final parts = candidates[0]['content']['parts'] as List?;
+      if (parts == null || parts.isEmpty) {
+        throw Exception("parts 비어있음");
+      }
+
+      final fullText = parts
+          .map((p) => p['text']?.toString() ?? '')
+          .join('\n')
+          .trim();
 
       // 줄바꿈으로 나누고 너무 짧은 줄은 버림
       return fullText
           .split('\n')
           .map((line) => line.trim())
-          .where((line) => line.length > 5)
+          .where((line) => line.length > 2)
           .toList();
     }
   } catch (e) {
     print("상세 로드 실패: $e");
   }
+
   return ["레시피 전문을 불러오지 못했습니다. 다시 시도해주세요."];
 }

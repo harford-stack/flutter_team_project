@@ -7,6 +7,7 @@ import 'home_screen.dart';
 import 'nickname_input_screen.dart';
 import 'find_email_screen.dart';
 import 'reset_password_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -107,12 +108,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (success) {
-        if (isNewUser && (provider == 'google' || provider == 'email')) {
-          // 첫 로그인 시 닉네임 입력 화면으로 이동
-          await _showNicknameInputDialog(authProvider);
-        } else {
-          _handleLoginSuccess(authProvider, '로그인');
-        }
+        // 로그인 성공 시 홈 화면으로 이동
+        // 닉네임이 없으면 프로필 수정 화면에서 설정하도록 함
+        _handleLoginSuccess(authProvider, '로그인');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -402,6 +400,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     () => _handleSocialLogin(authProvider, 'google'),
                   ),
                   const SizedBox(height: 24),
+                  // 회원가입 링크
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        '계정이 없으신가요? ',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          '회원가입',
+                          style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   // 안내 문구
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
