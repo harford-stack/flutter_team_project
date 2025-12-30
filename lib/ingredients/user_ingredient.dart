@@ -1,3 +1,5 @@
+// 내 냉장고
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../common/app_colors.dart';
