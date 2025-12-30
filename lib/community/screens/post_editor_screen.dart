@@ -161,6 +161,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       print('게시글 저장 오류: $e');
+      
       String errorMessage = '게시글 저장에 실패했습니다';
       if (e.toString().contains('업로드 권한')) {
         errorMessage = '이미지 업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.';
@@ -172,6 +173,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       }
 
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
