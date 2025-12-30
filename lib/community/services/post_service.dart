@@ -66,7 +66,17 @@ class PostService {
 
       // 如果有图片，先上传到 Firebase Storage
       if (imageFile != null) {
-        thumbnailUrl = await _uploadImage(imageFile, userId);
+        try {
+          thumbnailUrl = await _uploadImage(imageFile, userId);
+          if (thumbnailUrl.isEmpty) {
+            throw Exception('이미지 업로드에 실패했습니다');
+          }
+        } catch (e) {
+          print('이미지 업로드 실패: $e');
+          // 이미지 업로드 실패해도 게시글은 작성 가능 (이미지 없이)
+          // 하지만 사용자에게 알려주기 위해 예외를 다시 던짐
+          rethrow;
+        }
       }
 
       // 创建帖子数据
@@ -91,7 +101,7 @@ class PostService {
       return docRef.id;
     } catch (e) {
       print('게시글 작성 실패: $e');
-      return null;
+      rethrow; // 예외를 다시 던져서 UI에서 처리할 수 있도록
     }
   }
 
@@ -213,27 +223,55 @@ class PostService {
   /// ========== 辅助方法：上传图片 ==========
   Future<String> _uploadImage(File imageFile, String userId) async {
     try {
-      print('📤 开始上传图片...');
-      print('📁 文件路径: ${imageFile.path}');
-      print('📁 文件是否存在: ${await imageFile.exists()}');
+      print('📤 이미지 업로드 시작...');
+      print('📁 파일 경로: ${imageFile.path}');
+      
+      // 파일 존재 확인
+      if (!await imageFile.exists()) {
+        print('❌ 파일이 존재하지 않습니다');
+        throw Exception('파일이 존재하지 않습니다');
+      }
+
+      // 파일 크기 확인 (10MB 제한)
+      final fileSize = await imageFile.length();
+      if (fileSize > 10 * 1024 * 1024) {
+        print('❌ 파일 크기가 너무 큽니다 (최대 10MB)');
+        throw Exception('이미지 크기는 10MB 이하여야 합니다');
+      }
 
       final fileName = 'posts/${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      print('📁 Storage 路径: $fileName');
+      print('📁 Storage 경로: $fileName');
 
       final ref = _storage.ref().child(fileName);
 
-      print('⬆️ 正在上传...');
-      await ref.putFile(imageFile);
+      print('⬆️ 업로드 중...');
+      // 업로드 실행
+      await ref.putFile(
+        imageFile,
+        SettableMetadata(
+          contentType: 'image/jpeg',
+          cacheControl: 'max-age=3600',
+        ),
+      );
 
-      print('✅ 上传成功，获取 URL...');
+      print('✅ 업로드 성공, URL 가져오는 중...');
       final downloadUrl = await ref.getDownloadURL();
 
-      print('✅ URL 获取成功: $downloadUrl');
+      print('✅ URL 가져오기 성공: $downloadUrl');
       return downloadUrl;
+    } on FirebaseException catch (e) {
+      print('❌ Firebase Storage 오류: ${e.code} - ${e.message}');
+      if (e.code == 'unauthorized') {
+        throw Exception('업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.');
+      } else if (e.code == 'quota-exceeded') {
+        throw Exception('Storage 용량이 초과되었습니다.');
+      } else {
+        throw Exception('이미지 업로드 실패: ${e.message}');
+      }
     } catch (e) {
       print('❌ 이미지 업로드 실패: $e');
-      print('❌ 错误类型: ${e.runtimeType}');
-      return '';
+      print('❌ 오류 타입: ${e.runtimeType}');
+      rethrow;
     }
   }
 
