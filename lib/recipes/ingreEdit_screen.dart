@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
+import '../common/app_colors.dart';
 import '../ingredients/select_screen.dart';
 import '../providers/temp_ingre_provider.dart';
 
@@ -37,6 +38,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
     final ingredients = context.watch<TempIngredientProvider>().ingredients;
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor, // 배경색 지정
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -50,6 +52,9 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                 mainAxisAlignment: MainAxisAlignment.end, // 버튼만 오른쪽
                 children: [
                   ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor
+                      ),
                       onPressed: (){
                         // 키보드 숨기기
                         FocusScope.of(context).unfocus();
@@ -63,7 +68,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                             return AlertDialog(
                               title: Text(
                                 "재료 추가 방법 선택",
-                                style: TextStyle(fontSize: 20),
+                                style: TextStyle(fontSize: 20, color : AppColors.textDark),
                                 textAlign: TextAlign.center,
                               ),
                               content: Column(
@@ -82,7 +87,13 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                         );
                                       }
                                     },
-                                    child: Text("내 냉장고에서 선택하기"),
+                                    child: Text(
+                                        "내 냉장고에서 선택하기",
+                                        style: TextStyle(
+                                            color: AppColors.primaryColor,
+                                            fontSize: 17
+                                        )
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () {
@@ -92,7 +103,13 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                         MaterialPageRoute(builder: (context) => SelectScreen()),
                                       );
                                     },
-                                    child: Text("재료 목록에서 선택하기"),
+                                    child: Text(
+                                        "재료 목록에서 선택하기",
+                                        style: TextStyle(
+                                            color: AppColors.primaryColor,
+                                            fontSize: 17
+                                        )
+                                    ),
                                   ),
                                 ],
                               ),
@@ -100,22 +117,28 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                           },
                         );
                       },
-                      child: Text("재료 추가")
+                      child: Text(
+                          "재료 추가",
+                          style: TextStyle(
+                          color: AppColors.textWhite,
+                          fontSize: 16
+                          )
+                      )
                   ),
                 ],
               ),
               SizedBox(height: 20),
               // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
 
-              Text("현재 재료 목록", style: TextStyle(fontSize: 20),),
+              Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
               SizedBox(height: 40),
 
               ingredients.isEmpty
                   ? Text("현재 선택된 재료가 없습니다.")
                   : IngreTextListWidget(detectedIngredients: ingredients),
-              SizedBox(height: 40),
+              SizedBox(height: 80),
 
-              Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20),),
+              Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
               SizedBox(height: 10),
               SizedBox(
                 width: 300,
@@ -161,8 +184,16 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(140, 60),
+                        backgroundColor: AppColors.primaryColor
                       ),
-                      child: Text("레시피 추천받기", textAlign: TextAlign.center)
+                      child: Text(
+                          "레시피 추천받기",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: AppColors.textWhite,
+                              fontSize: 15
+                          )
+                      )
                   ),
                   SizedBox(width: 25),
                   ElevatedButton(
@@ -181,8 +212,15 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(140, 60),
+                        backgroundColor: AppColors.primaryColor
                       ),
-                      child: Text("내 냉장고로\n재료 등록하기")
+                      child: Text(
+                          "내 냉장고로\n재료 등록하기",
+                          style: TextStyle(
+                              color: AppColors.textWhite,
+                              fontSize: 15
+                          )
+                      )
                   ),
                 ],
               ),

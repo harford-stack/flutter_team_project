@@ -51,13 +51,25 @@ class _ShakingWidgetState extends State<ShakingWidget> {
     );
   }
 
-  void _navigateToRecipes() {
+  void _navigateToRecipes({bool force = false}) {
     // 데이터가 아직 없거나(ai응답이 없거나) 이미 이동 중이면 실행하지 않음
     if (!mounted || _hasNavigated) return;
-    if (_aiResult == null) return;
-    if (_percent < 1.0) return;
 
-    _hasNavigated = true; // 중복 이동 방지
+    // 데이터가 아직 없으면 버튼을 눌러도(force) 못 감
+    if (_aiResult == null) {
+      if (force) { // 버튼 눌렀을 때만 스낵바 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("레시피를 열심히 만드는 중입니다!")),
+        );
+      }
+      return;
+    }
+
+    // 흔들기 중일 때는 100%여야 하지만, 버튼(force)을 누르면 즉시 통과
+    if (!force && _percent < 1.0) return;
+
+    _hasNavigated = true; // 중복 이동 방지 (여기서 딱 잠금)
+
     Future.delayed(const Duration(milliseconds: 300), () {
       Navigator.pushReplacement(
         context,
@@ -97,15 +109,15 @@ class _ShakingWidgetState extends State<ShakingWidget> {
 
                       // 이미지 영역
                       SizedBox(
-                        width: 180,
-                        height: 180,
+                        width: 170,
+                        height: 170,
                         child: Image.asset(
                           'assets/shaking.png',
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      SizedBox(height: 15),
 
                       // 텍스트 영역
                       Text(
@@ -117,30 +129,51 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      SizedBox(height: 10),
 
                       Text(
                         "오늘의 레시피가\n만들어지는 중이에요",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      SizedBox(height: 25),
 
                       // 로딩바(percent_indicator) 위젯 가져오기
                       LinearPercentIndicator(
                         width: MediaQuery.of(context).size.width * 0.65,
                         animation: false, // true로 하면 로딩바가 0부터 계속 초기화
-                        lineHeight: 30.0,
+                        lineHeight: 28.0,
                         animationDuration: 300,
                         percent: _percent,
                         center: Text("${(_percent * 100).toStringAsFixed(0)}%"),
                         linearStrokeCap: LinearStrokeCap.roundAll,
                         progressColor: Colors.blue[100], // 공통컬러 넣을 예정
                         barRadius: Radius.circular(10.0),
+                      ),
+
+                      // 로딩바와 바닥 사이 정중앙에 배치될 버튼
+                      // 아래 SizedBox의 높이를 조절하여 "중간 지점"을 맞춥니다.
+                      const SizedBox(height: 35),
+
+                      ElevatedButton(
+                        onPressed: () => _navigateToRecipes(force: true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[50],
+                          foregroundColor: Colors.blue[700],
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12), // 약간 각진 둥근 형태
+                          ),
+                        ),
+                        child: const Text(
+                          "바로 결과보기",
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
                       ),
 
                     ],

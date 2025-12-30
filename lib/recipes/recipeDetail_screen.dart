@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'recipe_model.dart';
 import 'recipe_ai_service.dart';
+import 'package:flutter_team_project/common/bookmark_button.dart';
 
 class RecipedetailScreen extends StatefulWidget {
   final RecipeModel recipe;
@@ -78,9 +79,18 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.bookmark_border, size: 28),
+
+                // 북마크 공통 위젯 적용
+                BookmarkButton(
+                  // ★ 레시피 목록 화면에서 바뀐 상태를 그대로 받음
+                  isInitialBookmarked: widget.recipe.isBookmarked,
+                  size: 28,             // 상세화면에 맞게 크기 키움
+                  isTransparent: true,  // 상세화면은 배경 없이 깔끔하게
+                  onToggle: (state) {
+                    // 추후 상세페이지 전용 저장 로직 연결
+                    widget.recipe.isBookmarked = state; // 상세에서 바꿔도 모델에 기록됨
+                    print("상세페이지 북마크 상태: $state");
+                  },
                 ),
               ],
             ),

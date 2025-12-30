@@ -35,8 +35,10 @@ Future<List<RecipeModel>> generateRecipes({
 
   final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
   final prompt = buildRecipePrompt(ingredients: ingredients, keyword: keyword);
+
+  // v1beta가 최신 모델의 JSON 모드 지원에 더 안정적입니다.
   final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$apiKey');
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey');
 
   try {
     final response = await http.post(
@@ -52,7 +54,7 @@ Future<List<RecipeModel>> generateRecipes({
         ],
         "generationConfig": {
           "temperature": 0.5,
-          "responseMimeType": "application/json" // 이 줄을 추가하면 훨씬 안정적
+          "response_mime_type": "application/json" // ★ snake_case로 수정 완료
         }
       }),
     );
@@ -72,8 +74,13 @@ Future<List<RecipeModel>> generateRecipes({
       return [];
     }
 
-    // ★ parts 전체 text를 합쳐서 사용
-    final parts = candidates[0]['content']['parts'] as List?;
+    final content = candidates[0]['content'];
+    if (content == null) {
+      print("content 없음");
+      return [];
+    }
+
+    final parts = content['parts'] as List?;
     if (parts == null || parts.isEmpty) {
       print("parts 없음");
       return [];
@@ -166,8 +173,9 @@ $title 레시피를 완성된 형태로 요약해줘.
           }
         ],
         "generationConfig": {
-          "temperature": 0.5,
-          "maxOutputTokens": 800
+          "temperature": 0.5
+          // "response_mime_type": "application/json"
+          // 상세 레시피는 일반 텍스트로 받아야 split('\n')이 정상 작동 (그래서 주석처리)
         }
       }),
     );

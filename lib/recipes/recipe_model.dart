@@ -7,11 +7,15 @@ class RecipeModel {
   final String description;   // 목록 카드용 요약
   final List<String> instructions;   // 상세레시피 = 전체 조리 과정 (문자열)
 
+  // ★ 1. 북마크 상태 변수 추가 (상태가 변해야 하므로 final을 붙이지 않음)
+  bool isBookmarked;
+
   RecipeModel({
     required this.title,
     required this.ingredients,
     required this.description,
     required this.instructions,
+    this.isBookmarked = false, // ★ 2. 생성자에서 기본값을 false로 설정
   });
 
   factory RecipeModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,10 @@ class RecipeModel {
 
       // 🔑 리스트를 하나의 문자열로 합침
       instructions: steps,
+
+      // ★ 3. JSON 데이터에 북마크 정보가 있다면 가져오고, 없으면 false가 기본값이 됩니다.
+      isBookmarked: json["isBookmarked"] ?? false,
+
     );
   }
 }

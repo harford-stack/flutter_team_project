@@ -11,6 +11,8 @@ import 'package:flutter_team_project/providers/temp_ingre_provider.dart';
 import 'package:flutter_team_project/recipes/recipe_ai_service.dart';
 import 'package:flutter_team_project/recipes/recipe_model.dart';
 
+import '../common/app_colors.dart';
+
 class ShakeCheck extends StatefulWidget {
   const ShakeCheck({super.key});
 
@@ -92,12 +94,14 @@ class _ShakeCheckState extends State<ShakeCheck> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
+                          backgroundColor: AppColors.primaryColor
                         ),
                         child: const Text(
                           '지금 쉐-킷 !',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            color: AppColors.textWhite
                           ),
                         ),
                       ),

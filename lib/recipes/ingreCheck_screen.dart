@@ -26,11 +26,12 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
     final ingredients = context.watch<TempIngredientProvider>().ingredients;
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor, // 배경색 지정
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("인식 결과", style: TextStyle(fontSize: 25),),
+            Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
             SizedBox(height: 30), // 간격 두기
             
             // 인식된 사진 담기는 곳
@@ -47,7 +48,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                   : Text(
                 '사진 없이 목록에서만 체크된\n재료 내용입니다.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, color: Colors.black54),
+                style: TextStyle(fontSize: 20, color: AppColors.textDark),
               ),
             ),
             
@@ -59,6 +60,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                   style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.w600,
+                    color : AppColors.textDark
                   ),
                 ),
                 Text(
@@ -102,8 +104,16 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(140, 60),
+                      backgroundColor: AppColors.primaryColor
                     ),
-                    child: Text("이대로\n레시피 추천받기", textAlign: TextAlign.center)
+                    child: Text(
+                        "이대로\n레시피 추천받기",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: AppColors.textWhite,
+                            fontSize: 16
+                        )
+                    )
                 ),
                 SizedBox(width: 25), // 간격 두기
 
@@ -119,8 +129,15 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(140, 60),
+                        backgroundColor: AppColors.primaryColor
                     ),
-                    child: Text("재료 편집하기")
+                    child: Text(
+                        "재료 편집하기",
+                        style: TextStyle(
+                            color: AppColors.textWhite,
+                            fontSize: 17
+                        )
+                    )
                 ),
               ],
             )
