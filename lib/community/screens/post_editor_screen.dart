@@ -160,9 +160,27 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       print('게시글 저장 오류: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류가 발생했습니다')),
-      );
+      
+      String errorMessage = '게시글 저장에 실패했습니다';
+      if (e.toString().contains('업로드 권한')) {
+        errorMessage = '이미지 업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.';
+      } else if (e.toString().contains('용량')) {
+        errorMessage = 'Storage 용량이 초과되었습니다.';
+      } else if (e.toString().contains('이미지')) {
+        errorMessage = '이미지 업로드에 실패했습니다. 다시 시도해주세요.';
+      } else if (e.toString().isNotEmpty) {
+        errorMessage = e.toString().replaceAll('Exception: ', '');
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
   /// ========== bottomnavbar ==========

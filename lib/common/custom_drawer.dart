@@ -6,6 +6,7 @@ import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
 import '../auth/profile_edit_screen.dart';
+import '../auth/my_recipes_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -130,8 +131,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('나의 레시피'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('나의 레시피 기능은 구현 중입니다')),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const MyRecipesScreen(),
+                  ),
                 );
               },
             ),
