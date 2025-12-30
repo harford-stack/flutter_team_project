@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/common/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -171,6 +172,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       } else if (e.toString().isNotEmpty) {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       }
+
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -209,6 +211,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     final isEditMode = widget.existingPost != null;
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
       appBar: CustomAppBar(),
       drawer: CustomDrawer(),
       body: _isLoading
@@ -269,6 +272,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color:AppColors.secondaryColor,
           ),
         ),
         SizedBox(height: 8),
@@ -277,8 +281,16 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           children: _categories.map((category) {
             final isSelected = _selectedCategory == category;
             return ChoiceChip(
-              label: Text(category),
+              label: Text(
+                category,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
               selected: isSelected,
+              selectedColor: AppColors.primaryColor,
+              backgroundColor: Colors.white,
               onSelected: (selected) {
                 setState(() {
                   _selectedCategory = category;
@@ -295,10 +307,54 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
+      cursorColor: AppColors.primaryColor,
+      style: const TextStyle(
+        color: Colors.black,
+        fontSize: 14,
+      ),
       decoration: InputDecoration(
         labelText: '제목',
         hintText: '게시글 제목을 입력하세요',
-        border: OutlineInputBorder(),
+
+        // label 颜色
+        labelStyle: TextStyle(color: Colors.grey),
+        floatingLabelStyle: TextStyle(color: AppColors.secondaryColor),
+
+        // 填充背景
+        filled: true,
+        fillColor: Colors.white,
+
+        // 默认
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),
+
+        // 聚焦
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: AppColors.secondaryColor,
+            width: 2,
+          ),
+        ),
+
+        // 错误
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.red),
+        ),
+
+        // 聚焦 + 错误
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.red, width: 2),
+        ),
+
+        errorStyle: const TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+        ),
       ),
       maxLength: 100,
       validator: (value) {
@@ -314,11 +370,45 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   Widget _buildContentField() {
     return TextFormField(
       controller: _contentController,
+      cursorColor: AppColors.primaryColor,
+      style: const TextStyle(
+        color: Colors.black,
+        fontSize: 14,
+      ),
       decoration: InputDecoration(
         labelText: '내용',
         hintText: '게시글 내용을 입력하세요',
-        border: OutlineInputBorder(),
         alignLabelWithHint: true,
+
+        labelStyle: TextStyle(color: Colors.grey),
+        floatingLabelStyle: TextStyle(color: AppColors.secondaryColor),
+
+        filled: true,
+        fillColor: Colors.white,
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: AppColors.secondaryColor,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.red, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+        ),
       ),
       maxLines: 10,
       maxLength: 5000,
@@ -330,6 +420,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       },
     );
   }
+
 
   /// 图片选择区域
   Widget _buildImageSection() {
@@ -347,6 +438,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color:AppColors.secondaryColor,
           ),
         ),
         SizedBox(height: 8),
@@ -394,6 +486,13 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         // 选择图片按钮
         OutlinedButton.icon(
           onPressed: _pickImage,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primaryColor, // ⭐ 图标 + 文字颜色
+            side: BorderSide(
+              color: AppColors.primaryColor, // ⭐ 边框颜色
+              width: 1.5,
+            ),
+          ),
           icon: Icon(Icons.image),
           label: Text(_imageFile != null || showExistingImage
               ? '이미지 변경'
@@ -411,13 +510,14 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       child: ElevatedButton(
         onPressed: _submitForm,
         style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
         child: Text(
           isEditMode ? '수정 완료' : '작성 완료',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color:Colors.white),
         ),
       ),
     );

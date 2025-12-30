@@ -225,7 +225,7 @@ class PostService {
     try {
       print('📤 이미지 업로드 시작...');
       print('📁 파일 경로: ${imageFile.path}');
-      
+
       // 파일 존재 확인
       if (!await imageFile.exists()) {
         print('❌ 파일이 존재하지 않습니다');
