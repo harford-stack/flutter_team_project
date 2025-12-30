@@ -131,6 +131,24 @@ class _ImageConfirmState extends State<ImageConfirm> {
       // print('ingredients count: ${ingredients.length}');
       print('ingredients: ${ingredients}');
 
+      // [추가 부분] -------------------------------------------------------
+      // 1. Ingredient 객체에서 이름(name)만 뽑아서 String 리스트로 만듭니다.
+      final List<String> ingredientNames = ingredients.map((e) => e.name).toList();
+
+      // 2. Provider에 재료 이름들을 추가합니다. (info는 현재 저장안됨!)
+      provider.addAll(ingredientNames);
+
+      // ★ ↓ 아래 내용은 필요시 주석 풀기
+      // (AI 전송 버튼의 로딩 상태를 해제하고 화면에 결과를 보여주려면)
+      // setState(() {
+      //   _result = info; // AI가 보내준 설명 문구 표시
+      //   _isLoading = false; // 로딩 인디케이터 해제
+      // });
+
+      // ------------------------------------------------------------------
+
+      // 이후 화면 이동 로직이 필요하다면 여기에 추가 (예: Navigator.push 등)
+
 
     } catch (e) {
       print('오류 상세: $e');

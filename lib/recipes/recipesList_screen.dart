@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/recipeDetail_screen.dart';
 import 'recipe_model.dart'; // ★ 추가: 모델 임포트
+import 'package:flutter_team_project/common/bookmark_button.dart';
 
 class RecipeslistScreen extends StatefulWidget {
   final List<RecipeModel> recipes; // 데이터를 받을 변수 추가
@@ -91,14 +92,15 @@ Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
                 recipe.title, // ★ 변경: JSON 키값 대신 모델 속성 사용
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
+
               // 북마크 아이콘 버튼
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: const Icon(Icons.bookmark_border, size: 24),
+              BookmarkButton(
+                isInitialBookmarked: recipe.isBookmarked, // 모델 상태 전달 (북마크 여부)
+                onToggle: (bool state) {
+                  // 기능은 나중에 여기서 연결 예정
+                  recipe.isBookmarked = state; // 모델상태 업뎃 (상세페이지 전달용)
+                  print("레시피 북마크 상태: $state");
+                },
               ),
             ],
           ),
