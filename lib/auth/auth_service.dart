@@ -38,18 +38,31 @@ class AuthService {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
-      // 첫 로그인인지 확인
-      final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+      if (userCredential.user != null) {
+        // Firestore 문서 확인 및 생성/업데이트
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
 
-      if (isNewUser && userCredential.user != null) {
-        // 새 사용자일 경우 Firestore에 사용자 정보 저장
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
-          'email': userCredential.user!.email,
-          'displayName': userCredential.user!.displayName,
-          'photoURL': userCredential.user!.photoURL,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        // 첫 로그인인지 확인
+        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+
+        if (isNewUser || !userDoc.exists) {
+          // 새 사용자이거나 Firestore 문서가 없으면 생성
+          await _firestore.collection('users').doc(userCredential.user!.uid).set({
+            'uid': userCredential.user!.uid,
+            'email': userCredential.user!.email,
+            'displayName': userCredential.user!.displayName,
+            'photoURL': userCredential.user!.photoURL,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          // 기존 사용자 정보 업데이트
+          await _firestore.collection('users').doc(userCredential.user!.uid).update({
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
       }
 
       return userCredential;
@@ -60,64 +73,31 @@ class AuthService {
   }
 
 
-  // 이메일/비밀번호 로그인 (회원가입 페이지 없이 자동 처리)
-  // 사용자가 없으면 자동으로 회원가입
+  // 이메일/비밀번호 로그인 (로그인만 처리, 회원가입은 별도 화면에서)
   Future<UserCredential?> signInWithEmailAndPassword(
     String email,
     String password,
   ) async {
     try {
-      UserCredential? userCredential;
+      // 로그인 시도
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      try {
-        // 먼저 로그인 시도
-        userCredential = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found' || 
-            e.code == 'wrong-password' || 
-            e.code == 'invalid-credential') {
-          // 사용자가 없거나 비밀번호가 틀린 경우 회원가입 시도
-          try {
-            userCredential = await _auth.createUserWithEmailAndPassword(
-              email: email,
-              password: password,
-            );
-          } on FirebaseAuthException catch (createError) {
-            if (createError.code == 'email-already-in-use') {
-              // 이미 가입된 이메일인 경우 비밀번호가 틀린 것으로 판단
-              throw Exception('비밀번호가 올바르지 않습니다. 다시 확인해주세요.');
-            } else if (createError.code == 'weak-password') {
-              throw Exception('비밀번호가 너무 약합니다. 6자 이상 입력해주세요.');
-            } else if (createError.code == 'invalid-email') {
-              throw Exception('올바른 이메일 형식이 아닙니다.');
-            } else {
-              rethrow;
-            }
-          }
-        } else if (e.code == 'invalid-email') {
-          throw Exception('올바른 이메일 형식이 아닙니다.');
-        } else if (e.code == 'user-disabled') {
-          throw Exception('이 계정은 비활성화되었습니다.');
-        } else if (e.code == 'too-many-requests') {
-          throw Exception('너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.');
-        } else {
-          rethrow;
-        }
-      }
+      if (userCredential.user != null) {
+        // Firestore 문서 확인 및 생성/업데이트
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
 
-      if (userCredential != null && userCredential.user != null) {
-        // 첫 로그인인지 확인
-        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
-
-        if (isNewUser) {
-          // 새 사용자일 경우 Firestore에 사용자 정보 저장
+        if (!userDoc.exists) {
+          // Firestore 문서가 없으면 생성 (이전에 수동 삭제된 경우 대비)
           await _firestore.collection('users').doc(userCredential.user!.uid).set({
             'uid': userCredential.user!.uid,
             'email': email,
-            'displayName': email.split('@')[0], // 이메일의 @ 앞부분을 기본 이름으로
+            'displayName': email.split('@')[0],
             'provider': 'email',
             'createdAt': FieldValue.serverTimestamp(),
           });
@@ -131,6 +111,21 @@ class AuthService {
       }
 
       return userCredential;
+    } on FirebaseAuthException catch (e) {
+      // 에러 메시지 한글화
+      if (e.code == 'user-not-found') {
+        throw Exception('등록되지 않은 이메일입니다. 회원가입을 먼저 진행해주세요.');
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        throw Exception('비밀번호가 올바르지 않습니다. 다시 확인해주세요.');
+      } else if (e.code == 'invalid-email') {
+        throw Exception('올바른 이메일 형식이 아닙니다.');
+      } else if (e.code == 'user-disabled') {
+        throw Exception('이 계정은 비활성화되었습니다.');
+      } else if (e.code == 'too-many-requests') {
+        throw Exception('너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.');
+      } else {
+        throw Exception('로그인 실패: ${e.message}');
+      }
     } catch (e) {
       print('이메일/비밀번호 로그인 오류: $e');
       rethrow;
@@ -231,6 +226,122 @@ class AuthService {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
       print('비밀번호 재설정 이메일 전송 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 사용자 프로필 조회
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      print('프로필 조회 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 사용자 프로필 업데이트
+  Future<void> updateUserProfile(Map<String, dynamic> data) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    try {
+      data['updatedAt'] = FieldValue.serverTimestamp();
+      await _firestore.collection('users').doc(user.uid).update(data);
+    } catch (e) {
+      print('프로필 업데이트 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 이메일 변경 (재인증 필요)
+  Future<void> updateEmail(String newEmail, String password) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    try {
+      // 재인증
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // 이메일 변경
+      await user.verifyBeforeUpdateEmail(newEmail);
+
+      // Firestore 업데이트
+      await _firestore.collection('users').doc(user.uid).update({
+        'email': newEmail,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('이메일 변경 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 비밀번호 변경
+  Future<void> updatePassword(String currentPassword, String newPassword) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    try {
+      // 재인증
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // 비밀번호 변경
+      await user.updatePassword(newPassword);
+    } catch (e) {
+      print('비밀번호 변경 오류: $e');
+      rethrow;
+    }
+  }
+
+  // 이메일/비밀번호로 회원가입 (별도 회원가입용)
+  Future<UserCredential?> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (userCredential.user != null) {
+        // Firestore에 사용자 정보 저장
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'email': email,
+          'displayName': email.split('@')[0],
+          'provider': 'email',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return userCredential;
+    } catch (e) {
+      print('회원가입 오류: $e');
       rethrow;
     }
   }

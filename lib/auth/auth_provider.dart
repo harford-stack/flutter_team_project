@@ -145,5 +145,71 @@ class AuthProvider extends ChangeNotifier {
       rethrow;
     }
   }
+
+  // 사용자 프로필 조회
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      return await _authService.getUserProfile();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 사용자 프로필 업데이트
+  Future<void> updateUserProfile(Map<String, dynamic> data) async {
+    try {
+      await _authService.updateUserProfile(data);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 이메일 변경
+  Future<void> updateEmail(String newEmail, String password) async {
+    try {
+      await _authService.updateEmail(newEmail, password);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 비밀번호 변경
+  Future<void> updatePassword(String currentPassword, String newPassword) async {
+    try {
+      await _authService.updatePassword(currentPassword, newPassword);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 이메일/비밀번호로 회원가입
+  Future<bool> signUpWithEmailAndPassword(String email, String password) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final userCredential = await _authService.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
+
+      if (userCredential != null) {
+        _user = userCredential.user;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
 }
 
