@@ -4,6 +4,7 @@ import '../models/post_model.dart';
 import '../services/post_service.dart';
 import 'community_detail_screen.dart';
 import 'post_editor_screen.dart'; // ⭐ 新增
+import '../../common/app_colors.dart';
 
 //category model
 class Category {
@@ -90,91 +91,129 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   ///widget 선언 구역
   //1. 검색
   Widget _buildSearch(){
-    return Padding(
-      padding: const EdgeInsets.symmetric(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(  // ⭐ padding 移到这里
         horizontal: 12,
         vertical: 8,
       ),
-      child: Column(
-        children: [
-          // 第一行：搜索框 + 搜索按钮
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchcontroller,
-                  decoration: const InputDecoration(
-                    hintText: '게시글 제목이나 내용으로 검색',
+      color:Colors.white,
+        child: Column(
+          children: [
+            // 第一行：搜索框 + 搜索按钮
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchcontroller,
+                    decoration: InputDecoration(
+                      hintText: '게시글 제목이나 내용으로 검색',
+                      //决定高度的关键
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 8,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: AppColors.secondaryColor, width: 2),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _loadPosts,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _loadPosts,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                      "검색",
+                    style:TextStyle(color: Colors.white)
+
                   ),
                 ),
-                child: Text("검색"),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          SizedBox(height: 12),
+            SizedBox(height: 12),
 
-          //第二行：分类按钮 + 排序
-          Row(
-            children: [
-              //자유게시판-문의사항 필터링
-              Wrap(
-                spacing: 8,
-                children: categoryList.map((cat) {
-                  return CategoryButton(
-                    text: cat.name,
-                    isSelected: cat.isSelected,
-                    onTap: () {
+            //第二行：分类按钮 + 排序
+            Row(
+              children: [
+                //자유게시판-문의사항 필터링
+                Wrap(
+                  spacing: 8,
+                  children: categoryList.map((cat) {
+                    return CategoryButton(
+
+                      text: cat.name,
+                      isSelected: cat.isSelected,
+
+                      onTap: () {
+                        setState(() {
+                          cat.isSelected = !cat.isSelected;
+                          categoryList = List.from(categoryList);
+                        });
+                        _loadPosts();
+                      },
+                    );
+                  }).toList(),
+                ),
+
+                Spacer(),
+
+                //dropdown
+                SizedBox(
+                  width: 110,
+                  child: DropdownButtonFormField<String>(
+                    value: _sortOrder,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.secondaryColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                    dropdownColor: Colors.white, // 下拉菜单背景
+                    isExpanded: true,
+                    items: const [
+                      DropdownMenuItem(value: '시간순', child: Text('시간순')),
+                      DropdownMenuItem(value: '인기순', child: Text('인기순')),
+                    ],
+                    onChanged: (value) {
                       setState(() {
-                        cat.isSelected = !cat.isSelected;
-                        categoryList = List.from(categoryList);
+                        _sortOrder = value!;
                       });
                       _loadPosts();
                     },
-                  );
-                }).toList(),
-              ),
-
-              Spacer(),
-
-              //dropdown
-              SizedBox(
-                width: 100,
-                child: DropdownButtonFormField<String>(
-                  value: _sortOrder,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    isDense: true,
                   ),
-                  isExpanded: true,
-                  items: const [
-                    DropdownMenuItem(value: '시간순', child: Text('시간순', style: TextStyle(fontSize: 14))),
-                    DropdownMenuItem(value: '인기순', child: Text('인기순', style: TextStyle(fontSize: 14))),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _sortOrder = value!;
-                    });
-                    _loadPosts();
-                  },
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
+          ],
+        ),
     );
   }
 
@@ -206,6 +245,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
           itemBuilder: (context, index) {
             final post = _posts[index];
             return Card(
+              color: Colors.white,
               child: InkWell(
                 onTap: () async {
                   // ⭐ 修改：从详情页返回时刷新列表
@@ -315,11 +355,20 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:AppBar(
-        title: Text('커뮤니티'),
+        backgroundColor: AppColors.primaryColor,
+        title: Text(
+            '커뮤니티',
+          style: TextStyle(
+            color:AppColors.textWhite,
+            fontWeight: FontWeight.bold
+          ),
+        ),
         actions: [
           // ⭐ 新增：创建帖子按钮
           IconButton(
             icon: Icon(Icons.add),
+            color: Colors.white,
+
             onPressed: _navigateToCreatePost,
             tooltip: '게시글 작성',
           ),
@@ -327,9 +376,12 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
       ),
 
       body: Container(
+          decoration: BoxDecoration(
+              color:AppColors.backgroundColor
+          ),
           child:Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildSearch(),
               _buildPostList(),
@@ -360,17 +412,17 @@ class CategoryButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color:isSelected ? AppColors.primaryColor : Colors.white,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: isSelected ? Colors.black : Colors.grey[400]!,
+            color: isSelected ? AppColors.primaryColor : Colors.grey[400]!,
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Text(
           text,
           style: TextStyle(
-            color: Colors.black,
+            color: isSelected ? Colors.white : Colors.black,
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

@@ -3,14 +3,15 @@ import 'package:provider/provider.dart';
 import '../models/post_model.dart';
 import '../services/post_detail_service.dart';
 import '../services/comment_service.dart';
-import '../services/post_service.dart'; // ⭐ 新增
+import '../services/post_service.dart';
 import '../../common/custom_appbar.dart';
 import '../models/comment_model.dart';
 import '../../auth/auth_provider.dart';
 import '../../common/custom_footer.dart';
 import '../../common/custom_drawer.dart';
 import '../../recipes/ingreCheck_screen.dart';
-import 'post_editor_screen.dart'; // ⭐ 新增
+import 'post_editor_screen.dart';
+import '../../common/app_colors.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
@@ -39,7 +40,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   /// ========== 服务声明区域 ==========
   final PostDetailService _detailService = PostDetailService();
   final CommentService _commentService = CommentService();
-  final PostService _postService = PostService(); // ⭐ 新增
+  final PostService _postService = PostService();
 
   /// ========== 页面初始化区域 ==========
   @override
@@ -136,7 +137,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
-  // ⭐ 新增：编辑帖子
   Future<void> _editPost() async {
     if (_post == null) return;
 
@@ -147,17 +147,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       ),
     );
 
-    // 如果编辑成功，重新加载帖子
     if (result == true) {
       await _loadPostDetail();
     }
   }
 
-  // ⭐ 新增：删除帖子
   Future<void> _deletePost() async {
     if (_post == null) return;
 
-    // 显示确认对话框
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -179,7 +176,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     if (confirmed != true) return;
 
-    // 显示加载对话框
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -189,14 +185,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     try {
       final success = await _postService.deletePost(widget.postId);
 
-      Navigator.pop(context); // 关闭加载对话框
+      Navigator.pop(context);
 
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('게시글이 삭제되었습니다')),
           );
-          Navigator.pop(context); // 返回列表页
+          Navigator.pop(context);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -204,7 +200,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         );
       }
     } catch (e) {
-      Navigator.pop(context); // 关闭加载对话框
+      Navigator.pop(context);
       print('게시글 삭제 오류: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류가 발생했습니다')),
@@ -273,11 +269,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   /// 获取主评论下的所有回复（包括多层嵌套）
   List<Comment> _getAllRepliesForMainComment(String mainCommentId) {
     List<Comment> allReplies = [];
-    Set<String> processedIds = {mainCommentId}; // 防止循环引用
+    Set<String> processedIds = {mainCommentId};
 
-    // 找出所有属于这个评论树的回复
     void findReplies(String commentId) {
-      // 查找直接回复该评论的所有回复
       final directReplies = _comments.where((c) =>
       c.pComment == commentId && !processedIds.contains(c.id)
       ).toList();
@@ -285,7 +279,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       for (var reply in directReplies) {
         processedIds.add(reply.id);
         allReplies.add(reply);
-        // 递归查找这个回复的回复
         findReplies(reply.id);
       }
     }
@@ -334,8 +327,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   /// ========== UI构建区域 ==========
-
-  /// ⭐ 修改：构建作者信息区域（添加编辑/删除按钮）
   Widget _buildAuthorSection() {
     if (_post == null) return SizedBox();
 
@@ -344,6 +335,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final isMyPost = currentUser != null && currentUser.uid == _post!.userId;
 
     return Container(
+      decoration:BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
       padding: EdgeInsets.all(16),
       child: Row(
         children: [
@@ -365,21 +366,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
           ),
 
-          // ⭐ 如果是自己的帖子，显示编辑和删除按钮
           if (isMyPost) ...[
             IconButton(
-              icon: Icon(Icons.edit, color: Colors.blue),
+              icon: Icon(Icons.edit, color:AppColors.primaryColor),
               onPressed: _editPost,
               tooltip: '수정',
             ),
             IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
+              icon: Icon(Icons.delete, color: AppColors.primaryColor),
               onPressed: _deletePost,
               tooltip: '삭제',
             ),
           ],
 
-          // 收藏按钮
           IconButton(
             icon: Icon(
               _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -396,106 +395,109 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Widget _buildContentSection() {
     if (_post == null) return SizedBox();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                _post!.title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 25,
+    return Container(
+      color:AppColors.backgroundColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  _post!.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                  ),
                 ),
-              ),
-              SizedBox(width: 16),
-              Text(
-                _post!.category,
-                style: TextStyle(fontSize: 8, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: _post!.thumbnailUrl.isNotEmpty
-              ? Image.network(
-            _post!.thumbnailUrl,
-            width: double.infinity,
-            height: 200,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 200,
-                color: Colors.grey[200],
-                child: Center(child: CircularProgressIndicator()),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 200,
-                color: Colors.grey[200],
-                child: Center(
-                  child: Icon(Icons.broken_image,
-                      size: 50, color: Colors.grey),
+                SizedBox(width: 16),
+                Text(
+                  _post!.category,
+                  style: TextStyle(fontSize: 8, color: Colors.grey),
                 ),
-              );
-            },
-          )
-              : Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Icon(Icons.image, size: 50, color: Colors.grey),
+              ],
             ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Text(
-            _post!.content,
-            style: TextStyle(fontSize: 16, color: Colors.black),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Row(
-            children: [
-              Text(
-                _post!.cdate.toString().split(' ')[0],
-                style: TextStyle(fontSize: 10, color: Colors.grey),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+            child: _post!.thumbnailUrl.isNotEmpty
+                ? Image.network(
+              _post!.thumbnailUrl,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 200,
+                  color: Colors.grey[200],
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  color: Colors.grey[200],
+                  child: Center(
+                    child: Icon(Icons.broken_image,
+                        size: 50, color: Colors.grey),
+                  ),
+                );
+              },
+            )
+                : Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
               ),
-              SizedBox(width: 16),
-              Text(
-                '댓글 ${_post!.commentCount}',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
+              child: Center(
+                child: Icon(Icons.image, size: 50, color: Colors.grey),
               ),
-              SizedBox(width: 8),
-              Text(
-                '북마크 ${_post!.bookmarkCount}',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-            ],
+            ),
           ),
-        ),
-        SizedBox(height: 16),
-        Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Text(
-            "댓글",
-            style: TextStyle(fontSize: 10, color: Colors.grey),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+            child: Text(
+              _post!.content,
+              style: TextStyle(fontSize: 16, color: Colors.black),
+            ),
           ),
-        ),
-        _buildCommentsList(),
-      ],
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+            child: Row(
+              children: [
+                Text(
+                  _post!.cdate.toString().split(' ')[0],
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+                SizedBox(width: 16),
+                Text(
+                  '댓글 ${_post!.commentCount}',
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '북마크 ${_post!.bookmarkCount}',
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+          Divider(height: 1, thickness: 1, color: Colors.grey[200]),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+            child: Text(
+              "댓글",
+              style: TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+          ),
+          _buildCommentsList(),
+        ],
+      ),
     );
   }
 
@@ -514,7 +516,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       );
     }
 
-    // 1. 获取所有主评论（pComment == null）
     final mainComments = _comments.where((c) => c.pComment == null).toList();
 
     return Padding(
@@ -525,8 +526,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         itemCount: mainComments.length,
         itemBuilder: (context, index) {
           final mainComment = mainComments[index];
-
-          // 2. ⭐ 获取该主评论下的所有回复（递归查找）
           final replies = _getAllRepliesForMainComment(mainComment.id);
 
           return _buildCommentItem(mainComment, replies);
@@ -671,22 +670,33 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _commentController,
-                focusNode: _commentFocusNode,
-                keyboardType: TextInputType.multiline,
-                maxLines: 3,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: '댓글을 입력하세요...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                child: TextField(
+                  controller: _commentController,
+                  focusNode: _commentFocusNode,
+                  decoration: InputDecoration(
+                    hintText: '댓글을 입력하세요...',
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: AppColors.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
                   ),
-                ),
-              ),
+                )
             ),
             IconButton(
-              icon: Icon(Icons.send),
+              icon: Icon(Icons.send,color:AppColors.primaryColor),
               onPressed: _submitComment,
             ),
           ],
@@ -707,7 +717,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           Container(
             height: 100,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color:AppColors.backgroundColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
