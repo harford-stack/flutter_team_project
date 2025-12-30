@@ -49,6 +49,15 @@ class _SelectScreenState extends State<SelectScreen> {
     super.initState();
     _loadData();
     _checkLoginStatus();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final existingIngredients =
+          context.read<TempIngredientProvider>().ingredients;
+
+      setState(() {
+        selectedIngredients.addAll(existingIngredients);
+      });
+    });
   }
 
   Future<void> _loadData() async {
