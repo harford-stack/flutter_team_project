@@ -1,38 +1,34 @@
-//재료 선택 화면
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
-import '../providers/temp_ingre_provider.dart';
 import 'widget_search_bar.dart';
 import 'widget_category_bar.dart';
 import 'widget_ingredient_grid.dart';
 import 'service_ingredientFirestore.dart';
-import '../recipes/ingreCheck_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
 
-// import 'package:firebase_core/firebase_core.dart';
-// import '../firebase_options.dart';
-//
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   runApp(const MaterialApp(
-//     home: SelectScreen(),
-//   ));
-// }
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-class SelectScreen extends StatefulWidget {
-  const SelectScreen({super.key});
-
-  @override
-  State<SelectScreen> createState() => _SelectScreenState();
+  runApp(const MaterialApp(
+    home: UserIngredient(),
+  ));
 }
 
-class _SelectScreenState extends State<SelectScreen> {
+class UserIngredient extends StatefulWidget {
+  const UserIngredient({super.key});
+
+  @override
+  State<UserIngredient> createState() => _UserIngredientState();
+}
+
+class _UserIngredientState extends State<UserIngredient> {
   final IngredientService _service = IngredientService();
   final TextEditingController _searchController = TextEditingController();
 
@@ -43,27 +39,6 @@ class _SelectScreenState extends State<SelectScreen> {
   int selectedCategoryIndex = 0;
   final Set<String> selectedIngredients = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-    _checkLoginStatus();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final existingIngredients =
-          context.read<TempIngredientProvider>().ingredients;
-
-      setState(() {
-        selectedIngredients.addAll(existingIngredients);
-      });
-    });
-  }
-
-  Future<void> _loadData() async {
-    categoryTabs = await _service.getCategories();
-    await _loadIngredients();
-  }
-
   Future<void> _loadIngredients() async {
     final ingredients = await _service.getIngredients(
         categoryTabs[selectedCategoryIndex]
@@ -73,15 +48,6 @@ class _SelectScreenState extends State<SelectScreen> {
       ingredientList = ingredients;
       filteredIngredients = ingredients;
     });
-  }
-
-  void _checkLoginStatus() {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      print("로그인 상태: ${user.displayName}");
-    } else {
-      print("로그아웃 상태");
-    }
   }
 
   void _filterIngredients(String query) {
@@ -112,11 +78,32 @@ class _SelectScreenState extends State<SelectScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadData();
+    _checkLoginStatus();
+  }
+
+  Future<void> _loadData() async {
+    categoryTabs = await _service.getCategories();
+    await _loadIngredients();
+  }
+
+  void _checkLoginStatus() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      print("로그인 상태: ${user.displayName}");
+    } else {
+      print("로그아웃 상태");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: CustomAppBar(
-        appName: '재료 선택',
+        appName: '내 재료',
       ),
       body: Column(
         children: [
@@ -140,32 +127,31 @@ class _SelectScreenState extends State<SelectScreen> {
       ),
       floatingActionButton: selectedIngredients.isNotEmpty
           ? ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onPressed: () {
-                final selectedList = selectedIngredients.toList();
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          backgroundColor: AppColors.primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        onPressed: () {
+          // print(selectedIngredients);
+          // List<String> selectedList = selectedIngredients.toList();
+          // Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //         builder: (_)=> IngrecheckScreen(selectedIngredients: selectedList)
+          //     )
+          // );
 
-                // Provider에 임시 저장
-                context.read<TempIngredientProvider>().addAll(selectedList);
+          final selectedList = selectedIngredients.toList();
 
-                // 재료 확인 화면으로 이동
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const IngrecheckScreen(),
-                  ),
-                );
-              },
-              child: const Text(
-                "확인",
-                style: TextStyle(color: AppColors.textWhite),
-              ),
-            )
+        },
+        child: const Text(
+          "확인",
+          style: TextStyle(color: AppColors.textWhite),
+        ),
+      )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
