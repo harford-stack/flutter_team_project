@@ -32,12 +32,25 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
           children: [
             Text("인식 결과", style: TextStyle(fontSize: 25),),
             SizedBox(height: 30), // 간격 두기
-
+            
+            // 인식된 사진 담기는 곳
             Container(
               width: 300,
               height: 200,
               color: Colors.grey[300],
+              alignment: Alignment.center, // 텍스트 중앙 정렬
+              child: context.watch<TempIngredientProvider>().photos.isNotEmpty
+                  ? Image.file(
+                context.watch<TempIngredientProvider>().photos.last,
+                fit: BoxFit.cover,
+              )
+                  : Text(
+                '사진 없이 목록에서만 체크된\n재료 내용입니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, color: Colors.black54),
+              ),
             ),
+            
             SizedBox(height: 30), // 간격 두기
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
