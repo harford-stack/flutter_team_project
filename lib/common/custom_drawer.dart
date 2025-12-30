@@ -5,6 +5,7 @@ import 'app_colors.dart';
 import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
+import '../auth/profile_edit_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -103,6 +104,23 @@ class CustomDrawer extends StatelessWidget {
                   ),
           ),
           if (authProvider.isAuthenticated) ...[
+            ListTile(
+              leading: Image.asset(
+                'assets/icon_profile.png',
+                width: 24,
+                height: 24,
+              ),
+              title: const Text('프로필 수정'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileEditScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
             ListTile(
               leading: Image.asset(
                 'assets/icon_myrecipe.png',

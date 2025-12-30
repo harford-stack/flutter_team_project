@@ -10,8 +10,7 @@ import 'widget_search_bar.dart';
 import 'widget_category_bar.dart';
 import 'widget_ingredient_grid.dart';
 import 'service_ingredientFirestore.dart';
-
-// import '../recipes/ingreCheck_screen.dart';
+import '../recipes/ingreCheck_screen.dart';
 
 // import 'package:firebase_core/firebase_core.dart';
 // import '../firebase_options.dart';
@@ -49,6 +48,15 @@ class _SelectScreenState extends State<SelectScreen> {
     super.initState();
     _loadData();
     _checkLoginStatus();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final existingIngredients =
+          context.read<TempIngredientProvider>().ingredients;
+
+      setState(() {
+        selectedIngredients.addAll(existingIngredients);
+      });
+    });
   }
 
   Future<void> _loadData() async {
@@ -140,23 +148,18 @@ class _SelectScreenState extends State<SelectScreen> {
                 ),
               ),
               onPressed: () {
-                // print(selectedIngredients);
-                // List<String> selectedList = selectedIngredients.toList();
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (_)=> IngrecheckScreen(selectedIngredients: selectedList)
-                //     )
-                // );
-
                 final selectedList = selectedIngredients.toList();
 
                 // Provider에 임시 저장
                 context.read<TempIngredientProvider>().addAll(selectedList);
 
-                // 이전 화면(IngreeditScreen)으로 돌아가기
-                Navigator.pop(context);
-
+                // 재료 확인 화면으로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const IngrecheckScreen(),
+                  ),
+                );
               },
               child: const Text(
                 "확인",

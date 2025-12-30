@@ -124,7 +124,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
                         elevation: 2,
                       ),
                       child: const Text(
-                        '실시간 추천',
+                        '촬영 또는 앨범 사진',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -152,7 +152,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
                         elevation: 2,
                       ),
                       child: const Text(
-                        '재료 선택 후 추천',
+                        '재료 직접 선택',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
