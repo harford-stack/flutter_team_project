@@ -38,20 +38,6 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: '어플 이름',
-
-        // --- 한글입력 관련(시작) --- // 아직 안됨 ㅠㅠ (현지)
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('ko', 'KR'), // 한국어 우선 설정
-          Locale('en', 'US'), // 영어
-        ],
-        locale: const Locale('ko', 'KR'), // 앱의 기본 언어를 한국어로 강제 설정
-        // --- 여기까지 ---
-
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
