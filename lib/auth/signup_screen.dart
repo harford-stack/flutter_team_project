@@ -5,6 +5,7 @@ import '../common/password_validator.dart';
 import 'auth_provider.dart';
 import 'nickname_input_screen.dart';
 import 'login_screen.dart';
+import 'terms_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -329,28 +330,74 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   const SizedBox(height: 24),
                   // 약관 동의 체크박스
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Checkbox(
-                        value: _agreeToTerms,
-                        onChanged: (value) {
-                          setState(() {
-                            _agreeToTerms = value ?? false;
-                          });
-                        },
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _agreeToTerms = !_agreeToTerms;
-                            });
-                          },
-                          child: const Text(
-                            '서비스 이용약관 및 개인정보 처리방침에 동의합니다',
-                            style: TextStyle(fontSize: 14),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToTerms = value ?? false;
+                              });
+                            },
                           ),
-                        ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _agreeToTerms = !_agreeToTerms;
+                                });
+                              },
+                              child: const Text(
+                                '서비스 이용약관 및 개인정보 처리방침에 동의합니다',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const TermsScreen(type: 'terms'),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              '서비스 이용약관 보기',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryColor,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const TermsScreen(type: 'privacy'),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              '개인정보 처리방침 보기',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryColor,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
