@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'recipe_model.dart';
 import 'recipe_ai_service.dart';
 import 'package:flutter_team_project/common/bookmark_button.dart';
+import 'package:flutter_team_project/recipes/recipe_service.dart';
 
 class RecipedetailScreen extends StatefulWidget {
   final RecipeModel recipe;
@@ -27,6 +28,20 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
   }
 
   Future<void> _loadFullRecipe() async {
+    // 만약 이미 레시피 단계(instructions)가 존재한다면 AI를 부르지 않음
+    // ★ 추가 조건: 목록에서 생성된 요약본(description 대용)이 아닌 실제 전문인 경우에만 스킵
+    if (widget.recipe.instructions.isNotEmpty &&
+        !widget.recipe.instructions.any((step) => step.contains('...'))) {
+      if (mounted) {
+        setState(() {
+          _fullInstructions = widget.recipe.instructions;
+          _isLoading = false; // 로딩바를 즉시 끔
+        });
+      }
+      return; // 함수 종료
+    }
+
+    // 데이터가 없을 때만(일회성 생성 시) 기존처럼 AI 호출
     try {
       final result = await getFullInstructions(
         title: widget.recipe.title,
@@ -35,6 +50,8 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
       if (mounted) {
         setState(() {
           _fullInstructions = result;
+          // ★ 모델에도 전문을 저장하여 이후 다시 진입 시 재호출 방지
+          widget.recipe.instructions = result;
           _isLoading = false;
         });
       }
@@ -86,10 +103,26 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
                   isInitialBookmarked: widget.recipe.isBookmarked,
                   size: 28,             // 상세화면에 맞게 크기 키움
                   isTransparent: true,  // 상세화면은 배경 없이 깔끔하게
-                  onToggle: (state) {
-                    // 추후 상세페이지 전용 저장 로직 연결
+                  onToggle: (state) async {
                     widget.recipe.isBookmarked = state; // 상세에서 바꿔도 모델에 기록됨
-                    print("상세페이지 북마크 상태: $state");
+
+                    if (state) {
+                      // ★ 상세 화면에서도 클릭 시 DB 저장!
+                      try {
+                        await RecipeService().saveRecipeToHistory(widget.recipe);
+                        print("상세 화면에서 DB 저장 성공");
+                      } catch (e) {
+                        print("상세 화면 저장 실패: $e");
+                      }
+                    } else {
+                      // ★ 추가: 북마크 해제 시 DB에서 삭제 로직 연결
+                      try {
+                        await RecipeService().deleteRecipeFromHistory(widget.recipe.title);
+                        print("상세 화면에서 DB 삭제 성공");
+                      } catch (e) {
+                        print("상세 화면 삭제 실패: $e");
+                      }
+                    }
                   },
                 ),
               ],
@@ -153,6 +186,8 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
           child: Image.asset(
             'assets/recipe_loading.png',
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.restaurant, size: 50, color: Colors.grey),
           ),
         ),
         const SizedBox(height: 20),

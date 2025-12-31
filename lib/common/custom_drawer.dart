@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../auth/home_screen.dart';
 import 'app_colors.dart';
 import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
@@ -177,6 +178,11 @@ class CustomDrawer extends StatelessWidget {
               onTap: () async {
                 Navigator.pop(context);
                 await authProvider.signOut();
+                // 홈 화면으로 이동 내용 추가! & 이전의 모든 스택을 제거
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      (route) => false,
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('로그아웃되었습니다'),
