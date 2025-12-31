@@ -1,13 +1,12 @@
 // AI가 생성한 레시피 내용 관련 모델 파일
-// 임시로 채워둔거라 ai 연결하면서 재확인 예정!
 
 class RecipeModel {
   final String title;
   final List<Map<String, String>> ingredients;
-  final String description;   // 목록 카드용 요약
-  final List<String> instructions;   // 상세레시피 = 전체 조리 과정 (문자열)
+  String description;   // 목록 카드용 요약 (업뎃 가능하도록 final 없앰)
+  List<String> instructions;   // 상세레시피 = 전체 조리 과정 (리스트) (업뎃 가능하도록 final 없앰)
 
-  // ★ 1. 북마크 상태 변수 추가 (상태가 변해야 하므로 final을 붙이지 않음)
+  // ★ 북마크 상태 변수 (상태가 변해야 하므로 final 아님)
   bool isBookmarked;
 
   RecipeModel({
@@ -15,12 +14,49 @@ class RecipeModel {
     required this.ingredients,
     required this.description,
     required this.instructions,
-    this.isBookmarked = false, // ★ 2. 생성자에서 기본값을 false로 설정
+    this.isBookmarked = false, // 기본값은 false
   });
 
+  // -----------------------------------------------------------
+  // 1. Firestore에 저장하기 위한 Map 변환 메서드
+  // -----------------------------------------------------------
+  Map<String, dynamic> toFirestore() {
+    return {
+      "title": title,
+      "ingredient": ingredients, // List<Map<String, String>>
+      "step": instructions,      // List<String>
+      "cdate": DateTime.now(),   // 생성일 (현재 시간)
+    };
+  }
+
+  // -----------------------------------------------------------
+  // 2. Firestore에서 가져온 데이터를 모델로 변환하는 생성자 (통역사 역할)
+  // -----------------------------------------------------------
+  factory RecipeModel.fromFirestore(Map<String, dynamic> doc) {
+    // 'step' 리스트 가져오기
+    final List<String> steps = List<String>.from(doc['step'] ?? []);
+
+    return RecipeModel(
+      title: doc['title'] ?? '제목 없음',
+      ingredients: (doc['ingredient'] as List? ?? [])
+          .map<Map<String, String>>((i) => {
+        "이름": i["이름"]?.toString() ?? "",
+        "용량": i["용량"]?.toString() ?? "",
+      })
+          .toList(),
+      // 첫 번째 조리 과정을 요약(description)으로 사용
+      description: steps.isNotEmpty ? steps.first : "맛있는 레시피를 확인해보세요!",
+      instructions: steps,
+      // DB(보관함)에서 가져온 데이터는 이미 북마크된 것이므로 true 설정
+      isBookmarked: true,
+    );
+  }
+
+  // -----------------------------------------------------------
+  // 3. AI 응답(JSON)에서 모델로 변환하는 생성자
+  // -----------------------------------------------------------
   factory RecipeModel.fromJson(Map<String, dynamic> json) {
-    final List<String> steps =
-    List<String>.from(json["과정"] ?? []);
+    final List<String> steps = List<String>.from(json["과정"] ?? []);
 
     return RecipeModel(
       title: json["요리 제목"] ?? "제목 없음",
@@ -30,16 +66,9 @@ class RecipeModel {
         "용량": i["용량"]?.toString() ?? "",
       })
           .toList(),
-
-      description:
-      steps.isNotEmpty ? steps.first : "맛있는 레시피를 확인해보세요!",
-
-      // 🔑 리스트를 하나의 문자열로 합침
+      description: steps.isNotEmpty ? steps.first : "맛있는 레시피를 확인해보세요!",
       instructions: steps,
-
-      // ★ 3. JSON 데이터에 북마크 정보가 있다면 가져오고, 없으면 false가 기본값이 됩니다.
       isBookmarked: json["isBookmarked"] ?? false,
-
     );
   }
 }

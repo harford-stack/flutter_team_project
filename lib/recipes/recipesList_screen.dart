@@ -3,6 +3,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/recipeDetail_screen.dart';
+import 'package:flutter_team_project/recipes/recipe_service.dart';
 import 'recipe_model.dart'; // ★ 추가: 모델 임포트
 import 'package:flutter_team_project/common/bookmark_button.dart';
 
@@ -93,15 +94,6 @@ Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
 
-              // 북마크 아이콘 버튼
-              BookmarkButton(
-                isInitialBookmarked: recipe.isBookmarked, // 모델 상태 전달 (북마크 여부)
-                onToggle: (bool state) {
-                  // 기능은 나중에 여기서 연결 예정
-                  recipe.isBookmarked = state; // 모델상태 업뎃 (상세페이지 전달용)
-                  print("레시피 북마크 상태: $state");
-                },
-              ),
             ],
           ),
           SizedBox(height: 10),

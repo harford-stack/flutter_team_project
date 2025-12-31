@@ -6,6 +6,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../common/app_colors.dart';
 import '../providers/temp_ingre_provider.dart';
 
 class IngreTextListWidget extends StatelessWidget {
@@ -22,9 +23,9 @@ class IngreTextListWidget extends StatelessWidget {
       runSpacing: 4, // 아이템 사이 세로 간격
       children: detectedIngredients.map((ingredient) {
         return Chip(
-          label: Text(ingredient),
-          backgroundColor: Colors.orange.shade100,
-          deleteIcon: Icon(Icons.close, size: 16, color: Colors.red), // x 표시 빨갛게
+          label: Text(ingredient, style: TextStyle(color: AppColors.textWhite, fontSize: 18),),
+          backgroundColor: AppColors.secondaryColor,
+          deleteIcon: Icon(Icons.close, size: 16, color: AppColors.textDark), // x 표시 빨갛게
           onDeleted: () {
             tempIngreProvider.removeIngredient(ingredient); // provider에서 제거
           },
