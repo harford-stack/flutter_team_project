@@ -12,6 +12,7 @@ import '../../common/custom_drawer.dart';
 import '../../recipes/ingreCheck_screen.dart';
 import 'post_editor_screen.dart';
 import '../../common/app_colors.dart';
+import '../screens/community_list_screen.dart';
 
 
 // ========================================
@@ -399,7 +400,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   void _handleFooterTap(int index) {
     if (index == 2) {
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CommunityListScreen()),
+      );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,

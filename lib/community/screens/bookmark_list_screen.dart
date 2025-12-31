@@ -10,6 +10,8 @@ import '../../common/app_colors.dart';
 import '../../common/bookmark_button.dart';
 import 'community_detail_screen.dart';
 import '../../recipes/ingreCheck_screen.dart';
+import '../screens/community_list_screen.dart';
+
 
 /// ========================================
 /// BookmarkListScreen - 북마크 관리 화면
@@ -248,7 +250,10 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
   /// ===== Footer 导航处理（参考 PostDetailScreen 的逻辑）=====
   void _handleFooterTap(int index) {
     if (index == 2) {
-      // 当前页面，不做处理
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CommunityListScreen()),
+      );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
@@ -360,38 +365,43 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         child: Row(
           children: [
             // ===== 左侧：缩略图 =====
-            ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
-              child: post.thumbnailUrl.isNotEmpty
-                  ? Image.network(
-                post.thumbnailUrl,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.grey[200],
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.grey[200],
-                  );
-                },
-              )
-                  : Container(
-                width: 100,
-                height: 100,
-                color: Colors.grey[200],
+            Padding(
+              padding:EdgeInsets.all(16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                child: post.thumbnailUrl.isNotEmpty
+                    ? Image.network(
+                  post.thumbnailUrl,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 100,
+                      height: 100,
+                      color: Colors.grey[200],
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 100,
+                      height: 100,
+                      color: Colors.grey[200],
+                    );
+                  },
+                )
+                    : Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey[200],
+                ),
               ),
             ),
 
