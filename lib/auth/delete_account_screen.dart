@@ -111,6 +111,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
+              Image.asset('assets/image_delete_account.JPG'),
+              const SizedBox(height: 40),
               // 돌아가기 버튼
               OutlinedButton(
                 onPressed: _isLoading

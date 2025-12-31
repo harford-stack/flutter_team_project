@@ -11,6 +11,7 @@ import '../community/screens/community_list_screen.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
 import 'recipe_recommend_screen.dart';
+import '../notifications/notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -179,6 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         appName: _getAppbarTitle(_currentIndex),
+        onNotificationTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NotificationScreen(),
+            ),
+          );
+        },
       ),
       drawer: const CustomDrawer(),
       body: _buildCurrentScreen(),
