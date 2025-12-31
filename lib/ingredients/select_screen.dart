@@ -13,21 +13,14 @@ import 'widget_ingredient_grid.dart';
 import 'service_ingredientFirestore.dart';
 import '../recipes/ingreCheck_screen.dart';
 
-// import 'package:firebase_core/firebase_core.dart';
-// import '../firebase_options.dart';
-//
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   runApp(const MaterialApp(
-//     home: SelectScreen(),
-//   ));
-// }
-
 class SelectScreen extends StatefulWidget {
-  const SelectScreen({super.key});
+  // ★ 최초 진입 여부 플래그 추가 (기본값 true)
+  final bool isInitialFlow;
+
+  const SelectScreen({
+    super.key,
+    this.isInitialFlow = true, // ★ 기본은 최초 진입
+  });
 
   @override
   State<SelectScreen> createState() => _SelectScreenState();
@@ -56,13 +49,13 @@ class _SelectScreenState extends State<SelectScreen> {
 
       setState(() {
         selectedIngredients
-        ..clear() // ★ 기존 값 제거
-        ..addAll(existingIngredients); // ★ Provider 기준으로 초기 동기화
+          ..clear() // ★ 기존 값 제거
+          ..addAll(existingIngredients); // ★ Provider 기준 동기화
       });
     });
   }
 
-  // ★ 뒤로가기(back) 등으로 다시 돌아왔을 때 Provider 기준으로 재동기화
+  // ★ 뒤로가기(back) 등으로 다시 돌아왔을 때 Provider 기준 재동기화
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -70,7 +63,6 @@ class _SelectScreenState extends State<SelectScreen> {
     final providerIngredients =
         context.read<TempIngredientProvider>().ingredients;
 
-    // setState를 추가하여 UI를 다시 그리도록 하기
     setState(() {
       selectedIngredients
         ..clear()
@@ -160,43 +152,39 @@ class _SelectScreenState extends State<SelectScreen> {
       ),
       floatingActionButton: selectedIngredients.isNotEmpty
           ? ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          backgroundColor: AppColors.primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        onPressed: () {
+          final selectedList = selectedIngredients.toList();
+
+          // Provider에 임시 저장
+          final provider = context.read<TempIngredientProvider>();
+          provider.clearAll();              // ★ 기존 재료 완전 제거
+          provider.addAll(selectedList);    // ★ 현재 선택 상태로 덮어쓰기
+
+          // ★ SelectScreen은 이동 책임을 버리고 pop만 수행
+          Navigator.pop(context);
+
+          // ★ 최초 진입인 경우에만 ingreCheck로 이동
+          if (widget.isInitialFlow) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const IngrecheckScreen(),
               ),
-              onPressed: () async {
-                final selectedList = selectedIngredients.toList();
-
-                // Provider에 임시 저장
-                context.read<TempIngredientProvider>().addAll(selectedList);
-
-                // 재료 확인 화면으로 이동
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const IngrecheckScreen(),
-                  ),
-                );
-
-                // ★ 돌아왔을 때(Pop 이후) Provider의 최신 상태로 로컬 변수 업데이트
-                if (mounted) {
-                  final updatedIngredients =
-                      context.read<TempIngredientProvider>().ingredients;
-                  setState(() {
-                    selectedIngredients
-                      ..clear()
-                      ..addAll(updatedIngredients);
-                  });
-                }
-              },
-              child: const Text(
-                "확인",
-                style: TextStyle(color: AppColors.textWhite),
-              ),
-            )
+            );
+          }
+        },
+        child: const Text(
+          "확인",
+          style: TextStyle(color: AppColors.textWhite),
+        ),
+      )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
