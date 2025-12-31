@@ -9,6 +9,7 @@ import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
 import '../auth/profile_edit_screen.dart';
 import '../recipes/my_recipes_screen.dart';
+import '../ingredients/user_ingredient_regist.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -106,6 +107,41 @@ class CustomDrawer extends StatelessWidget {
                     ],
                   ),
           ),
+          ListTile(
+            leading: Image.asset(
+              'assets/icon_home.png',
+              width: 24,
+              height: 24,
+            ),
+            title: const Text('홈'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+                (route) => false,
+              );
+            },
+          ),
+          if (authProvider.isAuthenticated)
+            ListTile(
+              leading: Image.asset(
+                'assets/icon_add.png',
+                width: 24,
+                height: 24,
+              ),
+              title: const Text('내 냉장고 재료'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const UserIngredientRegist(),
+                  ),
+                );
+              },
+            ),
+          const Divider(),
           if (authProvider.isAuthenticated) ...[
             ListTile(
               leading: Image.asset(

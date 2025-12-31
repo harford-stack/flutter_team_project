@@ -10,8 +10,9 @@ import '../community/screens/community_list_screen.dart';
 // import '../community/widgets/community_list_widget.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
-import 'recipe_recommend_screen.dart';
+import 'recipe_option_screen.dart';
 import '../notifications/notification_screen.dart';
+import '../ingredients/user_ingredient_regist.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -83,6 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
+    final authProvider = Provider.of<AuthProvider>(context);
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -147,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const RecipeRecommendScreen(),
+                  builder: (context) => const RecipeOptionScreen(),
                 ),
               );
             },
@@ -168,6 +171,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          // "내 재료 보러 가기" 버튼 (로그인 상태일 때만 표시)
+          if (authProvider.isAuthenticated) ...[
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const UserIngredientRegist(),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                side: BorderSide(color: AppColors.secondaryColor, width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                '내 재료 보러 가기',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondaryColor,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
