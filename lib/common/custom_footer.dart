@@ -27,28 +27,40 @@ class CustomFooter extends StatelessWidget {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        // mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildFooterItem(
-            icon: null,
-            iconAsset: 'assets/icon_home.png',
-            label: '홈',
-            index: 0,
-            isSelected: currentIndex == 0,
+          Expanded(
+            child: _buildFooterItem(
+              icon: null,
+              iconAsset: 'assets/icon_home.png',
+              label: '홈',
+              index: 0,
+              isSelected: currentIndex == 0,
+            ),
           ),
-          _buildFooterItem(
-            icon: null,
-            iconAsset: 'assets/icon_add.png',
-            label: '재료 등록',
-            index: 1,
-            isSelected: currentIndex == 1,
+
+          Container(width: 1, height: 30, color: Colors.grey[300]),
+
+          Expanded(
+            child: _buildFooterItem(
+              icon: null,
+              iconAsset: 'assets/icon_add.png',
+              label: '재료 등록',
+              index: 1,
+              isSelected: currentIndex == 1,
+            ),
           ),
-          _buildFooterItem(
-            icon: null,
-            iconAsset: 'assets/icon_community.png',
-            label: '커뮤니티',
-            index: 2,
-            isSelected: currentIndex == 2,
+
+          Container(width: 1, height: 30, color: Colors.grey[300]),
+
+          Expanded(
+            child: _buildFooterItem(
+              icon: null,
+              iconAsset: 'assets/icon_community.png',
+              label: '커뮤니티',
+              index: 2,
+              isSelected: currentIndex == 2,
+            ),
           ),
         ],
       ),
@@ -62,7 +74,7 @@ class CustomFooter extends StatelessWidget {
     required int index,
     required bool isSelected,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: () => onTap(index),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -70,10 +82,20 @@ class CustomFooter extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (iconAsset != null)
-              Image.asset(
-                iconAsset,
-                width: 28,
-                height: 28,
+              ColorFiltered(
+                colorFilter: isSelected
+                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.matrix(<double>[
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0,      0,      0,      1, 0,
+                    ]),
+                child: Image.asset(
+                  iconAsset,
+                  width: 28,
+                  height: 28,
+                ),
               )
             else if (icon != null)
               Icon(

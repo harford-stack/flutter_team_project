@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
+import '../common/custom_drawer.dart';
 import '../providers/temp_ingre_provider.dart';
 import 'widget_search_bar.dart';
 import 'widget_category_bar.dart';
@@ -115,6 +116,7 @@ class _SelectScreenState extends State<SelectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
+      drawer: CustomDrawer(),
       appBar: CustomAppBar(
         appName: '재료 선택',
       ),
