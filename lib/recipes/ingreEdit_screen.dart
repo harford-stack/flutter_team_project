@@ -12,7 +12,7 @@ import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../common/app_colors.dart';
 import '../ingredients/select_screen.dart';
-import '../ingredients/user_ingredient.dart';
+import '../ingredients/user_refrigerator.dart';
 import '../ingredients/user_ingredient_regist.dart';
 import '../providers/temp_ingre_provider.dart';
 
@@ -83,7 +83,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                       if (authProvider.isAuthenticated) {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) => UserIngredientRegist()),
+                                          MaterialPageRoute(builder: (context) => UserRefrigerator()),
                                         );
                                       } else {
                                         Navigator.push(
