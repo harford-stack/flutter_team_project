@@ -25,7 +25,10 @@ class CategoryBar extends StatelessWidget {
         itemBuilder: (context, index) {
           final isSelected = index == selectedIndex;
           return GestureDetector(
-            onTap: () => onCategoryChanged(index),
+            onTap: (){
+              onCategoryChanged(index);
+              print(categories[index]);
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,

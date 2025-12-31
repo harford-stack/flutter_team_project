@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
+import '../common/custom_drawer.dart';
 
 import 'select_screen.dart';
 import 'image_confirm.dart';
@@ -37,6 +38,7 @@ class Regist extends StatefulWidget {
 class _RegistState extends State<Regist> {
   final ImagePicker _picker = ImagePicker();
   File? _image;
+
 
   Future<void> _pickFromCamera() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
@@ -75,8 +77,11 @@ class _RegistState extends State<Regist> {
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
+      drawer: CustomDrawer(),
       appBar: CustomAppBar(
         appName: '재료 등록',
       ),
@@ -84,95 +89,144 @@ class _RegistState extends State<Regist> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: AppColors.textWhite,
-                elevation: 0,
-                minimumSize: const Size(200, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+            SizedBox(
+              width: screenSize.width * 0.6,   // 화면 가로의 60%
+              height: screenSize.height * 0.12, // 화면 세로의 12%
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: AppColors.textWhite,
+                  elevation: 0,
+                  // minimumSize: const Size(20, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  _pickFromCamera();
+                },
+                child: Text(
+                  "사진 촬영",
+                  style: TextStyle(
+                    fontSize: screenSize.width * 0.05
+                  ),
                 ),
               ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  barrierDismissible: true,
-                  builder: (context) {
-                    return Dialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 150,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryColor,
-                                  foregroundColor: AppColors.textWhite,
-                                  elevation: 0,
-                                  // minimumSize: const Size(20, 48),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  _pickFromCamera();
-                                },
-                                child: const Text("사진 촬영"),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: 150,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryColor,
-                                  foregroundColor: AppColors.textWhite,
-                                  elevation: 0,
-                                  // minimumSize: const Size(20, 48),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  _pickFromGallery();
-                                },
-                                child: const Text("이미지 선택"),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-              child: const Text("사진 등록"),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: AppColors.textWhite,
-                elevation: 0,
-                minimumSize: const Size(200, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: screenSize.width * 0.6,   // 화면 가로의 60%
+              height: screenSize.height * 0.12, // 화면 세로의 12%
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: AppColors.textWhite,
+                  elevation: 0,
+                  // minimumSize: const Size(20, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  _pickFromGallery();
+                },
+                child: Text(
+                  "이미지 선택",
+                  style: TextStyle(
+                      fontSize: screenSize.width * 0.05
+                  ),
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_)=>SelectScreen())
-                );
-              },
-              child: const Text("목록에서 선택"),
             ),
+            // ElevatedButton(
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: AppColors.primaryColor,
+            //     foregroundColor: AppColors.textWhite,
+            //     elevation: 0,
+            //     minimumSize: const Size(200, 50),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(6),
+            //     ),
+            //   ),
+            //   onPressed: () {
+            //     showDialog(
+            //       context: context,
+            //       barrierDismissible: true,
+            //       builder: (context) {
+            //         return Dialog(
+            //           shape: RoundedRectangleBorder(
+            //             borderRadius: BorderRadius.circular(12),
+            //           ),
+            //           child: Padding(
+            //             padding: const EdgeInsets.all(16),
+            //             child: Column(
+            //               mainAxisSize: MainAxisSize.min,
+            //               children: [
+            //                 SizedBox(
+            //                   width: 150,
+            //                   child: ElevatedButton(
+            //                     style: ElevatedButton.styleFrom(
+            //                       backgroundColor: AppColors.primaryColor,
+            //                       foregroundColor: AppColors.textWhite,
+            //                       elevation: 0,
+            //                       // minimumSize: const Size(20, 48),
+            //                       shape: RoundedRectangleBorder(
+            //                         borderRadius: BorderRadius.circular(6),
+            //                       ),
+            //                     ),
+            //                     onPressed: () {
+            //                       _pickFromCamera();
+            //                     },
+            //                     child: const Text("사진 촬영"),
+            //                   ),
+            //                 ),
+            //                 const SizedBox(height: 12),
+            //                 SizedBox(
+            //                   width: 150,
+            //                   child: ElevatedButton(
+            //                     style: ElevatedButton.styleFrom(
+            //                       backgroundColor: AppColors.primaryColor,
+            //                       foregroundColor: AppColors.textWhite,
+            //                       elevation: 0,
+            //                       // minimumSize: const Size(20, 48),
+            //                       shape: RoundedRectangleBorder(
+            //                         borderRadius: BorderRadius.circular(6),
+            //                       ),
+            //                     ),
+            //                     onPressed: () {
+            //                       _pickFromGallery();
+            //                     },
+            //                     child: const Text("이미지 선택"),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         );
+            //       },
+            //     );
+            //   },
+            //   child: const Text("사진 등록"),
+            // ),
+            // const SizedBox(height: 20),
+            // ElevatedButton(
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: AppColors.primaryColor,
+            //     foregroundColor: AppColors.textWhite,
+            //     elevation: 0,
+            //     minimumSize: const Size(200, 50),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(6),
+            //     ),
+            //   ),
+            //   onPressed: () {
+            //     Navigator.push(
+            //         context,
+            //         MaterialPageRoute(builder: (_)=>SelectScreen())
+            //     );
+            //   },
+            //   child: const Text("목록에서 선택"),
+            // ),
           ],
         ),
       ),

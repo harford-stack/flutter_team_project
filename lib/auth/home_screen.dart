@@ -30,6 +30,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentIndex = widget.initialIndex;
   }
 
+  String _getAppbarTitle(int index){
+    switch(index){
+      case 0 :
+        return '홈';
+      case 1 : 
+        return '내 재료';
+      case 2 :
+        return '커뮤니티';
+      default : 
+        return '어플 이름';
+    }
+  }
+
   void _onFooterTap(int index, AuthProvider authProvider) {
     // 로그인이 필요한 메뉴 (재료 등록, 커뮤니티)
     if (index == 1 || index == 2) {
@@ -164,7 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: CustomAppBar(
+        appName: _getAppbarTitle(_currentIndex),
+      ),
       drawer: const CustomDrawer(),
       body: _buildCurrentScreen(),
       bottomNavigationBar: CustomFooter(

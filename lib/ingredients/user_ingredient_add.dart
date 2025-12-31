@@ -41,11 +41,14 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
   int selectedCategoryIndex = 0;
   final Map<String, String> selectedIngredients = {};
 
+  Set<String> disabledIngredients = {};
+
   @override
   void initState() {
     super.initState();
     _loadData();
     _checkLoginStatus();
+    _getUserIngredients();
   }
 
   Future<void> _loadData() async {
@@ -54,21 +57,26 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
   }
 
   Future<void> _loadIngredients() async {
+    categoryTabs = await _service.getCategories();
     final ingredients = await _getCategoryIngre.getIngredientsWithCategory(
         categoryTabs[selectedCategoryIndex]
     );
 
+    // 3. Firestore에서 사용자 재료 목록 불러오기
+    List<String> userIngredients = await _getUserIngredients();
+
     setState(() {
       ingredientList = ingredients;
       filteredIngredients = ingredients;
+
+      disabledIngredients = userIngredients.toSet();
     });
   }
 
   void _checkLoginStatus() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      print("로그인 상태: ${user.displayName}");
-      print(user.uid);
+      print("로그인 상태");
     } else {
       print("로그아웃 상태");
     }
@@ -95,13 +103,17 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
 
   void _onIngredientTap(Map<String, String> item) {
     final name = item['name']!;
-    final category = item['category']!; // 실제 카테고리 사용
+
+    // 이미 추가된 재료는 클릭 불가능
+    if (disabledIngredients.contains(name)) {
+      return; // 아무 작업도 하지 않음
+    }
 
     setState(() {
       if (selectedIngredients.containsKey(name)) {
         selectedIngredients.remove(name);
       } else {
-        selectedIngredients[name] = category; // 실제 카테고리 저장
+        selectedIngredients[name] = item['category']!;
       }
     });
   }
@@ -118,14 +130,21 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
     final DocumentReference userDocRef = firestore.collection('users').doc(user.uid);
 
     final ingredientsCollectionRef = userDocRef.collection('user-ingredients');
-    final ingredientsSnapshot = await ingredientsCollectionRef.get();
 
-    if (ingredientsSnapshot.docs.isNotEmpty) {
-      print("이미 재료 정보가 저장되어 있습니다.");
-      return;
-    }
+    List<String> existingIngredients = await _getUserIngredients();
+
+    // final ingredientsSnapshot = await ingredientsCollectionRef.get();
+    // if (ingredientsSnapshot.docs.isNotEmpty) {
+    //   print("이미 재료 정보가 저장되어 있습니다.");
+    //   return;
+    // }
 
     for (var ingredient in selectedIngredients.entries) {
+      if (existingIngredients.contains(ingredient.key)) {
+        print("재료 ${ingredient.key}는 이미 추가되어 있습니다. 건너뜁니다.");
+        continue;
+      }
+
       final ingredientData = {
         'name' : ingredient.key,
         'category' : ingredient.value,
@@ -135,6 +154,30 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
       await ingredientsCollectionRef.add(ingredientData);
       print("재료 ${ingredient.key}가 추가되었습니다.");
     }
+
+    Navigator.pop(context);
+  }
+
+  Future<List<String>> _getUserIngredients() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if ( user == null) {
+      return [];
+    }
+
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final DocumentReference userDocRef = firestore.collection('users').doc(user.uid);
+    final ingredientsCollectionRef = userDocRef.collection('user-ingredients');
+
+    final ingredientsSnapshot = await ingredientsCollectionRef.get();
+    List<String> userIngredients = [];
+
+    for ( var doc in ingredientsSnapshot.docs) {
+      userIngredients.add(doc['name']);
+    }
+
+    print(userIngredients);
+
+    return userIngredients;
   }
 
   @override
@@ -161,11 +204,12 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
             child: IngredientGridWithCategory(
               ingredients: filteredIngredients.map((item) => item['name']!).toList(),
               selectedIngredients: selectedIngredients,
+              disabledIngredients: disabledIngredients,
               onIngredientTap: (name) {
-                // 이름으로 원본 데이터 찾기
-                final item = filteredIngredients.firstWhere(
-                      (item) => item['name'] == name,
-                );
+                // 이미 선택된 재료는 클릭할 수 없도록 처리
+                if (selectedIngredients.containsKey(name)) return;
+
+                final item = filteredIngredients.firstWhere((item) => item['name'] == name);
                 _onIngredientTap(item);
               },
             ),
