@@ -6,7 +6,7 @@ import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
 import '../auth/profile_edit_screen.dart';
-import '../auth/my_recipes_screen.dart';
+import '../recipes/my_recipes_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});

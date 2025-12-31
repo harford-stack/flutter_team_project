@@ -125,6 +125,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       await _detailService.toggleBookmark(
         widget.postId,
         currentUser.uid,
+        _post!,         // ← 需要传入 post 对象！
         _isBookmarked,
       );
 
