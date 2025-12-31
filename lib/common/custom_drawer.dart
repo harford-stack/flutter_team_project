@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/community/screens/bookmark_list_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'app_colors.dart';
@@ -6,7 +7,7 @@ import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
 import '../auth/profile_edit_screen.dart';
-import '../auth/my_recipes_screen.dart';
+import '../recipes/my_recipes_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -147,8 +148,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('북마크 목록'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('북마크 목록 기능은 구현 중입니다')),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const BookmarkListScreen(),
+                  ),
                 );
               },
             ),

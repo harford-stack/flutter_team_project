@@ -354,26 +354,26 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(
-        backgroundColor: AppColors.primaryColor,
-        title: Text(
-            '커뮤니티',
-          style: TextStyle(
-            color:AppColors.textWhite,
-            fontWeight: FontWeight.bold
-          ),
-        ),
-        actions: [
-          // ⭐ 新增：创建帖子按钮
-          IconButton(
-            icon: Icon(Icons.add),
-            color: Colors.white,
-
-            onPressed: _navigateToCreatePost,
-            tooltip: '게시글 작성',
-          ),
-        ],
-      ),
+      // appBar:AppBar(
+      //   backgroundColor: AppColors.primaryColor,
+      //   title: Text(
+      //       '커뮤니티',
+      //     style: TextStyle(
+      //       color:AppColors.textWhite,
+      //       fontWeight: FontWeight.bold
+      //     ),
+      //   ),
+      //   actions: [
+      //     // ⭐ 新增：创建帖子按钮
+      //     IconButton(
+      //       icon: Icon(Icons.add),
+      //       color: Colors.white,
+      //
+      //       onPressed: _navigateToCreatePost,
+      //       tooltip: '게시글 작성',
+      //     ),
+      //   ],
+      // ),
 
       body: Container(
           decoration: BoxDecoration(
@@ -385,9 +385,22 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
             children: [
               _buildSearch(),
               _buildPostList(),
+
             ],
           )
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 32), // 底部间距
+        child: FloatingActionButton(
+          onPressed: _navigateToCreatePost,
+          backgroundColor: AppColors.primaryColor, // 按钮背景色
+          child: Icon(
+            Icons.add,
+            color: Colors.white, // 图标颜色
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
     );
   }
