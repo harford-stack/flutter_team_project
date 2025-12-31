@@ -9,6 +9,7 @@ import '../auth/login_screen.dart';
 import '../auth/delete_account_screen.dart';
 import '../auth/profile_edit_screen.dart';
 import '../recipes/my_recipes_screen.dart';
+import 'package:flutter_team_project/community/screens/my_post_list_screen.dart';
 import '../ingredients/user_ingredient_regist.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -201,8 +202,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('내가 쓴 게시글'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('내가 쓴 게시글 기능은 구현 중입니다')),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const MyPostListScreen(),
+                  ),
                 );
               },
             ),

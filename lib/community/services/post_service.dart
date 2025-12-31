@@ -288,4 +288,42 @@ class PostService {
       print('이미지 삭제 실패: $e');
     }
   }
+
+  Future<List<Post>> getMyPosts({
+    required String userId,
+    String? category,
+  }) async {
+    try {
+      print('📝 내 게시글 조회: userId=$userId, category=$category');
+
+      // ===== 1단계: 기본 쿼리 설정 (userId 필터링) =====
+      Query query = _firestore
+          .collection('post')  // ⚠️ post 컬렉션 (최상위)
+          .where('userId', isEqualTo: userId);  // 내가 쓴 글만
+
+      // ===== 2단계: 카테고리 필터링 (선택적) =====
+      if (category != null && category.isNotEmpty) {
+        query = query.where('category', isEqualTo: category);
+      }
+
+      // ===== 3단계: 시간순 정렬 (최신순) =====
+      query = query.orderBy('cdate', descending: true);
+
+      // ===== 4단계: 쿼리 실행 =====
+      final snapshot = await query.get();
+
+      print('📝 내 게시글 ${snapshot.docs.length}개 발견');
+
+      // ===== 5단계: Post 모델로 변환 =====
+      List<Post> myPosts = snapshot.docs
+          .map((doc) => Post.fromFirestore(doc))
+          .toList();
+
+      print('✅ 내 게시글 ${myPosts.length}개 로드 완료');
+      return myPosts;
+    } catch (e) {
+      print('❌ 내 게시글 조회 실패: $e');
+      return [];
+    }
+  }
 }

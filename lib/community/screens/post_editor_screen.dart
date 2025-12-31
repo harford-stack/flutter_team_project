@@ -123,7 +123,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           content: _contentController.text.trim(),
           category: _selectedCategory,
           userId: currentUser.uid,
-          nickName: currentUser.displayName ?? '익명',
+          nickName: authProvider.nickName ?? '익명',
           imageFile: _imageFile,
         );
 
