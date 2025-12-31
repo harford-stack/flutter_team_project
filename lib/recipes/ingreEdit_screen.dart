@@ -12,6 +12,8 @@ import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../common/app_colors.dart';
 import '../ingredients/select_screen.dart';
+import '../ingredients/user_ingredient.dart';
+import '../ingredients/user_ingredient_regist.dart';
 import '../providers/temp_ingre_provider.dart';
 
 class IngreeditScreen extends StatefulWidget {
@@ -79,7 +81,10 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                       Navigator.pop(context);
 
                                       if (authProvider.isAuthenticated) {
-                                        Navigator.pushNamed(context, ""); // 차후 연결 예정
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => UserIngredientRegist()),
+                                        );
                                       } else {
                                         Navigator.push(
                                           context,

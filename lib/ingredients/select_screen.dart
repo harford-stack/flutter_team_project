@@ -55,8 +55,26 @@ class _SelectScreenState extends State<SelectScreen> {
           context.read<TempIngredientProvider>().ingredients;
 
       setState(() {
-        selectedIngredients.addAll(existingIngredients);
+        selectedIngredients
+        ..clear() // ★ 기존 값 제거
+        ..addAll(existingIngredients); // ★ Provider 기준으로 초기 동기화
       });
+    });
+  }
+
+  // ★ 뒤로가기(back) 등으로 다시 돌아왔을 때 Provider 기준으로 재동기화
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final providerIngredients =
+        context.read<TempIngredientProvider>().ingredients;
+
+    // setState를 추가하여 UI를 다시 그리도록 하기
+    setState(() {
+      selectedIngredients
+        ..clear()
+        ..addAll(providerIngredients);
     });
   }
 
@@ -149,19 +167,30 @@ class _SelectScreenState extends State<SelectScreen> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
                 final selectedList = selectedIngredients.toList();
 
                 // Provider에 임시 저장
                 context.read<TempIngredientProvider>().addAll(selectedList);
 
                 // 재료 확인 화면으로 이동
-                Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const IngrecheckScreen(),
                   ),
                 );
+
+                // ★ 돌아왔을 때(Pop 이후) Provider의 최신 상태로 로컬 변수 업데이트
+                if (mounted) {
+                  final updatedIngredients =
+                      context.read<TempIngredientProvider>().ingredients;
+                  setState(() {
+                    selectedIngredients
+                      ..clear()
+                      ..addAll(updatedIngredients);
+                  });
+                }
               },
               child: const Text(
                 "확인",
