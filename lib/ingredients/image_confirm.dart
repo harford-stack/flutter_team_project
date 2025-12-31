@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/common/app_colors.dart';
 import 'dart:io';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,6 +11,8 @@ import 'package:http/http.dart';
 
 import '../providers/temp_ingre_provider.dart';
 import 'package:provider/provider.dart';
+
+import '../recipes/ingreCheck_screen.dart';
 
 
 class Ingredient {
@@ -50,6 +53,7 @@ class _ImageConfirmState extends State<ImageConfirm> {
   String _result = '';
   bool _isLoading = false;
 
+  //이미지 분석
   Future<void> _analyzeImage() async {
     setState(() {
       _isLoading = true;
@@ -149,6 +153,12 @@ class _ImageConfirmState extends State<ImageConfirm> {
 
       // 이후 화면 이동 로직이 필요하다면 여기에 추가 (예: Navigator.push 등)
 
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_)=>IngrecheckScreen()
+          )
+      );
 
     } catch (e) {
       print('오류 상세: $e');
@@ -158,6 +168,10 @@ class _ImageConfirmState extends State<ImageConfirm> {
       });
     }
   }
+
+  // Future<void> _transIngredients () {
+  //
+  // }
 
   // 사용가능 gemini 버전 조회용
   // Future<void> _listModels() async {
@@ -202,9 +216,10 @@ class _ImageConfirmState extends State<ImageConfirm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('이미지 확인'),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: AppColors.textWhite,
       ),
-      body: SingleChildScrollView(
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
