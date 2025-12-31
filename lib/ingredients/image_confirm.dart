@@ -53,8 +53,22 @@ class _ImageConfirmState extends State<ImageConfirm> {
   String _result = '';
   bool _isLoading = false;
 
+  // [추가 부분] 화면 진입 시 데이터 초기화 ---------------------------
+  @override
+  void initState() {
+    super.initState();
+  }
+  // ------------------------------------------------------------------
+
   //이미지 분석
   Future<void> _analyzeImage() async {
+
+    // ★ [이동된 부분] -----------------------------------------------
+    // 사진 분석 "시작" 시점에서만 Provider 초기화
+    final provider = context.read<TempIngredientProvider>();
+    provider.clearAll();
+    // ---------------------------------------------------------------
+
     setState(() {
       _isLoading = true;
       _result = '';

@@ -55,7 +55,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                 children: [
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor
+                          backgroundColor: AppColors.primaryColor
                       ),
                       onPressed: (){
                         // 키보드 숨기기
@@ -105,7 +105,10 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                       Navigator.pop(context);
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => SelectScreen()),
+                                        MaterialPageRoute(
+                                          // ★ ingreEdit에서 진입 → 최초 진입 아님
+                                          builder: (context) => const SelectScreen(isInitialFlow: false),
+                                        ),
                                       );
                                     },
                                     child: Text(
@@ -125,8 +128,8 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                       child: Text(
                           "재료 추가",
                           style: TextStyle(
-                          color: AppColors.textWhite,
-                          fontSize: 16
+                              color: AppColors.textWhite,
+                              fontSize: 16
                           )
                       )
                   ),
@@ -188,8 +191,8 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(140, 60),
-                        backgroundColor: AppColors.primaryColor
+                          minimumSize: const Size(140, 60),
+                          backgroundColor: AppColors.primaryColor
                       ),
                       child: Text(
                           "레시피 추천받기",
@@ -216,8 +219,8 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(140, 60),
-                        backgroundColor: AppColors.primaryColor
+                          minimumSize: const Size(140, 60),
+                          backgroundColor: AppColors.primaryColor
                       ),
                       child: Text(
                           "내 냉장고로\n재료 등록하기",

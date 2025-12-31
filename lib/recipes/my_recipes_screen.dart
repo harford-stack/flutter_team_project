@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/home_screen.dart';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_drawer.dart';
@@ -57,8 +58,8 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
         Expanded(
           child: _buildRecipeList(),
         ),
-        // [추가된 위젯] 하단 고정 선택 삭제 버튼
-        _buildDeleteButton(),
+        // [수정된 위젯] 하단 고정 조작 영역 (삭제하기 & 돌아가기)
+        _buildBottomActions(),
       ],
     );
   }
@@ -67,6 +68,7 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16.0),
+
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -90,67 +92,100 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
     );
   }
 
-  /// [추가된 메서드] 하단 고정 삭제 버튼 영역 구성
-  Widget _buildDeleteButton() {
+  /// [수정된 메서드] 하단 고정 버튼 영역 (삭제하기와 돌아가기 나란히 배치)
+  Widget _buildBottomActions() {
     bool hasSelection = _selectedRecipeTitles.isNotEmpty;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 60), // 마지막 숫자가 바닥 여백
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-      child: ElevatedButton(
-        // [수정] 선택 삭제 로직 연결
-        onPressed: hasSelection ? () async {
-          // [추가된 로직] DB 삭제 시작
-          setState(() => _isLoading = true); // 로딩 시작
+      child: Row(
+        children: [
+          // ===== 왼쪽 버튼: 삭제하기 (참고 코드의 ElevatedButton 스타일) =====
+          Expanded(
+            child: ElevatedButton(
+              onPressed: hasSelection ? () async {
+                // [추가된 로직] DB 삭제 시작
+                setState(() => _isLoading = true); // 로딩 시작
 
-          try {
-            // 선택된 모든 제목에 대해 삭제 메서드 반복 호출
-            for (String title in _selectedRecipeTitles) {
-              await RecipeService().deleteRecipeFromHistory(title);
-            }
-            print("선택한 레시피들 DB 삭제 성공");
-            // 삭제 성공 시 스낵바 표시
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('선택한 레시피가 삭제되었습니다.'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating, // 선택사항: 공중에 뜬 형태
+                try {
+                  // 선택된 모든 제목에 대해 삭제 메서드 반복 호출
+                  for (String title in _selectedRecipeTitles) {
+                    await RecipeService().deleteRecipeFromHistory(title);
+                  }
+                  print("선택한 레시피들 DB 삭제 성공");
+                  // 삭제 성공 시 스낵바 표시
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('선택한 레시피가 삭제되었습니다.'),
+                        duration: Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print("선택 삭제 실패: $e");
+                } finally {
+                  // 삭제 완료 후 데이터 새로고침 및 상태 초기화
+                  setState(() {
+                    _savedRecipes = RecipeService().getSavedRecipes();
+                    _selectedRecipeTitles.clear();
+                    _isLoading = false; // 로딩 종료
+                  });
+                }
+              } : null,
+              style: ElevatedButton.styleFrom(
+                // 선택 시 빨간색 또는 기본색 적용
+                backgroundColor: hasSelection ? Colors.red : AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+              child: Text(
+                hasSelection ? '${_selectedRecipeTitles.length}개 삭제하기' : '삭제 선택',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // ===== 오른쪽 버튼: 돌아가기 (참고 코드의 OutlinedButton 스타일) =====
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                // 홈 화면으로 이동
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.primaryColor),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                '돌아가기',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryColor
                 ),
-              );
-            }
-          } catch (e) {
-            print("선택 삭제 실패: $e");
-          } finally {
-            // 삭제 완료 후 데이터 새로고침 및 상태 초기화
-            setState(() {
-              _savedRecipes = RecipeService().getSavedRecipes();
-              _selectedRecipeTitles.clear();
-              _isLoading = false; // 로딩 종료
-            });
-          }
-        } : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey[300],
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Text(
-          hasSelection ? '${_selectedRecipeTitles.length}개 삭제하기' : '삭제할 레시피를 선택하세요',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -271,15 +306,6 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
         );
       },
     );
-
-    // 다른 팀원이 구현할 때 사용할 예시 구조:
-    // return ListView.builder(
-    //   padding: const EdgeInsets.all(16.0),
-    //   itemCount: recipes.length, // recipes 리스트
-    //   itemBuilder: (context, index) {
-    //     return _buildRecipeCard(recipes[index]);
-    //   },
-    // );
   }
 
 /// 레시피 카드 위젯 (예시, 다른 팀원이 구현)
