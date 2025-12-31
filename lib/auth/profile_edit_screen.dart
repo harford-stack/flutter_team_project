@@ -15,13 +15,10 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _birthDateController = TextEditingController();
   final FocusNode _nicknameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
   bool _isLoading = false;
   bool _isLoadingProfile = true;
-  String? _selectedGender;
-  DateTime? _selectedBirthDate;
   Map<String, dynamic>? _userProfile;
 
   @override
@@ -34,7 +31,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   void dispose() {
     _nicknameController.dispose();
     _emailController.dispose();
-    _birthDateController.dispose();
     _nicknameFocusNode.dispose();
     _emailFocusNode.dispose();
     super.dispose();
@@ -50,12 +46,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _userProfile = profile;
           _nicknameController.text = profile['nickname'] ?? '';
           _emailController.text = profile['email'] ?? authProvider.user?.email ?? '';
-          _selectedGender = profile['gender'];
-          if (profile['birthDate'] != null) {
-            _selectedBirthDate = (profile['birthDate'] as Timestamp).toDate();
-            _birthDateController.text = 
-                '${_selectedBirthDate!.year}-${_selectedBirthDate!.month.toString().padLeft(2, '0')}-${_selectedBirthDate!.day.toString().padLeft(2, '0')}';
-          }
           _isLoadingProfile = false;
         });
       } else {
@@ -76,23 +66,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         );
       }
-    }
-  }
-
-  Future<void> _selectBirthDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedBirthDate ?? DateTime.now().subtract(const Duration(days: 365 * 20)),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      locale: const Locale('ko', 'KR'),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedBirthDate = picked;
-        _birthDateController.text = 
-            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-      });
     }
   }
 
@@ -133,14 +106,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       final updateData = <String, dynamic>{
         'nickname': _nicknameController.text.trim(),
       };
-
-      if (_selectedBirthDate != null) {
-        updateData['birthDate'] = Timestamp.fromDate(_selectedBirthDate!);
-      }
-
-      if (_selectedGender != null) {
-        updateData['gender'] = _selectedGender;
-      }
 
       await authProvider.updateUserProfile(updateData);
 
@@ -401,52 +366,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              // 생년월일 입력
-              TextField(
-                controller: _birthDateController,
-                readOnly: true,
-                enabled: !_isLoading,
-                decoration: InputDecoration(
-                  labelText: '생년월일',
-                  hintText: '생년월일을 선택하세요',
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Icon(Icons.calendar_today),
-                  ),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.date_range),
-                    onPressed: _isLoading ? null : _selectBirthDate,
-                  ),
-                ),
-                onTap: _isLoading ? null : _selectBirthDate,
-              ),
-              const SizedBox(height: 16),
-              // 성별 선택
-              DropdownButtonFormField<String>(
-                value: _selectedGender,
-                decoration: const InputDecoration(
-                  labelText: '성별',
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Icon(Icons.person),
-                  ),
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'male', child: Text('남성')),
-                  DropdownMenuItem(value: 'female', child: Text('여성')),
-                  DropdownMenuItem(value: 'other', child: Text('기타')),
-                ],
-                onChanged: _isLoading
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      },
               ),
               const SizedBox(height: 32),
               // 비밀번호 변경 버튼

@@ -11,6 +11,7 @@ import '../community/screens/community_list_screen.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
 import 'recipe_recommend_screen.dart';
+import '../notifications/notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -28,6 +29,19 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+  }
+
+  String _getAppbarTitle(int index){
+    switch(index){
+      case 0 :
+        return '홈';
+      case 1 : 
+        return '내 재료';
+      case 2 :
+        return '커뮤니티';
+      default : 
+        return '어플 이름';
+    }
   }
 
   void _onFooterTap(int index, AuthProvider authProvider) {
@@ -164,7 +178,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: CustomAppBar(
+        appName: _getAppbarTitle(_currentIndex),
+        onNotificationTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NotificationScreen(),
+            ),
+          );
+        },
+      ),
       drawer: const CustomDrawer(),
       body: _buildCurrentScreen(),
       bottomNavigationBar: CustomFooter(
