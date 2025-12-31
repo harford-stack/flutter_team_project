@@ -13,6 +13,88 @@ import '../../recipes/ingreCheck_screen.dart';
 import 'post_editor_screen.dart';
 import '../../common/app_colors.dart';
 
+
+// ========================================
+// 전체 로직 개요 (整体逻辑大纲)
+// ========================================
+//
+// 📌 이 파일에는 2개의 핵심 서비스가 포함되어 있습니다:
+//
+// ┌─────────────────────────────────────────────────────────────┐
+// │ 1. CommentService - 댓글 관리 서비스                          │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 【데이터 구조】
+// post/{postId}/comment/{commentId}
+//   ├── postId: 게시글 ID
+//   ├── userId: 작성자 ID
+//   ├── nickName: 작성자 닉네임
+//   ├── content: 댓글 내용
+//   ├── cdate: 생성 날짜
+//   ├── udate: 수정 날짜
+//   ├── likeCount: 좋아요 수
+//   └── pComment: 부모 댓글 ID (답글인 경우만, 주 댓글은 null)
+//
+// 【핵심 로직】
+// ① 평면적 저장 구조 (扁平化存储)
+//    - 모든 댓글(주 댓글 + 답글)을 같은 컬렉션에 저장
+//    - pComment 필드로 구분:
+//      • pComment = null → 주 댓글 (최상위 댓글)
+//      • pComment = "commentId" → 답글 (부모 댓글 ID 저장)
+//
+// ② 프론트엔드에서 트리 구조 생성 (前端构建树形结构)
+//    - 서비스: 모든 댓글을 시간순으로 반환
+//    - UI: 재귀 알고리즘으로 주 댓글 아래 답글 트리 구성
+//
+// ③ 무한 깊이 중첩 지원 (支持无限层级嵌套)
+//    - A → B → C → D... 형태의 다층 답글 가능
+//    - _getAllRepliesForMainComment() 함수로 모든 하위 답글 추출
+//
+// 【알림 연동 시 고려사항】 ⚠️ 향후 개발자 참고
+// - 댓글 작성 시: 게시글 작성자에게 알림
+// - 답글 작성 시: 부모 댓글 작성자에게 알림
+// - 필요한 정보: postId, userId, pComment, 작성자 정보
+//
+// ┌─────────────────────────────────────────────────────────────┐
+// │ 2. PostDetailService - 게시글 상세 및 북마크 서비스            │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 【데이터 구조】
+// users/{userId}/UserBookmark/{bookmarkId}
+//   ├── postId: 게시글 ID
+//   ├── category: 게시글 분류
+//   ├── title: 게시글 제목
+//   ├── nickName: 작성자 닉네임
+//   ├── cdate: 북마크 날짜
+//   └── thumbnailUrl: 썸네일 URL
+//
+// post/{postId}
+//   └── bookmarkCount: 북마크 수 (FieldValue.increment로 관리)
+//
+// 【핵심 로직】
+// ① 이중 데이터 구조 (双重数据结构)
+//    - UserBookmark: 사용자별 북마크 리스트 저장
+//    - Post.bookmarkCount: 게시글의 총 북마크 수 카운트
+//
+// ② 동기화 메커니즘 (同步机制)
+//    - 북마크 추가 시:
+//      • UserBookmark에 문서 추가
+//      • Post.bookmarkCount +1
+//    - 북마크 삭제 시:
+//      • UserBookmark에서 문서 삭제
+//      • Post.bookmarkCount -1
+//
+// ③ 중복 방지 (防止重复)
+//    - 북마크 추가 전 where 쿼리로 기존 북마크 확인
+//    - 이미 존재하면 추가하지 않음
+//
+// 【알림 연동 시 고려사항】 ⚠️ 향후 개발자 참고
+// - 북마크 추가 시: 게시글 작성자에게 알림
+// - 필요한 정보: postId, userId, 북마크한 사용자 정보
+// - 북마크 해제는 알림 불필요
+//
+// ========================================
+
 class PostDetailScreen extends StatefulWidget {
   final String postId;
 
@@ -229,7 +311,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         return;
       }
 
-      String nickName = currentUser.displayName ?? '익명';
+      // 添加调试信息
+      print('🔍 当前用户 UID: ${currentUser.uid}');
+      print('🔍 authProvider.nickName: ${authProvider.nickName}');
+
+      String nickName = authProvider.nickName ?? '익명';
+      print('✅ 最终使用的 nickName: $nickName');
 
       final success = await _commentService.addComment(
         postId: widget.postId,

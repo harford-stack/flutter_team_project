@@ -1,23 +1,53 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';//미령 추가(닉네임 안나오는 문제)
+
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // 미령 추가
   User? _user;
   bool _isLoading = true;
+  String? _nickName;//닉네임 추가
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _user != null;
+  String? get nickName => _nickName;//getter추가
 
   AuthProvider() {
     // 인증 상태 리스너 설정
     _authService.authStateChanges.listen((User? user) {
       _user = user;
       _isLoading = false;
+
+      // 사용자 상태 변화시，nickName 끌어옴
+      if (user != null) {
+        _fetchUserNickName(user.uid);
+      } else {
+        _nickName = null;  // 로그아웃 시 비움
+      }
+
       notifyListeners();
     });
+  }
+
+  // 추가 함수: Firestore에서 닉네임 가져옴
+  Future<void> _fetchUserNickName(String uid) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        _nickName = doc.data()?['nickname'];//firestore에서는 nickname이라서 먼저 일단 이걸로 고칠게요
+        notifyListeners();
+      }
+    } catch (e) {
+      print('사용자 닉네임 가져오기 실패: $e');
+    }
   }
 
   // 구글 로그인
@@ -27,14 +57,15 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       final userCredential = await _authService.signInWithGoogle();
-      
+
       if (userCredential != null) {
         _user = userCredential.user;
+        await _fetchUserNickName(_user!.uid);//로그인 후 닉네임 다져옴
         _isLoading = false;
         notifyListeners();
         return true;
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return false;
@@ -56,14 +87,15 @@ class AuthProvider extends ChangeNotifier {
         email,
         password,
       );
-      
+
       if (userCredential != null) {
         _user = userCredential.user;
+        await _fetchUserNickName(_user!.uid);//로그인 후 닉네임 가져옴
         _isLoading = false;
         notifyListeners();
         return true;
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return false;
@@ -82,7 +114,11 @@ class AuthProvider extends ChangeNotifier {
 
       await _authService.signInAnonymously();
       _user = _authService.currentUser;
-      
+
+      if (_user != null) {
+        await _fetchUserNickName(_user!.uid);  // 로그인 후 닉네임 가져옴
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -95,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
   // 닉네임 설정
   Future<void> setNickname(String nickname) async {
     await _authService.setNickname(nickname);
+    _nickName = nickname;//설정 후 즉시 로컬 캐시 업데이트
     notifyListeners();
   }
 
@@ -107,6 +144,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     await _authService.signOut();
     _user = null;
+    _nickName = null;  // nickName를 clear
     notifyListeners();
   }
 
@@ -118,7 +156,9 @@ class AuthProvider extends ChangeNotifier {
 
       await _authService.deleteAccount();
       _user = null;
-      
+      _nickName = null;  // 추가
+
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -159,6 +199,11 @@ class AuthProvider extends ChangeNotifier {
   Future<void> updateUserProfile(Map<String, dynamic> data) async {
     try {
       await _authService.updateUserProfile(data);
+
+      if (data.containsKey('nickname')) {
+        _nickName = data['nickname'];
+      }//추가
+
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -197,6 +242,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (userCredential != null) {
         _user = userCredential.user;
+        await _fetchUserNickName(_user!.uid);//가입 후 닉네임 가져옴
         _isLoading = false;
         notifyListeners();
         return true;

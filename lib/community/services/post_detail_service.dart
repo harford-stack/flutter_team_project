@@ -34,7 +34,7 @@ class PostDetailService {
   Future<bool> isBookmarked(String postId, String userId) async {
     try {
       final bookmarkSnapshot = await _firestore
-          .collection('User')
+          .collection('users')  // 改这里
           .doc(userId)
           .collection('UserBookmark')
           .where('postId', isEqualTo: postId)
@@ -62,11 +62,11 @@ class PostDetailService {
       print('🔖 북마크 토글: postId=$postId, userId=$userId, isBookmarking=$isBookmarking');
 
       if (isBookmarking) {
-        // ===== 收藏：添加到 User/{userId}/UserBookmark =====
+        // ===== 收藏：添加到 users/{userId}/UserBookmark =====
 
         // 1. 检查是否已经收藏
         final existingBookmark = await _firestore
-            .collection('User')
+            .collection('users')  // 改这里
             .doc(userId)
             .collection('UserBookmark')
             .where('postId', isEqualTo: postId)
@@ -75,7 +75,7 @@ class PostDetailService {
         if (existingBookmark.docs.isEmpty) {
           // 2. 添加新的 UserBookmark 文档
           await _firestore
-              .collection('User')
+              .collection('users')  // 改这里
               .doc(userId)
               .collection('UserBookmark')
               .add({
@@ -95,11 +95,11 @@ class PostDetailService {
           print('✅ 북마크 추가 성공');
         }
       } else {
-        // ===== 取消收藏：从 User/{userId}/UserBookmark 删除 =====
+        // ===== 取消收藏：从 users/{userId}/UserBookmark 删除 =====
 
         // 1. 查找该用户的这个 postId 的 bookmark
         final bookmarkSnapshot = await _firestore
-            .collection('User')
+            .collection('users')  // 改这里
             .doc(userId)
             .collection('UserBookmark')
             .where('postId', isEqualTo: postId)
