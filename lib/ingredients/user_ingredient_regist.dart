@@ -301,8 +301,12 @@ class _UserIngredientRegistState extends State<UserIngredientRegist> {
             width: screenSize.width * 0.5,
             height: screenSize.width * 0.13,
             child: ElevatedButton(
-              onPressed: (){
-                
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => UserIngredientAdd()),
+                );
+                _getUserIngredients();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor, // 버튼 배경색
@@ -347,6 +351,10 @@ class _UserIngredientRegistState extends State<UserIngredientRegist> {
           return Container(
             decoration: BoxDecoration(
               color: Colors.white,
+              border: Border.all(
+                color: AppColors.primaryColor,
+                width: 1
+              ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
