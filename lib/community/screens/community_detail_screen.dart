@@ -18,6 +18,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../notifications/notification_model.dart';
 
 class PostDetailScreen extends StatefulWidget {
+
   final String postId;
   final String? highlightCommentId; // ✅ 新增:要高亮的评论ID
 
@@ -79,7 +80,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         alignment: 0.1, // ✅ 显示在屏幕顶部10%的位置
       );
     } else {
-      print('⚠️ 未找到评论 $commentId 的 GlobalKey');
+      print('$commentId 의 GlobalKey를 찾지 못했습니다.');
     }
   }
 
@@ -562,7 +563,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       padding: EdgeInsets.all(16),
       child: Row(
         children: [
-          CircleAvatar(),
+          // CircleAvatar(),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -773,7 +774,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ),
           child: ListTile(
             onTap: () => _replyToComment(mainComment),
-            leading: CircleAvatar(radius: 20),
+            // leading: CircleAvatar(radius: 20),
             title: Text(mainComment.nickName),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -821,7 +822,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(radius: 12),
+                          // CircleAvatar(radius: 12),
                           SizedBox(width: 8),
                           Expanded(
                             child: Column(

@@ -73,7 +73,6 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  // ✅ 这是唯一修改的方法
   Widget _buildNotificationItem(
       BuildContext context,
       NotificationModel notification,
@@ -129,7 +128,6 @@ class NotificationScreen extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ 显示评论内容
               if (notification.commentContent != null)
                 Padding(
                   padding: EdgeInsets.only(top: 4, bottom: 4),
@@ -151,7 +149,6 @@ class NotificationScreen extends StatelessWidget {
               await service.markAsRead(userId, notification.id);
             }
 
-            // ✅ 回复时高亮被回复的评论
             String? highlightId;
             if (notification.type == NotificationType.reply) {
               highlightId = notification.commentId;
