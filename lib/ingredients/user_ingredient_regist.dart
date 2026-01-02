@@ -231,6 +231,9 @@ class _UserIngredientRegistState extends State<UserIngredientRegist> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar: CustomAppBar(
+      //   appName: '내 재료',
+      // ),
       floatingActionButton: SpeedDial(
         spaceBetweenChildren: 14,
         icon: Icons.menu,

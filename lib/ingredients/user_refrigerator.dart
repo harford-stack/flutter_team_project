@@ -2,7 +2,7 @@
 
   import 'package:cloud_firestore/cloud_firestore.dart';
   import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+  import 'package:provider/provider.dart';
   import '../common/app_colors.dart';
   import '../common/custom_appbar.dart';
   import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
   import 'user_ingredient_add.dart';
   import 'user_ingredient_remove.dart';
   import '../providers/temp_ingre_provider.dart';
+  import '../recipes/ingreCheck_screen.dart';
 
 
   class UserRefrigerator extends StatefulWidget {
@@ -31,13 +32,16 @@ import 'package:provider/provider.dart';
     List<String> filteredIngredients = [];
     int selectedCategoryIndex = 0;
     List<Map<String, String>> selectedIngredients = [];
+    bool providerFlg = false;
 
+    //선택되었는지 확인
     bool _isSelected(Map<String, String> ingredient) {
       return selectedIngredients.any((item) =>
       item['name'] == ingredient['name'] &&
           item['category'] == ingredient['category']);
     }
 
+    //중복 재료 조회
     List<String> getDuplicateIngredients() {
       final selectedNames =
       userIngredients.map((e) => e['name']!).toSet();
@@ -45,10 +49,15 @@ import 'package:provider/provider.dart';
       final providerNames =
       context.read<TempIngredientProvider>().ingredients.toSet();
 
-      print('임시 재료: $providerNames');
+      final hasProviderNames = providerNames.isNotEmpty;
+      if(hasProviderNames){
+        print('임시 재료: $providerNames');
+      }
+
       return selectedNames.intersection(providerNames).toList();
     }
 
+    //이미 추가된건지 확인
     bool isAlreadyAdded(String name) {
       return context
           .read<TempIngredientProvider>()
@@ -56,6 +65,7 @@ import 'package:provider/provider.dart';
           .contains(name);
     }
 
+    //사용자 재료 목록 가져오기
     Future<List<Map<String, String>>> _getUserIngredients() async {
       if( user == null){
         return [];
@@ -91,16 +101,25 @@ import 'package:provider/provider.dart';
 
       final duplicates = getDuplicateIngredients();
 
-      print('보유 재료: $userIngredients');
-      print('중복 재료: $duplicates');
+      final hasUserIngredients = userIngredients.isNotEmpty;
+      final hasDuplicates = duplicates.isNotEmpty;
 
-      print(userIngredients.length);
+      if(hasUserIngredients){
+        print('보유 재료: $userIngredients');
+      }
 
-      print(categories);
+      if(hasDuplicates){
+        print('중복 재료: $duplicates');
+      }
+
+      // print(userIngredients.length);
+
+      // print(categories);
 
       return userIngredients;
     }
 
+    //로그인 상태 조회
     void _checkLoginStatus() async {
 
       // final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -130,6 +149,7 @@ import 'package:provider/provider.dart';
       }
     }
 
+    //주기적으로 로그인 여부 확인
     void _listenToAuthChanges() {
       // Firebase Auth 상태 변화 실시간 감지
       _authSubscription = FirebaseAuth.instance.authStateChanges().listen((User? user) {
@@ -144,7 +164,7 @@ import 'package:provider/provider.dart';
           }
         } else {
           // 로그인됨
-          print("로그인 상태: ${user.email}");
+          print("로그인 유저: ${user.email}");
           if (mounted) {
             setState(() {
               loginFlg = true;
@@ -154,6 +174,7 @@ import 'package:provider/provider.dart';
       });
     }
 
+    //미 로그인 시, 로그인 알림 후, 로그인 화면으로 이동
     void showLoginSnackBar() async {
       if (!mounted) return;
 
@@ -176,6 +197,23 @@ import 'package:provider/provider.dart';
       );
     }
 
+    //provider에 임시로 재료 등록되었는지 확인
+    void _checkProvider() {
+      final provider = Provider.of<TempIngredientProvider>(context, listen: false);
+      final hasIngredients = provider.ingredients.isNotEmpty;
+      if (hasIngredients) {
+        print('임시 재료 있음: ${provider.ingredients}');
+        // 👉 재료가 있을 때 실행할 로직
+        providerFlg = true;
+        print('providerFlg: $providerFlg');
+      } else {
+        print('임시 재료 없음');
+        // 👉 재료가 없을 때 실행할 로직
+        providerFlg = false;
+        print('providerFlg: $providerFlg');
+      }
+    }
+
     @override
     void initState() {
       // TODO: implement initState
@@ -183,6 +221,10 @@ import 'package:provider/provider.dart';
       _checkLoginStatus();
       _listenToAuthChanges();
       _getUserIngredients();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkProvider();
+      });
     }
 
     @override
@@ -261,107 +303,144 @@ import 'package:provider/provider.dart';
 
     @override
     Widget build(BuildContext context) {
-      return Scaffold(
-        floatingActionButton: SpeedDial(
-          spaceBetweenChildren: 14,
-          icon: Icons.menu,
-          activeIcon: Icons.close,
-          backgroundColor: AppColors.secondaryColor,
-          foregroundColor: AppColors.textDark,
-          children: [
-            SpeedDialChild(
-              child: const Icon(Icons.remove),
-              label: '재료 삭제하기',
-              onTap: () async {
-                final removedNames = await Navigator.push<List<String>>(
-                  context,
-                  MaterialPageRoute(builder: (_) => UserIngredientRemove()),
-                );
-
-                await _getUserIngredients();
-
-                // 삭제된 재료를 Provider에서도 제거
-                if (removedNames != null && removedNames.isNotEmpty) {
-                  final provider = context.read<TempIngredientProvider>();
-                  for (final name in removedNames) {
-                    provider.removeIngredient(name);
+      return PopScope(
+        onPopInvoked: (didPop) {
+          if (didPop) {
+            final provider = context.read<TempIngredientProvider>();
+            if (!providerFlg) {  // Provider에 재료가 없었다면
+              print('뒤로가기: Provider 초기화');
+              provider.clear(); // 또는 setIngredients([])
+            }
+          }
+        },
+        child: Scaffold(
+          floatingActionButton: SpeedDial(
+            spaceBetweenChildren: 14,
+            icon: Icons.menu,
+            activeIcon: Icons.close,
+            backgroundColor: AppColors.secondaryColor,
+            foregroundColor: AppColors.textDark,
+            children: [
+              SpeedDialChild(
+                child: const Icon(Icons.remove),
+                label: '재료 삭제하기',
+                onTap: () async {
+                  final removedNames = await Navigator.push<List<String>>(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserIngredientRemove()),
+                  );
+        
+                  await _getUserIngredients();
+        
+                  // 삭제된 재료를 Provider에서도 제거
+                  if (removedNames != null && removedNames.isNotEmpty) {
+                    final provider = context.read<TempIngredientProvider>();
+                    for (final name in removedNames) {
+                      provider.removeIngredient(name);
+                    }
+                    print('Provider에서 제거된 재료: $removedNames');
                   }
-                  print('Provider에서 제거된 재료: $removedNames');
-                }
-              },
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.add),
-              label: '재료 추가하기',
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => UserIngredientAdd()),
-                );
-                _getUserIngredients();
-              },
-            ),
-          ],
-        ),
-        appBar: AppBar(
-          title: Text('내 냉장고'),
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: AppColors.textWhite,
-        ),
-        body: userIngredients.isEmpty
-            ? _buildEmptyState()
-            : _buildIngredientGrid(),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                    onPressed: () {
-                      final Set<String> names =
-                        selectedIngredients.map((e) => e['name'] as String).toSet();
-                      // print(names);
-
-                      late final provider = Provider.of<TempIngredientProvider>(
-                          context,
-                          listen: false
-                      );
-
-                      // print(provider.ingredients);
-
-                      final Set<String> mergeSet = {
-                        ...names,
-                        ...provider.ingredients
-                      };
-                      // print(mergeSet);
-
-                      final List<String> finalList = mergeSet.toList();
-
-                      provider.setIngredients(finalList);
-
-                      // print(provider.ingredients);
-
-                      // print(finalList);
-
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(13),
-                        side: BorderSide(
-                          color: AppColors.secondaryColor,
-                          width: 1.5
-                        )
-                      )
-                    ),
-                    child: Text('확인',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: AppColors.primaryColor
-                      ),
-                    )
-                ),
+                },
               ),
+              SpeedDialChild(
+                child: const Icon(Icons.add),
+                label: '재료 추가하기',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserIngredientAdd()),
+                  );
+                  _getUserIngredients();
+                },
+              ),
+            ],
+          ),
+          appBar: AppBar(
+            title: Text('내 냉장고'),
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: AppColors.textWhite,
+          ),
+          body: userIngredients.isEmpty
+              ? _buildEmptyState()
+              : _buildIngredientGrid(),
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: SizedBox(
+                  height: 56,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        if(providerFlg) {
+                          final Set<String> names =
+                          selectedIngredients.map((e) => e['name'] as String).toSet();
+                          // print(names);
+        
+                          late final provider = Provider.of<TempIngredientProvider>(
+                              context,
+                              listen: false
+                          );
+        
+                          // print(provider.ingredients);
+        
+                          final Set<String> mergeSet = {
+                            ...names,
+                            ...provider.ingredients
+                          };
+                          // print(mergeSet);
+        
+                          final List<String> finalList = mergeSet.toList();
+        
+                          provider.setIngredients(finalList);
+        
+                          print(provider.ingredients);
+        
+                          // print(finalList);
+        
+                          Navigator.pop(context);
+                        } else {
+                          // print('뭐');
+                          final Set<String> names =
+                            selectedIngredients.map((e) => e['name'] as String).toSet();
+                          // print(names);
+                          
+                          final List<String> namesList = names.toList();
+                          // print(namesList);
+
+                          final provider = Provider.of<TempIngredientProvider>(
+                              context,
+                              listen: false
+                          );
+
+                          provider.setIngredients(namesList);
+
+                          print('Provider에 등록된 재료: ${provider.ingredients}');
+                          
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_)=>IngrecheckScreen()
+                              )
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(13),
+                          side: BorderSide(
+                            color: AppColors.secondaryColor,
+                            width: 1.5
+                          )
+                        )
+                      ),
+                      child: Text('확인',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: AppColors.primaryColor
+                        ),
+                      )
+                  ),
+                ),
+            ),
           ),
         ),
       );
@@ -533,4 +612,4 @@ import 'package:provider/provider.dart';
   //할거
   //확인 눌렀을 때, selectIngredients를 provider에 넣기(완)
   //내 냉장고로 이동할 때, 기존 ingredients를 받아온 후,
-  // ingredients와 내 재료중 겹치는게 있으면 이미 체크되있도록 하기
+  // ingredients와 내 재료중 겹치는게 있으면 이미 체크되있도록 하기(완)
