@@ -3,6 +3,7 @@ import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_drawer.dart';
 import 'recipe_recommend_screen.dart';
+import '../ingredients/user_refrigerator.dart';
 
 /// 레시피 추천 옵션 선택 화면
 class RecipeOptionScreen extends StatelessWidget {
@@ -62,11 +63,17 @@ class RecipeOptionScreen extends StatelessWidget {
               // "내 냉장고 재료로 추천 받기" 버튼
               ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('내 냉장고 재료로 추천 받기 기능은 구현 중입니다'),
-                      backgroundColor: Colors.orange,
-                    ),
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   const SnackBar(
+                  //     content: Text('내 냉장고 재료로 추천 받기 기능은 구현 중입니다'),
+                  //     backgroundColor: Colors.orange,
+                  //   ),
+                  // );
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_)=>UserRefrigerator()
+                      )
                   );
                 },
                 style: ElevatedButton.styleFrom(
