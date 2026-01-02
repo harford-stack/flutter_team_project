@@ -68,7 +68,9 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor, // 배경색 지정
       // SafeArea를 사용하여 기기 상단바/하단바 간섭 방지
-      appBar: const CustomAppBar(),
+      appBar: const CustomAppBar(
+        appName: "인식 결과",
+      ),
       drawer: const CustomDrawer(),
       body: SafeArea(
         child: Padding(

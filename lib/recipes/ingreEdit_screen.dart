@@ -161,7 +161,9 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor, // 배경색 지정
-      appBar: const CustomAppBar(),
+      appBar: const CustomAppBar(
+        appName: "재료 편집",
+      ),
       drawer: const CustomDrawer(),
       body: SingleChildScrollView( // 전체 화면 키보드 대응을 위한 스크롤 허용
         padding: const EdgeInsets.all(16.0),
@@ -301,7 +303,10 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                 child: TextField(
                   controller: _keywordController,
                   decoration: InputDecoration(
-                    hintText: "ex) 다이어트, 비오는 날, 해장 등",
+                    hintText: "ex) 다이어트 / 목록에 없는 재료도 입력 가능!",
+                    hintStyle: TextStyle(
+                      fontSize: 13.0,
+                    ),
                     border: OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.grey[200],
