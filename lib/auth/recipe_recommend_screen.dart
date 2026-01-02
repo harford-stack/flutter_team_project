@@ -69,7 +69,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
-                  'assets/image_recipe2.jpg',
+                  'assets/image_recipe3.png',
                   fit: BoxFit.contain,
                 ),
               ),

@@ -32,19 +32,20 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch, // ★ 수정: 자식들을 가로로 꽉 채우기 위해 변경
           children: [
             // 1) 제목 텍스트: 리스트의 패딩값(20)과 동일하게 맞춰서 왼쪽 정렬 효과
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(left: 20.0, bottom: 10.0),
               child: Row(
                 children: [
-                  Icon(Icons.receipt_long_outlined),
-                  SizedBox(width: 10,),
-                  Text(
-                    "완성된 레시피 목록",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Image.asset("assets/recipe_list.png", width: 270),
+                  //Icon(Icons.receipt_long_outlined),
+                  // SizedBox(width: 10,),
+                  // Text(
+                  //   "완성된 레시피 목록",
+                  //   style: TextStyle(
+                  //     fontSize: 25,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
                 ],
               ),
             ),
