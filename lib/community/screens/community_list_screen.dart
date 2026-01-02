@@ -96,12 +96,16 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => IngrecheckScreen()),
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(initialIndex: 1),
+        ),
       );
     } else if (index == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(initialIndex: 0),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

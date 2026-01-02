@@ -118,10 +118,11 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('내 냉장고 재료'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.of(context).push(
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
-                    builder: (context) => const UserIngredientRegist(),
+                    builder: (context) => const HomeScreen(initialIndex: 1),
                   ),
+                  (route) => false,
                 );
               },
             ),
