@@ -13,95 +13,18 @@ import '../../recipes/ingreCheck_screen.dart';
 import 'post_editor_screen.dart';
 import '../../common/app_colors.dart';
 import '../screens/community_list_screen.dart';
-
-
-// ========================================
-// 전체 로직 개요 (整体逻辑大纲)
-// ========================================
-//
-// 📌 이 파일에는 2개의 핵심 서비스가 포함되어 있습니다:
-//
-// ┌─────────────────────────────────────────────────────────────┐
-// │ 1. CommentService - 댓글 관리 서비스                          │
-// └─────────────────────────────────────────────────────────────┘
-//
-// 【데이터 구조】
-// post/{postId}/comment/{commentId}
-//   ├── postId: 게시글 ID
-//   ├── userId: 작성자 ID
-//   ├── nickName: 작성자 닉네임
-//   ├── content: 댓글 내용
-//   ├── cdate: 생성 날짜
-//   ├── udate: 수정 날짜
-//   ├── likeCount: 좋아요 수
-//   └── pComment: 부모 댓글 ID (답글인 경우만, 주 댓글은 null)
-//
-// 【핵심 로직】
-// ① 평면적 저장 구조 (扁平化存储)
-//    - 모든 댓글(주 댓글 + 답글)을 같은 컬렉션에 저장
-//    - pComment 필드로 구분:
-//      • pComment = null → 주 댓글 (최상위 댓글)
-//      • pComment = "commentId" → 답글 (부모 댓글 ID 저장)
-//
-// ② 프론트엔드에서 트리 구조 생성 (前端构建树形结构)
-//    - 서비스: 모든 댓글을 시간순으로 반환
-//    - UI: 재귀 알고리즘으로 주 댓글 아래 답글 트리 구성
-//
-// ③ 무한 깊이 중첩 지원 (支持无限层级嵌套)
-//    - A → B → C → D... 형태의 다층 답글 가능
-//    - _getAllRepliesForMainComment() 함수로 모든 하위 답글 추출
-//
-// 【알림 연동 시 고려사항】 ⚠️ 향후 개발자 참고
-// - 댓글 작성 시: 게시글 작성자에게 알림
-// - 답글 작성 시: 부모 댓글 작성자에게 알림
-// - 필요한 정보: postId, userId, pComment, 작성자 정보
-//
-// ┌─────────────────────────────────────────────────────────────┐
-// │ 2. PostDetailService - 게시글 상세 및 북마크 서비스            │
-// └─────────────────────────────────────────────────────────────┘
-//
-// 【데이터 구조】
-// users/{userId}/UserBookmark/{bookmarkId}
-//   ├── postId: 게시글 ID
-//   ├── category: 게시글 분류
-//   ├── title: 게시글 제목
-//   ├── nickName: 작성자 닉네임
-//   ├── cdate: 북마크 날짜
-//   └── thumbnailUrl: 썸네일 URL
-//
-// post/{postId}
-//   └── bookmarkCount: 북마크 수 (FieldValue.increment로 관리)
-//
-// 【핵심 로직】
-// ① 이중 데이터 구조 (双重数据结构)
-//    - UserBookmark: 사용자별 북마크 리스트 저장
-//    - Post.bookmarkCount: 게시글의 총 북마크 수 카운트
-//
-// ② 동기화 메커니즘 (同步机制)
-//    - 북마크 추가 시:
-//      • UserBookmark에 문서 추가
-//      • Post.bookmarkCount +1
-//    - 북마크 삭제 시:
-//      • UserBookmark에서 문서 삭제
-//      • Post.bookmarkCount -1
-//
-// ③ 중복 방지 (防止重复)
-//    - 북마크 추가 전 where 쿼리로 기존 북마크 확인
-//    - 이미 존재하면 추가하지 않음
-//
-// 【알림 연동 시 고려사항】 ⚠️ 향후 개발자 참고
-// - 북마크 추가 시: 게시글 작성자에게 알림
-// - 필요한 정보: postId, userId, 북마크한 사용자 정보
-// - 북마크 해제는 알림 불필요
-//
-// ========================================
+import '../../auth/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../notifications/notification_model.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
+  final String? highlightCommentId; // ✅ 新增:要高亮的评论ID
 
   const PostDetailScreen({
     Key? key,
     required this.postId,
+    this.highlightCommentId, // ✅ 可选参数
   }) : super(key: key);
 
   @override
@@ -109,37 +32,65 @@ class PostDetailScreen extends StatefulWidget {
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
-  /// ========== 变量声明区域 ==========
+  /// ========== 변수 선언 구역 ==========
   Post? _post;
-  bool _isLoading = false;
-  bool _isLoadingCo = false;
-  bool _isInputExpanded = false;
+  bool _isLoading = false;//게시글이 로딩되고 있는지
+  bool _isLoadingCo = false;//댓글이 로딩되고 있는지
+  bool _isInputExpanded = false;//댓글 입력란이 열려 있는지
   bool _isBookmarked = false;
   List<Comment> _comments = [];
-  Comment? _replyingTo;
+  Comment? _replyingTo;//회신할 때 누구를 향한 것인지
   final TextEditingController _commentController = TextEditingController();
-  final FocusNode _commentFocusNode = FocusNode();
+  final FocusNode _commentFocusNode = FocusNode();//입력란이 자동적으로 나옴+발송한 후 자기절로 돌아가게+남의 댓글을 크릭 시 입력란에 focus하게
 
-  /// ========== 服务声明区域 ==========
+  // ✅ 添加这两个缺失的变量
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _commentKeys = {};
+
+  /// ========== 서비스 선언 구역 ==========
   final PostDetailService _detailService = PostDetailService();
   final CommentService _commentService = CommentService();
   final PostService _postService = PostService();
 
-  /// ========== 页面初始化区域 ==========
+  /// ========== 초기화 ==========
   @override
   void initState() {
     super.initState();
     _loadPostDetail();
     _loadComments();
     _checkBookmarkStatus();
+
+    // ✅ 如果有要高亮的评论,等加载完成后滚动过去
+    if (widget.highlightCommentId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToComment(widget.highlightCommentId!);
+      });
+    }
   }
 
-  /// ========== 函数声明区域 ==========
+  // ✅ 滚动到指定评论
+  void _scrollToComment(String commentId) {
+    final key = _commentKeys[commentId];
+    if (key != null && key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.1, // ✅ 显示在屏幕顶部10%的位置
+      );
+    } else {
+      print('⚠️ 未找到评论 $commentId 的 GlobalKey');
+    }
+  }
 
-  /// 加载帖子详情
+  /// ========== 함수 선언 구역 ==========
+
+  /// 게시글 상세 로드 함수
   Future<void> _loadPostDetail() async {
+    //지금 로드 상태에 있는지(로딩 페이지는 있는게 좋음, 꼭 필요하다는 것은 아님)
     setState(() => _isLoading = true);
 
+    //서비스측에서 게시글 상세 내용을 꺼냄
     try {
       final post = await _detailService.getPostById(widget.postId);
       setState(() {
@@ -148,6 +99,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      //로딩 실패하고도 아직 이 페이지에 있다면 :'게시글을 불러오는데 실패했습니다'
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('게시글을 불러오는데 실패했습니다')),
@@ -156,41 +108,49 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
-  /// 加载评论列表
+  /// 댓글 로딩 함수
   Future<void> _loadComments() async {
     setState(() => _isLoadingCo = true);
-
     try {
       final comments = await _commentService.getComments(widget.postId);
       setState(() {
         _comments = comments;
         _isLoadingCo = false;
       });
+
+      // ✅ 关键修改：评论加载完成后再滚动
+      if (widget.highlightCommentId != null) {
+        // 等待UI完全渲染
+        await Future.delayed(Duration(milliseconds: 300));
+        _scrollToComment(widget.highlightCommentId!);
+      }
     } catch (e) {
       print('댓글 로딩 실패: $e');
       setState(() => _isLoadingCo = false);
     }
   }
 
-  /// 检查当前用户是否已收藏此帖
+  /// 사용자가 이 게시글을 북마크 했는지 체크
   Future<void> _checkBookmarkStatus() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);//防止过期，最好留着
     final currentUser = authProvider.user;
-
+    //假如是null 就停止后续的检查,否则会崩
     if (currentUser == null) return;
 
     try {
       final isBookmarked = await _detailService.isBookmarked(
           widget.postId, currentUser.uid);
       if (mounted) {
-        setState(() => _isBookmarked = isBookmarked);
+        setState(() => _isBookmarked = isBookmarked);//给全局变量_isBookmarked赋值
       }
     } catch (e) {
       print('북마크 상태 확인 실패: $e');
     }
   }
 
-  /// 切换收藏状态
+  /// 북마크 상태를 전환
+  /// 알림: 북마크 없는 상태에서 북마크하면 게시글 작자에게 알림을 준다: "북마크를 받았다"
+  /// 假如有时间：一定时间内都是同一个文章被收藏（非其他文章，非评论）就group到一起，点开就能展开drawer，查看谁收藏了
   Future<void> _toggleBookmark() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
@@ -203,14 +163,30 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
 
     try {
+      // 保存之前的状态，用于判断是否是"从未收藏转收藏"
+      final wasNotBookmarked = !_isBookmarked;
+
       setState(() => _isBookmarked = !_isBookmarked);
 
       await _detailService.toggleBookmark(
         widget.postId,
         currentUser.uid,
-        _post!,         // ← 需要传入 post 对象！
+        _post!,
         _isBookmarked,
       );
+
+      // "x북마크 → 북마크"의 상태에서만 알림을 줌
+      if (wasNotBookmarked && _isBookmarked) {
+        // 내가 자기자신한테 알림을 주는 것을 방지
+        if (_post!.userId != currentUser.uid) {
+          await _sendBookmarkNotification(
+            postAuthorId: _post!.userId,
+            postId: widget.postId,
+            fromUserId: currentUser.uid,
+            fromNickName: authProvider.nickName ?? '사용자',
+          );
+        }
+      }
 
       await _loadPostDetail();
     } catch (e) {
@@ -220,6 +196,39 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       );
     }
   }
+
+// 북마크 알림을 줌
+  Future<void> _sendBookmarkNotification({
+    required String postAuthorId,
+    required String postId,
+    required String fromUserId,
+    required String fromNickName,
+  }) async {
+    try {
+      final notification = NotificationModel(
+        id: '',
+        postId: postId,
+        commentId: null,
+        fromUserId: fromUserId,
+        fromNickName: fromNickName,
+        type: NotificationType.bookmark,
+        isRead: false,
+        cdate: DateTime.now(),
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(postAuthorId)
+          .collection('notifications')
+          .add(notification.toFirestore());
+
+      print('북마크 알림 전송 성공');
+    } catch (e) {
+      print('알림 전송 실패: $e');
+    }
+  }
+
+
 
   Future<void> _editPost() async {
     if (_post == null) return;
@@ -292,8 +301,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
-  /// 提交评论（支持主评论和回复）
+  /// 댓글 제출
   Future<void> _submitComment() async {
+    // 비어 있는지 검사
     if (_commentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('댓글 내용을 입력하세요')),
@@ -302,6 +312,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
 
     try {
+      // 로그인 사용자 정보 확인
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final currentUser = authProvider.user;
 
@@ -312,22 +323,52 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         return;
       }
 
-      // 添加调试信息
-      print('🔍 当前用户 UID: ${currentUser.uid}');
-      print('🔍 authProvider.nickName: ${authProvider.nickName}');
-
       String nickName = authProvider.nickName ?? '익명';
-      print('✅ 最终使用的 nickName: $nickName');
+      String? parentCommentId = _replyingTo?.id;
 
+      // 서비스 측 댓글 추가
       final success = await _commentService.addComment(
         postId: widget.postId,
         userId: currentUser.uid,
         nickName: nickName,
         content: _commentController.text.trim(),
-        pComment: _replyingTo?.id,
+        pComment: parentCommentId,
       );
 
       if (success) {
+        // ✅ 주 댓글인 경우 → 게시글 작성자에게 알림
+        if (parentCommentId == null) {
+          // 자기 자신에게는 알림 보내지 않기
+          if (_post!.userId != currentUser.uid) {
+            await _sendMainCommentNotification(
+              postAuthorId: _post!.userId,
+              postId: widget.postId,
+              fromUserId: currentUser.uid,
+              fromNickName: nickName,
+              commentContent: _commentController.text.trim(), // ✅ 添加这行
+            );
+          }
+        }
+        // ✅ 대댓글인 경우 → 원댓글 작성자에게 알림
+        else {
+          // 원댓글 찾기
+          final parentComment = _comments.firstWhere(
+                (c) => c.id == parentCommentId,
+          );
+
+          // 자기 자신에게는 알림 보내지 않기
+          if (parentComment.userId != currentUser.uid) {
+            await _sendReplyNotification(
+              commentAuthorId: parentComment.userId,
+              postId: widget.postId,
+              parentCommentId: parentCommentId,
+              fromUserId: currentUser.uid,
+              fromNickName: nickName,
+              replyContent: _commentController.text.trim(), // ✅ 添加这行
+            );
+          }
+        }
+
         _commentController.clear();
         setState(() {
           _replyingTo = null;
@@ -336,6 +377,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         _commentFocusNode.unfocus();
         await _loadComments();
         await _loadPostDetail();
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('댓글이 작성되었습니다')),
@@ -354,8 +396,74 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
+  Future<void> _sendMainCommentNotification({
+    required String postAuthorId,
+    required String postId,
+    required String fromUserId,
+    required String fromNickName,
+    required String commentContent, // ✅ 新增参数
+  }) async {
+    try {
+      final notification = NotificationModel(
+        id: '',
+        postId: postId,
+        commentId: null,
+        fromUserId: fromUserId,
+        fromNickName: fromNickName,
+        commentContent: commentContent, // ✅ 传入内容
+        type: NotificationType.comment,
+        isRead: false,
+        cdate: DateTime.now(),
+      );
 
-  /// 获取主评论下的所有回复（包括多层嵌套）
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(postAuthorId)
+          .collection('notifications')
+          .add(notification.toFirestore());
+
+      print('주 댓글 알림 전송 성공');
+    } catch (e) {
+      print('알림 전송 실패: $e');
+    }
+  }
+
+// ✅ 回复通知
+  Future<void> _sendReplyNotification({
+    required String commentAuthorId,
+    required String postId,
+    required String parentCommentId,
+    required String fromUserId,
+    required String fromNickName,
+    required String replyContent, // ✅ 新增参数
+  }) async {
+    try {
+      final notification = NotificationModel(
+        id: '',
+        postId: postId,
+        commentId: parentCommentId,
+        fromUserId: fromUserId,
+        fromNickName: fromNickName,
+        commentContent: replyContent, // ✅ 传入内容
+        type: NotificationType.reply,
+        isRead: false,
+        cdate: DateTime.now(),
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(commentAuthorId)
+          .collection('notifications')
+          .add(notification.toFirestore());
+
+      print('대댓글 알림 전송 성공');
+    } catch (e) {
+      print('알림 전송 실패: $e');
+    }
+  }
+
+
+  /// 주 댓글아래의 모든 댓글을 가져온다.
   List<Comment> _getAllRepliesForMainComment(String mainCommentId) {
     List<Comment> allReplies = [];
     Set<String> processedIds = {mainCommentId};
@@ -380,10 +488,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   void dispose() {
     _commentController.dispose();
     _commentFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  /// 点击评论进行回复
+  /// 댓글을 클릭하여 reply
   void _replyToComment(Comment comment) {
     setState(() {
       _replyingTo = comment;
@@ -391,10 +500,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     });
 
     _commentController.text = '@${comment.nickName} ';
+    //设置初始光标的位置
     _commentController.selection = TextSelection.fromPosition(
       TextPosition(offset: _commentController.text.length),
     );
 
+    //告诉 Flutter：“这个 TextField 现在是活跃输入目标”
+    //没有它用户需要再点一下才能打字
     _commentFocusNode.requestFocus();
   }
 
@@ -402,7 +514,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (index == 2) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CommunityListScreen()),
+        MaterialPageRoute(
+          builder: (context) => CommunityListScreen(
+            showAppBarAndFooter: true, // ✅ 传 true，显示完整的 AppBar 和 Footer
+          ),
+        ),
       );
     } else if (index == 1) {
       Navigator.pushReplacement(
@@ -410,13 +526,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         MaterialPageRoute(builder: (context) => IngrecheckScreen()),
       );
     } else if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // ✅ 修改这里：使用 HomeScreen 类
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('해당 기능은 개발 중입니다')),
       );
     }
   }
+
+
 
   /// ========== UI构建区域 ==========
   Widget _buildAuthorSection() {
@@ -595,6 +717,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   /// 构建评论列表
   Widget _buildCommentsList() {
+
     if (_isLoadingCo) {
       return Center(child: CircularProgressIndicator());
     }
@@ -627,24 +750,42 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   /// 构建单个评论项
+  /// 构建单个评论项
   Widget _buildCommentItem(Comment mainComment, List<Comment> replies) {
+    // ✅ 确保每个评论都有唯一的 key
+    if (!_commentKeys.containsKey(mainComment.id)) {
+      _commentKeys[mainComment.id] = GlobalKey();
+    }
+
+    // ✅ 判断是否需要高亮
+    final isHighlighted = widget.highlightCommentId == mainComment.id;
+
     return Column(
+      key: _commentKeys[mainComment.id],
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
-          onTap: () => _replyToComment(mainComment),
-          leading: CircleAvatar(radius: 20),
-          title: Text(mainComment.nickName),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(mainComment.content),
-              SizedBox(height: 4),
-              Text(
-                mainComment.cdate.toString().split(' ')[0],
-                style: TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-            ],
+        Container(
+          decoration: BoxDecoration(
+            color: isHighlighted
+                ? Colors.grey[100]
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ListTile(
+            onTap: () => _replyToComment(mainComment),
+            leading: CircleAvatar(radius: 20),
+            title: Text(mainComment.nickName),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(mainComment.content),
+                SizedBox(height: 4),
+                Text(
+                  mainComment.cdate.toString().split(' ')[0],
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ),
         if (replies.isNotEmpty)
@@ -657,41 +798,58 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
             child: Column(
               children: replies.map((reply) {
+                // ✅ 为回复也添加 key
+                if (!_commentKeys.containsKey(reply.id)) {
+                  _commentKeys[reply.id] = GlobalKey();
+                }
+                final isReplyHighlighted = widget.highlightCommentId == reply.id;
+
                 return Padding(
+                  key: _commentKeys[reply.id],
                   padding: EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    onTap: () => _replyToComment(reply),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(radius: 12),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                reply.nickName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      // ✅ 改成淡灰色
+                      color: isReplyHighlighted
+                          ? Colors.grey[200]  // 回复用稍微深一点的灰色
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: EdgeInsets.all(8),
+                    child: InkWell(
+                      onTap: () => _replyToComment(reply),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(radius: 12),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  reply.nickName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                reply.content,
-                                style: TextStyle(fontSize: 13),
-                              ),
-                              Text(
-                                reply.cdate.toString().split(' ')[0],
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.grey,
+                                Text(
+                                  reply.content,
+                                  style: TextStyle(fontSize: 13),
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  reply.cdate.toString().split(' ')[0],
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -822,6 +980,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ),
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController, // ✅ 添加 controller
               child: _buildContentSection(),
             ),
           ),

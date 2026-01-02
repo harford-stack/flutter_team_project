@@ -10,34 +10,11 @@ import '../../common/app_colors.dart';
 import 'community_detail_screen.dart';
 import 'post_editor_screen.dart';
 import '../../recipes/ingreCheck_screen.dart';
+import 'community_list_screen.dart';
+import '../../auth/home_screen.dart';  // 添加这一行
 
 /// ========================================
 /// MyPostListScreen - 내가 쓴 게시글 목록 화면
-/// ========================================
-///
-/// 页面功能：
-/// 1. 显示当前用户发布的所有帖子
-/// 2. 支持按分类筛选（전체/자유게시판/문의사항）
-/// 3. 支持批量删除帖子（点击底部按钮进入选择模式）
-/// 4. 点击卡片跳转到详情页
-/// 5. 支持编辑功能（从详情页或直接从列表）
-///
-/// 页面结构：
-/// - CustomAppBar（顶部导航栏）★ 复用
-/// - 标题区域（"내가 쓴 게시글"）
-/// - 分类Tab栏（3个按钮）
-/// - 帖子列表（滚动区域）
-/// - 底部操作栏（게시글 삭제 + 돌아가기）
-/// - CustomFooter（底部导航栏）★ 复用
-///
-/// 数据来源：
-/// ⚠️ 重要：从 post 集合查询，where('userId', isEqualTo: currentUserId)
-/// 不是从 users/{userId}/UserPost 查询！
-///
-/// 复用的Widget：
-/// 1. CustomAppBar - 统一的顶部导航栏
-/// 2. CustomFooter - 统一的底部导航栏
-/// 3. CustomDrawer - 侧边抽屉菜单
 /// ========================================
 
 class MyPostListScreen extends StatefulWidget {
@@ -94,20 +71,7 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
   /// ========================================
 
   /// ===== 내가 쓴 게시글 목록 로딩 =====
-  ///
-  /// 실행 흐름:
-  /// 1. AuthProvider에서 현재 로그인 사용자 가져오기
-  /// 2. 로그인 확인 (미로그인 시 알림)
-  /// 3. ⚠️ 중요: post 컬렉션에서 직접 조회
-  ///    - where('userId', isEqualTo: currentUser.uid)
-  ///    - category 필터링 (선택적)
-  /// 4. 화면 갱신
-  /// 5. 선택 모드 초기화
-  ///
-  /// 데이터 소스:
-  /// - 컬렉션: post (최상위 컬렉션)
-  /// - 쿼리 조건: userId == currentUser.uid
-  /// - 추가 필터: category (선택된 경우)
+
   Future<void> _loadMyPosts() async {
     // ===== step1: 현재 사용자 가져오기 =====
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -260,16 +224,28 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
   }
 
   /// ===== Footer 네비게이션 처리 =====
+  /// ===== Footer 导航处理（参考 PostDetailScreen 的逻辑）=====
   void _handleFooterTap(int index) {
     if (index == 2) {
-      // 현재 페이지, 아무것도 안함
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CommunityListScreen(
+            showAppBarAndFooter: true, // ✅ 传 true，显示完整的 AppBar 和 Footer
+          ),
+        ),
+      );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => IngrecheckScreen()),
       );
     } else if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // ✅ 修改这里：使用 HomeScreen 类
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('해당 기능은 개발 중입니다')),
@@ -684,7 +660,9 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // ===== ★ 재사용: CustomAppBar =====
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+        appName: '내가 쓴 게시글',
+      ),
 
       // ===== ★ 재사용: CustomDrawer =====
       drawer: CustomDrawer(),
@@ -693,37 +671,37 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
 
       body: Column(
         children: [
-          // 제목 영역
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.article,
-                  color: AppColors.primaryColor,
-                  size: 24,
-                ),
-                SizedBox(width: 12),
-                Text(
-                  '내가 쓴 게시글',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // // 제목 영역
+          // Container(
+          //   padding: EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: Colors.white,
+          //     boxShadow: [
+          //       BoxShadow(
+          //         color: Colors.black.withOpacity(0.1),
+          //         blurRadius: 12,
+          //         offset: Offset(0, 4),
+          //       ),
+          //     ],
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Icon(
+          //         Icons.article,
+          //         color: AppColors.primaryColor,
+          //         size: 24,
+          //       ),
+          //       SizedBox(width: 12),
+          //       Text(
+          //         '내가 쓴 게시글',
+          //         style: TextStyle(
+          //           fontSize: 20,
+          //           fontWeight: FontWeight.bold,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
 
           // 카테고리 탭 바
           _buildCategoryTabs(),

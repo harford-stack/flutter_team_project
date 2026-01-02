@@ -10,6 +10,8 @@ import '../../common/custom_appbar.dart';
 import '../../common/custom_drawer.dart';
 import '../../common/custom_footer.dart';
 import '../../recipes/ingreCheck_screen.dart';
+import '../../auth/home_screen.dart';  // 添加这一行
+import 'community_list_screen.dart';
 
 /// 帖子编辑器页面
 /// 支持创建新帖子和编辑现有帖子
@@ -188,14 +190,25 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   /// ========== bottomnavbar ==========
   void _handleFooterTap(int index) {
     if (index == 2) {
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CommunityListScreen(
+            showAppBarAndFooter: true, // ✅ 传 true，显示完整的 AppBar 和 Footer
+          ),
+        ),
+      );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => IngrecheckScreen()),
       );
     } else if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // ✅ 修改这里：使用 HomeScreen 类
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('해당 기능은 개발 중입니다')),
@@ -212,7 +225,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+        appName: isEditMode ? '게시글 수정' : '게시글 작성',
+      ),
       drawer: CustomDrawer(),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -223,14 +238,14 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 标题
-              Text(
-                isEditMode ? '게시글 수정' : '게시글 작성',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // // 标题
+              // Text(
+              //   isEditMode ? '게시글 수정' : '게시글 작성',
+              //   style: TextStyle(
+              //     fontSize: 24,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
               SizedBox(height: 24),
 
               // 分类选择
@@ -487,9 +502,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         OutlinedButton.icon(
           onPressed: _pickImage,
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primaryColor, // ⭐ 图标 + 文字颜色
+            foregroundColor: AppColors.primaryColor,
             side: BorderSide(
-              color: AppColors.primaryColor, // ⭐ 边框颜色
+              color: AppColors.primaryColor,
               width: 1.5,
             ),
           ),

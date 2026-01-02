@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import '../models/post_model.dart';
 import '../services/post_service.dart';
 import 'community_detail_screen.dart';
-import 'post_editor_screen.dart'; // ⭐ 新增
+import 'post_editor_screen.dart';
 import '../../common/app_colors.dart';
+import '../../common/custom_appbar.dart';  // ✅ 添加
+import '../../common/custom_drawer.dart';  // ✅ 添加
+import '../../common/custom_footer.dart';  // ✅ 添加
+import '../../recipes/ingreCheck_screen.dart';  // ✅ 添加
+import '../../auth/home_screen.dart';  // ✅ 添加
 
 //category model
 class Category {
@@ -15,7 +20,12 @@ class Category {
 }
 
 class CommunityListScreen extends StatefulWidget {
-  const CommunityListScreen({super.key});
+  final bool showAppBarAndFooter; // ✅ 参数声明要在这里
+
+  const CommunityListScreen({
+    super.key,
+    this.showAppBarAndFooter = false, // ✅ 默认值
+  });
 
   @override
   State<CommunityListScreen> createState() => _CommunityListScreenState();
@@ -23,15 +33,15 @@ class CommunityListScreen extends StatefulWidget {
 
 class _CommunityListScreenState extends State<CommunityListScreen> {
 
-  ///变量 选언 구역
+  ///变量 선언 구역
   final TextEditingController _searchcontroller = TextEditingController();
-  List <Post> _posts = [];
+  List<Post> _posts = [];
   List<Category> categoryList = [
     Category(name: '자유게시판'),
     Category(name: '문의사항'),
   ];
   bool _isLoading = false;
-  String _sortOrder='시간순';
+  String _sortOrder = '시간순';
 
   ///서비스 선언 구역
   final PostService _postService = PostService();
@@ -64,156 +74,163 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     });
   }
 
-  Future<String> getUserAvatar(String userId) async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    if(doc.exists) {
-      final data = doc.data()!;
-      return data['photoUrl'] ?? '默认头像URL';
-    }
-    return '默认头像URL';
-  }
-
   // ⭐ 新增：导航到创建页面
   Future<void> _navigateToCreatePost() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PostEditorScreen(), // 不传 existingPost = 创建模式
+        builder: (context) => PostEditorScreen(),
       ),
     );
 
-    // 如果创建成功，刷新列表
     if (result == true) {
       await _loadPosts();
     }
   }
 
+  // ✅ 添加 Footer 导航处理
+  void _handleFooterTap(int index) {
+    if (index == 2) {
+      // 已经在社区页面，不需要操作
+      return;
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => IngrecheckScreen()),
+      );
+    } else if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('해당 기능은 개발 중입니다')),
+      );
+    }
+  }
+
   ///widget 선언 구역
   //1. 검색
-  Widget _buildSearch(){
+  Widget _buildSearch() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(  // ⭐ padding 移到这里
+      padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 8,
       ),
-      color:Colors.white,
-        child: Column(
-          children: [
-            // 第一行：搜索框 + 搜索按钮
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchcontroller,
-                    decoration: InputDecoration(
-                      hintText: '게시글 제목이나 내용으로 검색',
-                      //决定高度的关键
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 8,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.secondaryColor, width: 2),
-                      ),
+      color: Colors.white,
+      child: Column(
+        children: [
+          // 第一行：搜索框 + 搜索按钮
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchcontroller,
+                  decoration: InputDecoration(
+                    hintText: '게시글 제목이나 내용으로 검색',
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 8,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: AppColors.secondaryColor, width: 2),
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _loadPosts,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                      "검색",
-                    style:TextStyle(color: Colors.white)
-
+              ),
+              SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: _loadPosts,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
-            ),
-
-            SizedBox(height: 12),
-
-            //第二行：分类按钮 + 排序
-            Row(
-              children: [
-                //자유게시판-문의사항 필터링
-                Wrap(
-                  spacing: 8,
-                  children: categoryList.map((cat) {
-                    return CategoryButton(
-
-                      text: cat.name,
-                      isSelected: cat.isSelected,
-
-                      onTap: () {
-                        setState(() {
-                          cat.isSelected = !cat.isSelected;
-                          categoryList = List.from(categoryList);
-                        });
-                        _loadPosts();
-                      },
-                    );
-                  }).toList(),
+                child: Text(
+                  "검색",
+                  style: TextStyle(color: Colors.white),
                 ),
+              ),
+            ],
+          ),
 
-                Spacer(),
+          SizedBox(height: 12),
 
-                //dropdown
-                SizedBox(
-                  width: 110,
-                  child: DropdownButtonFormField<String>(
-                    value: _sortOrder,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: AppColors.secondaryColor,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                    dropdownColor: Colors.white, // 下拉菜单背景
-                    isExpanded: true,
-                    items: const [
-                      DropdownMenuItem(value: '시간순', child: Text('시간순')),
-                      DropdownMenuItem(value: '인기순', child: Text('인기순')),
-                    ],
-                    onChanged: (value) {
+          //第二行：分类按钮 + 排序
+          Row(
+            children: [
+              //자유게시판-문의사항 필터링
+              Wrap(
+                spacing: 8,
+                children: categoryList.map((cat) {
+                  return CategoryButton(
+                    text: cat.name,
+                    isSelected: cat.isSelected,
+                    onTap: () {
                       setState(() {
-                        _sortOrder = value!;
+                        cat.isSelected = !cat.isSelected;
+                        categoryList = List.from(categoryList);
                       });
                       _loadPosts();
                     },
+                  );
+                }).toList(),
+              ),
+
+              Spacer(),
+
+              //dropdown
+              SizedBox(
+                width: 110,
+                child: DropdownButtonFormField<String>(
+                  value: _sortOrder,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: AppColors.secondaryColor,
+                        width: 2,
+                      ),
+                    ),
                   ),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                  dropdownColor: Colors.white,
+                  isExpanded: true,
+                  items: const [
+                    DropdownMenuItem(value: '시간순', child: Text('시간순')),
+                    DropdownMenuItem(value: '인기순', child: Text('인기순')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _sortOrder = value!;
+                    });
+                    _loadPosts();
+                  },
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -248,14 +265,12 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
               color: Colors.white,
               child: InkWell(
                 onTap: () async {
-                  // ⭐ 修改：从详情页返回时刷新列表
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PostDetailScreen(postId: post.id),
                     ),
                   );
-                  // 返回时刷新列表（因为可能删除了帖子）
                   _loadPosts();
                 },
                 child: Padding(
@@ -310,9 +325,9 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
                       Row(
                         children: [
                           CircleAvatar(
-                            radius:10,
+                            radius: 10,
                           ),
-                          SizedBox(width:8),
+                          SizedBox(width: 8),
                           Text(
                             post.nickName,
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -345,7 +360,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _searchcontroller.dispose();
     super.dispose();
   }
@@ -354,54 +369,42 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar:AppBar(
-      //   backgroundColor: AppColors.primaryColor,
-      //   title: Text(
-      //       '커뮤니티',
-      //     style: TextStyle(
-      //       color:AppColors.textWhite,
-      //       fontWeight: FontWeight.bold
-      //     ),
-      //   ),
-      //   actions: [
-      //     // ⭐ 新增：创建帖子按钮
-      //     IconButton(
-      //       icon: Icon(Icons.add),
-      //       color: Colors.white,
-      //
-      //       onPressed: _navigateToCreatePost,
-      //       tooltip: '게시글 작성',
-      //     ),
-      //   ],
-      // ),
+      // ===== ✅ 条件渲染 =====
+      appBar: widget.showAppBarAndFooter ? CustomAppBar(appName: '커뮤니티') : null,
+
+      drawer: widget.showAppBarAndFooter ? CustomDrawer() : null,
 
       body: Container(
-          decoration: BoxDecoration(
-              color:AppColors.backgroundColor
-          ),
-          child:Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSearch(),
-              _buildPostList(),
-
-            ],
-          )
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 32), // 底部间距
-        child: FloatingActionButton(
-          onPressed: _navigateToCreatePost,
-          backgroundColor: AppColors.primaryColor, // 按钮背景色
-          child: Icon(
-            Icons.add,
-            color: Colors.white, // 图标颜色
-          ),
+        decoration: BoxDecoration(color: AppColors.backgroundColor),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSearch(),
+            _buildPostList(),
+          ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(
+          bottom: widget.showAppBarAndFooter ? 80 : 16,
+        ),
+        child: FloatingActionButton(
+          onPressed: _navigateToCreatePost,
+          backgroundColor: AppColors.primaryColor,
+          child: Icon(Icons.add, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
+      // ===== ✅ 条件渲染 Footer =====
+      bottomNavigationBar: widget.showAppBarAndFooter
+          ? CustomFooter(
+        currentIndex: 2,
+        onTap: _handleFooterTap,
+      )
+          : null,
     );
   }
 }
@@ -425,7 +428,7 @@ class CategoryButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color:isSelected ? AppColors.primaryColor : Colors.white,
+          color: isSelected ? AppColors.primaryColor : Colors.white,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
             color: isSelected ? AppColors.primaryColor : Colors.grey[400]!,
