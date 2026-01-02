@@ -1,17 +1,25 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+import '../auth/home_screen.dart';
+import '../common/app_colors.dart';
+import '../providers/temp_ingre_provider.dart';
 import 'recipe_model.dart';
 import 'recipe_ai_service.dart';
 import 'package:flutter_team_project/common/bookmark_button.dart';
 import 'package:flutter_team_project/recipes/recipe_service.dart';
+import 'package:provider/provider.dart';
 
 class RecipedetailScreen extends StatefulWidget {
   final RecipeModel recipe;
+  final bool isFromSaved; // ★ 저장된 레시피로부터 왔는지 여부 확인하는 변수
 
   const RecipedetailScreen({
     super.key,
     required this.recipe,
+    this.isFromSaved = false, // 기본값 false
   });
+
 
   @override
   State<RecipedetailScreen> createState() => _RecipedetailScreenState();
@@ -68,7 +76,7 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -166,6 +174,44 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
             ),
             const SizedBox(height: 50),
           ],
+        ),
+      ),
+
+      // 아래에 '홈으로' 버튼 & 위치 고
+      // ★  변수 isFromSaved가 false일 때만 버튼을 보여줌 (
+      bottomNavigationBar: widget.isFromSaved ? null : SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // 중요: 컬럼 크기를 최소화하여 버튼 높이만큼만 차지하게 함
+            children: [
+              SizedBox(
+                width: double.infinity, // 버튼을 가로로 꽉 차게
+                height: 55, // 버튼 높이 조절
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.read<TempIngredientProvider>().clearAll();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    "홈으로",
+                    style: TextStyle(color: AppColors.textWhite, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "홈으로 이동 시 생성된 레시피는 소멸됩니다.",
+                style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
     );

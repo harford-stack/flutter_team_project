@@ -25,6 +25,7 @@ class IngrecheckScreen extends StatefulWidget {
 class _IngrecheckScreenState extends State<IngrecheckScreen> {
   int _currentIndex = 0;
 
+  // ★ 풋터
   void _onFooterTap(int index, AuthProvider authProvider) {
     // 로그인이 필요한 메뉴이므로 로그인 여부 체크 (재료 등록, 커뮤니티)
     if (index == 1 || index == 2) {
@@ -43,8 +44,8 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
       }
     }
 
-    // 홈 화면으로 이동하면서 해당 인덱스로 설정 & ★ 레시피 세션 종료! (임시저장 재료 삭제)
-    if (index == 0 || index == 2) {
+    // 풋터의 3개 메뉴 클릭시, 각 화면 이동하면서 ★ 레시피 세션종료! (임시저장 재료 삭제)
+    if (index == 0 || index == 1 || index == 2) {
       context.read<TempIngredientProvider>().clearAll();
     }
 
@@ -61,6 +62,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
     // provider에서 임시 재료목록 가져오기
     final ingredients = context.watch<TempIngredientProvider>().ingredients;
 
+    // 앱 전체에 공유되고 있는 인증 데이터를 이 화면(context)으로 가져와서 사용하겠다
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
@@ -75,7 +77,8 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
+              // Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
+              Image.asset("assets/recipe_ingreChk_result.png", width: 300,),
               SizedBox(height: 20), // 간격 두기
 
               // 인식된 사진 담기는 곳
@@ -210,7 +213,13 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                 ],
               ),
               SizedBox(height: 20), // 간격 두기
-              Text("냉장고에만 일단 넣어두고 싶다면, 오른쪽 버튼 클릭!")
+              Text(
+                  "재료를 냉장고에 넣어두고 싶다면, 오른쪽 버튼 클릭!",
+                  style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 15
+                  )
+              )
             ],
           ),
         ),

@@ -289,7 +289,9 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RecipedetailScreen(recipe: recipe),
+                      // ★ 추가) isFromSaved 인자를 true로 전달
+                      // 즉 나의 레시피 화면에선 '홈으로' 버튼 사라지게 함
+                      builder: (context) => RecipedetailScreen(recipe: recipe, isFromSaved: true),
                     ),
                   );
 
