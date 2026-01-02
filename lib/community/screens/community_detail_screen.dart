@@ -515,21 +515,20 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => CommunityListScreen(
-            showAppBarAndFooter: true, // ✅ 传 true，显示完整的 AppBar 和 Footer
-          ),
+          builder: (context) => const HomeScreen(initialIndex: 2),
         ),
       );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => IngrecheckScreen()),
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(initialIndex: 1),
+        ),
       );
     } else if (index == 0) {
-      // ✅ 修改这里：使用 HomeScreen 类
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen(initialIndex: 0)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

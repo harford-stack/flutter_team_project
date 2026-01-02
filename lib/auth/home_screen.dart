@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const UserIngredientRegist();
       case 2:
-        return const CommunityListScreen();
+        return const CommunityListScreen(showAppBarAndFooter: false);
         // return const CommunityListWidget();
         return _buildHomeContent();
       default:
