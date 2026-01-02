@@ -3,6 +3,7 @@ import 'package:flutter_team_project/community/screens/bookmark_list_screen.dart
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../auth/home_screen.dart';
+import '../providers/temp_ingre_provider.dart';
 import 'app_colors.dart';
 import '../auth/auth_provider.dart';
 import '../auth/login_screen.dart';
@@ -95,6 +96,9 @@ class CustomDrawer extends StatelessWidget {
             ),
             title: const Text('홈'),
             onTap: () {
+              // ★ 홈으로 가기 전에 provider의 임시 재료 데이터 삭제
+              context.read<TempIngredientProvider>().clearAll();
+
               Navigator.pop(context);
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(

@@ -4,8 +4,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/recipeDetail_screen.dart';
 import 'package:flutter_team_project/recipes/recipe_service.dart';
+import 'package:http/http.dart';
+import '../auth/home_screen.dart';
+import '../common/app_colors.dart';
+import '../common/custom_appbar.dart';
+import '../common/custom_drawer.dart';
+import '../providers/temp_ingre_provider.dart';
 import 'recipe_model.dart'; // ★ 추가: 모델 임포트
 import 'package:flutter_team_project/common/bookmark_button.dart';
+import 'package:provider/provider.dart';
 
 class RecipeslistScreen extends StatefulWidget {
   final List<RecipeModel> recipes; // 데이터를 받을 변수 추가
@@ -22,7 +29,7 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min, // 세로 중앙 배치를 위해 필수
-          crossAxisAlignment: CrossAxisAlignment.start, // 자식들을 왼쪽 정렬 (Text 기준)
+          crossAxisAlignment: CrossAxisAlignment.stretch, // ★ 수정: 자식들을 가로로 꽉 채우기 위해 변경
           children: [
             // 1) 제목 텍스트: 리스트의 패딩값(20)과 동일하게 맞춰서 왼쪽 정렬 효과
             const Padding(
@@ -53,6 +60,50 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
                 return _buildRecipeCard(context, widget.recipes[index]);
               },
             ),
+
+            const SizedBox(height: 20,), // const 추가 (성능 최적화)
+
+            // ★ 수정: 버튼 좌우 여백을 위해 Padding으로 감싸고 높이 지정을 위해 SizedBox 사용
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: SizedBox(
+                height: 55, // 상세 페이지와 동일한 높이
+                child: ElevatedButton(
+                    onPressed: (){
+                      // 홈 화면 이동 전에 provider에 있는 임시 재료 목록 지우기
+                      context.read<TempIngredientProvider>().clearAll();
+
+                      // 그 후 홈 화면으로 이동
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)) // 상세와 통일
+                    ),
+                    child: Text(
+                      "홈으로",
+                      style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.bold, fontSize: 18),
+                    )
+                ),
+              ),
+            ),
+
+            // ★ 수정: 문구를 가운데 정렬하기 위해 Center로 감쌈
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Text(
+                  "홈으로 이동 시 생성된 레시피는 소멸됩니다.",
+                  style: TextStyle(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
