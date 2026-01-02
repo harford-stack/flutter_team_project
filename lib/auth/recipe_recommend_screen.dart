@@ -53,7 +53,9 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: const CustomAppBar(
+        appName: '추천 방식 선택',
+      ),
       drawer: const CustomDrawer(),
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
@@ -67,39 +69,8 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
-                  'assets/icon_recommend2.png',
+                  'assets/image_recipe2.jpg',
                   fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 24),
-              // 코드로 구현한 추천 방식 선택 섹션
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    // 음식 아이콘들
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildFoodIcon(Icons.soup_kitchen, '국물'),
-                        _buildFoodIcon(Icons.restaurant, '떡볶이'),
-                        _buildFoodIcon(Icons.ramen_dining, '비빔국수'),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      '추천 방식 선택하기',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textWhite,
-                      ),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 40),

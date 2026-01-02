@@ -160,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
                   // 두 개의 박스 (냉장고 아이콘 + 북마크 아이콘)
                   Row(
                     children: [
@@ -169,9 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.blue[50],
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue[200]!),
+                            border: Border.all(color: AppColors.primaryColor),
                           ),
                           child: Column(
                             children: [
@@ -205,9 +205,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.orange[50],
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.orange[200]!),
+                            border: Border.all(color: AppColors.primaryColor),
                           ),
                           child: Column(
                             children: [
@@ -231,71 +231,123 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
                   // 이메일/비밀번호 로그인
-                  TextField(
-                    controller: _emailController,
-                    focusNode: _emailFocusNode,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.none,
-                    enableInteractiveSelection: true,
-                    onSubmitted: (_) {
-                      FocusScope.of(context).requestFocus(_passwordFocusNode);
-                    },
-                    decoration: InputDecoration(
-                      labelText: '이메일',
-                      hintText: '이메일을 입력하세요',
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Image.asset(
-                          'assets/icon_email.png',
-                          width: 24,
-                          height: 24,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '이메일',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textDark,
                         ),
                       ),
-                      border: const OutlineInputBorder(),
-                    ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _emailController,
+                        focusNode: _emailFocusNode,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        textCapitalization: TextCapitalization.none,
+                        enableInteractiveSelection: true,
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_passwordFocusNode);
+                        },
+                        decoration: InputDecoration(
+                          hintText: '이메일을 입력하세요',
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Image.asset(
+                              'assets/icon_email.png',
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[400]!),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    focusNode: _passwordFocusNode,
-                    obscureText: _obscurePassword,
-                    keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
-                    textCapitalization: TextCapitalization.none,
-                    enableInteractiveSelection: true,
-                    onSubmitted: (_) {
-                      if (!_isLoading &&
-                          _emailController.text.trim().isNotEmpty &&
-                          _passwordController.text.isNotEmpty) {
-                        _handleSocialLogin(authProvider, 'email');
-                      }
-                    },
-                    decoration: InputDecoration(
-                      labelText: '비밀번호',
-                      hintText: '비밀번호를 입력하세요',
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Image.asset(
-                          'assets/icon_password.png',
-                          width: 24,
-                          height: 24,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '비밀번호',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textDark,
                         ),
                       ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        obscureText: _obscurePassword,
+                        keyboardType: TextInputType.visiblePassword,
+                        textInputAction: TextInputAction.done,
+                        textCapitalization: TextCapitalization.none,
+                        enableInteractiveSelection: true,
+                        onSubmitted: (_) {
+                          if (!_isLoading &&
+                              _emailController.text.trim().isNotEmpty &&
+                              _passwordController.text.isNotEmpty) {
+                            _handleSocialLogin(authProvider, 'email');
+                          }
                         },
+                        decoration: InputDecoration(
+                          hintText: '비밀번호를 입력하세요',
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Image.asset(
+                              'assets/icon_password.png',
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.grey[400]!),
+                          ),
+                        ),
                       ),
-                      border: const OutlineInputBorder(),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   // 이메일/비밀번호 로그인 버튼
@@ -331,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   // 아이디/비밀번호 찾기 링크
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -375,7 +427,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   // 구분선
                   Row(
                     children: [
@@ -390,7 +442,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Expanded(child: Divider(color: Colors.grey[400])),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   // 구글 로그인 버튼
                   _buildSocialLoginButton(
                     '구글 로그인',
@@ -399,7 +451,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     null,
                     () => _handleSocialLogin(authProvider, 'google'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   // 회원가입 링크
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -426,7 +478,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   // 안내 문구
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),

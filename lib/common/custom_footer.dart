@@ -74,48 +74,71 @@ class CustomFooter extends StatelessWidget {
     required int index,
     required bool isSelected,
   }) {
-    return InkWell(
-      onTap: () => onTap(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (iconAsset != null)
-              ColorFiltered(
-                colorFilter: isSelected
-                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-                  : const ColorFilter.matrix(<double>[
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        // 선택된 항목 위쪽 라인 (푸터 영역 윗라인에 겹쳐서)
+        if (isSelected)
+          Positioned(
+            top: -2,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+        // 메뉴 아이템
+        InkWell(
+          onTap: () => onTap(index),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (iconAsset != null)
+                  ColorFiltered(
+                    colorFilter: isSelected
+                        ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                        : const ColorFilter.matrix(<double>[
                       0.2126, 0.7152, 0.0722, 0, 0,
                       0.2126, 0.7152, 0.0722, 0, 0,
                       0.2126, 0.7152, 0.0722, 0, 0,
                       0,      0,      0,      1, 0,
                     ]),
-                child: Image.asset(
-                  iconAsset,
-                  width: 28,
-                  height: 28,
+                    child: Image.asset(
+                      iconAsset,
+                      width: 28,
+                      height: 28,
+                    ),
+                  )
+                else if (icon != null)
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primaryColor : Colors.grey[600],
+                    size: 28,
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isSelected ? AppColors.primaryColor : Colors.grey[600],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
                 ),
-              )
-            else if (icon != null)
-              Icon(
-                icon,
-                color: isSelected ? AppColors.primaryColor : Colors.grey[600],
-                size: 28,
-              ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? AppColors.primaryColor : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
-

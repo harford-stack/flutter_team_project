@@ -20,12 +20,13 @@ class CustomDrawer extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Drawer(
+      backgroundColor: Colors.white,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
             decoration: const BoxDecoration(
-              color: AppColors.primaryColor,
+              color: Colors.white,
             ),
             child: authProvider.isAuthenticated && authProvider.user != null
                 ? FutureBuilder<DocumentSnapshot>(
@@ -37,8 +38,8 @@ class CustomDrawer extends StatelessWidget {
                       String nickname = '사용자';
                       if (snapshot.hasData && snapshot.data!.exists) {
                         final data = snapshot.data!.data() as Map<String, dynamic>?;
-                        nickname = data?['nickname'] ?? 
-                                  authProvider.user?.displayName ?? 
+                        nickname = data?['nickname'] ??
+                                  authProvider.user?.displayName ??
                                   '사용자';
                       } else {
                         nickname = authProvider.user?.displayName ?? '사용자';
@@ -48,21 +49,10 @@ class CustomDrawer extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.white,
-                            child: Image.asset(
-                              'assets/icon_profile.png',
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
                           Text(
                             nickname,
                             style: const TextStyle(
-                              color: AppColors.textWhite,
+                              color: AppColors.textDark,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -73,7 +63,7 @@ class CustomDrawer extends StatelessWidget {
                               child: Text(
                                 authProvider.user!.email!,
                                 style: const TextStyle(
-                                  color: AppColors.textWhite,
+                                  color: AppColors.textDark,
                                   fontSize: 14,
                                 ),
                               ),
@@ -82,25 +72,14 @@ class CustomDrawer extends StatelessWidget {
                       );
                     },
                   )
-                : Column(
+                : const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                        child: Image.asset(
-                          'assets/icon_profile.png',
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         '로그인 후 이용하세요',
                         style: TextStyle(
-                          color: AppColors.textWhite,
+                          color: AppColors.textDark,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -128,7 +107,7 @@ class CustomDrawer extends StatelessWidget {
           if (authProvider.isAuthenticated)
             ListTile(
               leading: Image.asset(
-                'assets/icon_add.png',
+                'assets/icon_fridge.png',
                 width: 24,
                 height: 24,
               ),
@@ -142,24 +121,7 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-          const Divider(),
           if (authProvider.isAuthenticated) ...[
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_profile.png',
-                width: 24,
-                height: 24,
-              ),
-              title: const Text('프로필 수정'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileEditScreen(),
-                  ),
-                );
-              },
-            ),
             const Divider(),
             ListTile(
               leading: Image.asset(
@@ -210,6 +172,22 @@ class CustomDrawer extends StatelessWidget {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: Image.asset(
+                'assets/icon_profile.png',
+                width: 24,
+                height: 24,
+              ),
+              title: const Text('프로필 수정'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileEditScreen(),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: Image.asset(
                 'assets/icon_logout.png',

@@ -27,7 +27,7 @@ class RecipeOptionScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
-                  'assets/icon_recommendImage.png',
+                  'assets/image_recipe.png',
                   fit: BoxFit.contain,
                 ),
               ),
