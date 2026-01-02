@@ -42,6 +42,16 @@ class TempIngredientProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 기존 임시 재료에 새 재료를 추가 후, 교체
+  // ex) 기존 임시 재료 [a, b, c], 새 재료가 추가된 임시 재료 [a, b, c, d, e]
+  // [a, b, c]를 [a, b, c, d, e]로 교체
+  void setIngredients(List<String> newIngredients) {
+    _ingredients
+      ..clear()
+      ..addAll(newIngredients.toSet()); // 안전하게 중복 제거
+    notifyListeners();
+  }
+
   void removeIngredient(String ingredient) {
     _ingredients.remove(ingredient);
     notifyListeners();

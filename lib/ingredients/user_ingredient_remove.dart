@@ -41,6 +41,8 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
     final DocumentReference userDocRef = firestore.collection('users').doc(user!.uid);
     final ingredientsCollectionRef = userDocRef.collection('user-ingredients');
 
+    List<String> removedNames = selectedIngredients.map((e) => e['name']!).toList();
+
     for (final ingredient in selectedIngredients) {
       final query = await ingredientsCollectionRef
           .where('name', isEqualTo: ingredient['name'])
@@ -57,7 +59,7 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
     });
 
     await _getUserIngredients();
-    Navigator.pop(context);
+    Navigator.pop(context, removedNames);
   }
 
   Future<List<Map<String, String>>> _getUserIngredients() async {
