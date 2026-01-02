@@ -3,18 +3,20 @@ import 'app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String appName;
+  final Widget? customTitle;
   final VoidCallback? onNotificationTap;
 
   const CustomAppBar({
     super.key,
     this.appName = '어플 이름',
+    this.customTitle,
     this.onNotificationTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Colors.white,
       elevation: 1,
       leading: Builder(
         builder: (context) => IconButton(
@@ -29,7 +31,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-      title: Text(
+      title: customTitle ?? Text(
         appName,
         style: const TextStyle(
           color: AppColors.textDark,

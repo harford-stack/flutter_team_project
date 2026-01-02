@@ -51,11 +51,14 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Image.asset(
-          'assets/image_appLogo.png',
-          fit: BoxFit.contain,
-          width: 350,
-          height: 350,
+        child: Transform.translate(
+          offset: const Offset(10, 0), // 오른쪽으로 이동하여 이미지 내 텍스트가 가운데 보이도록
+          child: Image.asset(
+            'assets/image_appLogo3.PNG',
+            fit: BoxFit.contain,
+            width: 350,
+            height: 350,
+          ),
         ),
       ),
     );
