@@ -328,9 +328,9 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
                       // 작성자
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 10,
-                          ),
+                          // CircleAvatar(
+                          //   radius: 10,
+                          // ),
                           SizedBox(width: 8),
                           Text(
                             post.nickName,

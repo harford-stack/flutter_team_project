@@ -25,7 +25,7 @@ class PostDetailService {
       }
       return null;
     } catch (e) {
-      print('获取帖子详情失败: $e');
+      print('게시글 조회 실패: $e');
       return null;
     }
   }
@@ -42,7 +42,7 @@ class PostDetailService {
 
       return bookmarkSnapshot.docs.isNotEmpty;
     } catch (e) {
-      print('❌ 북마크 상태 확인 실패: $e');
+      print('북마크 상태 확인 실패: $e');
       return false;
     }
   }
@@ -59,7 +59,7 @@ class PostDetailService {
       bool isBookmarking,
       ) async {
     try {
-      print('🔖 북마크 토글: postId=$postId, userId=$userId, isBookmarking=$isBookmarking');
+      print('북마크 토글: postId=$postId, userId=$userId, isBookmarking=$isBookmarking');
 
       if (isBookmarking) {
         // ===== 收藏：添加到 users/{userId}/UserBookmark =====
@@ -92,7 +92,7 @@ class PostDetailService {
             'bookmarkCount': FieldValue.increment(1),
           });
 
-          print('✅ 북마크 추가 성공');
+          print('북마크 추가 성공');
         }
       } else {
         // ===== 取消收藏：从 users/{userId}/UserBookmark 删除 =====
@@ -116,11 +116,11 @@ class PostDetailService {
             'bookmarkCount': FieldValue.increment(-1),
           });
 
-          print('✅ 북마크 삭제 성공');
+          print('북마크 삭제 성공');
         }
       }
     } catch (e) {
-      print('❌ 북마크 상태 전환 실패: $e');
+      print('북마크 상태 전환 실패: $e');
       rethrow;
     }
   }

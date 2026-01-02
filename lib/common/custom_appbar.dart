@@ -50,7 +50,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // ✅ 新增:构建带红点的通知按钮
+  // 빨간점이 있는 알림 버튼
   // ✅ 修改 StreamBuilder 部分
   Widget _buildNotificationButton(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -67,19 +67,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
-    // ✅ 关键修改：确保 Stream 正确初始化
+    // Stream 바르게 초기화하기를 확정
     final notificationService = NotificationService();
 
     return StreamBuilder<int>(
       stream: notificationService.getUnreadCountStream(currentUser.uid),
       builder: (context, snapshot) {
-        // ✅ 添加调试日志
-        print('🔴 未读通知数: ${snapshot.data}');
+        // 添加调试日志
+        print('읽지 않았던 알림 수: ${snapshot.data}');
 
         final unreadCount = snapshot.data ?? 0;
 
         return Stack(
-          clipBehavior: Clip.none, // ✅ 允许红点超出边界
+          clipBehavior: Clip.none, // 允许红点超出边界
           children: [
             IconButton(
               icon: Image.asset('assets/icon_notification.png', width: 24, height: 24),

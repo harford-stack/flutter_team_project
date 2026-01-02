@@ -223,28 +223,28 @@ class PostService {
   /// ========== 辅助方法：上传图片 ==========
   Future<String> _uploadImage(File imageFile, String userId) async {
     try {
-      print('📤 이미지 업로드 시작...');
-      print('📁 파일 경로: ${imageFile.path}');
+      print('이미지 업로드 시작...');
+      print('파일 경로: ${imageFile.path}');
 
       // 파일 존재 확인
       if (!await imageFile.exists()) {
-        print('❌ 파일이 존재하지 않습니다');
+        print('파일이 존재하지 않습니다');
         throw Exception('파일이 존재하지 않습니다');
       }
 
       // 파일 크기 확인 (10MB 제한)
       final fileSize = await imageFile.length();
       if (fileSize > 10 * 1024 * 1024) {
-        print('❌ 파일 크기가 너무 큽니다 (최대 10MB)');
+        print('파일 크기가 너무 큽니다 (최대 10MB)');
         throw Exception('이미지 크기는 10MB 이하여야 합니다');
       }
 
       final fileName = 'posts/${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      print('📁 Storage 경로: $fileName');
+      print('Storage 경로: $fileName');
 
       final ref = _storage.ref().child(fileName);
 
-      print('⬆️ 업로드 중...');
+      print('⬆업로드 중...');
       // 업로드 실행
       await ref.putFile(
         imageFile,
@@ -254,13 +254,13 @@ class PostService {
         ),
       );
 
-      print('✅ 업로드 성공, URL 가져오는 중...');
+      print('업로드 성공, URL 가져오는 중...');
       final downloadUrl = await ref.getDownloadURL();
 
-      print('✅ URL 가져오기 성공: $downloadUrl');
+      print('URL 가져오기 성공: $downloadUrl');
       return downloadUrl;
     } on FirebaseException catch (e) {
-      print('❌ Firebase Storage 오류: ${e.code} - ${e.message}');
+      print('Firebase Storage 오류: ${e.code} - ${e.message}');
       if (e.code == 'unauthorized') {
         throw Exception('업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.');
       } else if (e.code == 'quota-exceeded') {
@@ -269,8 +269,8 @@ class PostService {
         throw Exception('이미지 업로드 실패: ${e.message}');
       }
     } catch (e) {
-      print('❌ 이미지 업로드 실패: $e');
-      print('❌ 오류 타입: ${e.runtimeType}');
+      print('이미지 업로드 실패: $e');
+      print('오류 타입: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -298,7 +298,7 @@ class PostService {
 
       // ===== 1단계: 기본 쿼리 설정 (userId 필터링) =====
       Query query = _firestore
-          .collection('post')  // ⚠️ post 컬렉션 (최상위)
+          .collection('post')  // ⚠ post 컬렉션 (최상위)
           .where('userId', isEqualTo: userId);  // 내가 쓴 글만
 
       // ===== 2단계: 카테고리 필터링 (선택적) =====
@@ -312,17 +312,17 @@ class PostService {
       // ===== 4단계: 쿼리 실행 =====
       final snapshot = await query.get();
 
-      print('📝 내 게시글 ${snapshot.docs.length}개 발견');
+      print('내 게시글 ${snapshot.docs.length}개 발견');
 
       // ===== 5단계: Post 모델로 변환 =====
       List<Post> myPosts = snapshot.docs
           .map((doc) => Post.fromFirestore(doc))
           .toList();
 
-      print('✅ 내 게시글 ${myPosts.length}개 로드 완료');
+      print('내 게시글 ${myPosts.length}개 로드 완료');
       return myPosts;
     } catch (e) {
-      print('❌ 내 게시글 조회 실패: $e');
+      print('내 게시글 조회 실패: $e');
       return [];
     }
   }
