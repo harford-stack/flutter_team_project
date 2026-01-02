@@ -115,7 +115,7 @@ class BookmarkService {
   /// 2. Post 컬렉션의 bookmarkCount +1
   Future<bool> addBookmark(String userId, Post post) async {
     try {
-      print('🔖 북마크 추가: userId=$userId, postId=${post.id}');
+      print('북마크 추가: userId=$userId, postId=${post.id}');
 
       // ===== 1단계: 이미 북마크했는지 확인 =====
       final existingBookmark = await _firestore
@@ -126,7 +126,7 @@ class BookmarkService {
           .get();
 
       if (existingBookmark.docs.isNotEmpty) {
-        print('⚠️ 이미 북마크한 게시글입니다');
+        print('이미 북마크한 게시글입니다');
         return false;
       }
 
@@ -152,10 +152,10 @@ class BookmarkService {
         'bookmarkCount': FieldValue.increment(1),
       });
 
-      print('✅ 북마크 추가 성공');
+      print('북마크 추가 성공');
       return true;
     } catch (e) {
-      print('❌ 북마크 추가 실패: $e');
+      print('북마크 추가 실패: $e');
       return false;
     }
   }
@@ -172,7 +172,7 @@ class BookmarkService {
   /// - bool - 성공 여부
   Future<bool> removeBookmark(String userId, String postId) async {
     try {
-      print('🗑️ 북마크 삭제: userId=$userId, postId=$postId');
+      print('북마크 삭제: userId=$userId, postId=$postId');
 
       // ===== 1단계: UserBookmark에서 해당 북마크 찾기 =====
       final bookmarkSnapshot = await _firestore
@@ -183,7 +183,7 @@ class BookmarkService {
           .get();
 
       if (bookmarkSnapshot.docs.isEmpty) {
-        print('⚠️ 북마크를 찾을 수 없습니다');
+        print('북마크를 찾을 수 없습니다');
         return false;
       }
 
@@ -200,10 +200,10 @@ class BookmarkService {
         'bookmarkCount': FieldValue.increment(-1),
       });
 
-      print('✅ 북마크 삭제 성공');
+      print('북마크 삭제 성공');
       return true;
     } catch (e) {
-      print('❌ 북마크 삭제 실패: $e');
+      print('북마크 삭제 실패: $e');
       return false;
     }
   }
@@ -225,7 +225,7 @@ class BookmarkService {
     int successCount = 0;
 
     try {
-      print('🗑️ 북마크 일괄 삭제: ${postIds.length}개');
+      print('북마크 일괄 삭제: ${postIds.length}개');
 
       for (var postId in postIds) {
         final success = await removeBookmark(userId, postId);
@@ -234,10 +234,10 @@ class BookmarkService {
         }
       }
 
-      print('✅ 북마크 일괄 삭제 완료: $successCount/${postIds.length}');
+      print('북마크 일괄 삭제 완료: $successCount/${postIds.length}');
       return successCount;
     } catch (e) {
-      print('❌ 북마크 일괄 삭제 실패: $e');
+      print('북마크 일괄 삭제 실패: $e');
       return successCount;
     }
   }
@@ -263,7 +263,7 @@ class BookmarkService {
 
       return bookmarkSnapshot.docs.isNotEmpty;
     } catch (e) {
-      print('❌ 북마크 상태 확인 실패: $e');
+      print('북마크 상태 확인 실패: $e');
       return false;
     }
   }
