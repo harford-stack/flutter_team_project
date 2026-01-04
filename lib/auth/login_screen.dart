@@ -97,10 +97,17 @@ class _LoginScreenState extends State<LoginScreen> {
           print('이메일/비밀번호 로그인 예외 발생: $e');
           print('스택 트레이스: $stackTrace');
           
+          // 에러 메시지에서 Exception: 부분 제거
+          String errorMessage = e.toString();
+          if (errorMessage.startsWith('Exception: ')) {
+            errorMessage = errorMessage.substring(11);
+          }
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('로그인 실패: ${e.toString()}'),
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4), // 메시지가 길 수 있으므로 시간 연장
             ),
           );
           return;
@@ -132,11 +139,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 60),
@@ -495,6 +503,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 

@@ -6,6 +6,7 @@ class IngredientGridWithCategory extends StatelessWidget {
   final Map<String, String> selectedIngredients;
   final Function(String) onIngredientTap;
   final Set<String> disabledIngredients;
+  final ScrollController? scrollController;
 
   const IngredientGridWithCategory({
     super.key,
@@ -13,17 +14,19 @@ class IngredientGridWithCategory extends StatelessWidget {
     required this.selectedIngredients,
     required this.onIngredientTap,
     required this.disabledIngredients,
+    this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      controller: scrollController,
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1,
+        mainAxisExtent: 60, // 내 냉장고와 동일한 높이
       ),
       itemCount: ingredients.length,
       itemBuilder: (context, index) {

@@ -165,240 +165,300 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
         appName: "재료 편집",
       ),
       drawer: const CustomDrawer(),
-      body: SingleChildScrollView( // 전체 화면 키보드 대응을 위한 스크롤 허용
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // 기본은 가운데
-            children: [
-              SizedBox(height: 10), // 상단 여백 소폭 축소
-
-              // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (시작) ----------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end, // 버튼만 오른쪽
-                children: [
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                      ),
-                      onPressed: (){
-                        // 키보드 숨기기
-                        FocusScope.of(context).unfocus();
-
-                        // 로그인 여부 확인 위해
-                        final authProvider = context.read<AuthProvider>();
-
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(
-                                "재료 추가 방법 선택",
-                                style: TextStyle(fontSize: 20, color : AppColors.textDark),
-                                textAlign: TextAlign.center,
-                              ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-
-                                      if (authProvider.isAuthenticated) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => UserRefrigerator()),
-                                        );
-                                      } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => LoginScreen()),
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                        "내 냉장고에서 선택하기",
-                                        style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontSize: 17
-                                        )
+      body: Container(
+        color: AppColors.backgroundColor,
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView( // 전체 화면 스크롤
+                child: Column(
+                  children: [
+                    // 위 박스: 재료 추가 버튼과 이미지
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0), // 재료 리스트 영역만 좌우 패딩 줄임
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (시작) ----------
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end, // 버튼만 오른쪽
+                              children: [
+                                ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryColor,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 2,
                                     ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          // ★ ingreEdit에서 진입 → 최초 진입 아님
-                                          builder: (context) => const SelectScreen(isInitialFlow: false),
-                                        ),
+                                    onPressed: (){
+                                      // 키보드 숨기기
+                                      FocusScope.of(context).unfocus();
+
+                                      // 로그인 여부 확인 위해
+                                      final authProvider = context.read<AuthProvider>();
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text(
+                                              "재료 추가 방법 선택",
+                                              style: TextStyle(fontSize: 20, color : AppColors.textDark),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+
+                                                    if (authProvider.isAuthenticated) {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) => const UserRefrigerator(isForRecommendation: true),
+                                                        ),
+                                                      );
+                                                    } else {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Text(
+                                                      "내 냉장고에서 선택하기",
+                                                      style: TextStyle(
+                                                          color: AppColors.primaryColor,
+                                                          fontSize: 17
+                                                      )
+                                                  ),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        // ★ ingreEdit에서 진입 → 최초 진입 아님
+                                                        builder: (context) => const SelectScreen(isInitialFlow: false),
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Text(
+                                                      "재료 목록에서 선택하기",
+                                                      style: TextStyle(
+                                                          color: AppColors.primaryColor,
+                                                          fontSize: 17
+                                                      )
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
-                                    child: Text(
-                                        "재료 목록에서 선택하기",
+                                    child: const Text(
+                                        "재료 추가",
                                         style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontSize: 17
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textWhite,
                                         )
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Text(
-                          "재료 추가",
-                          style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 15
-                          )
-                      )
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
-
-              // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-              Image.asset("assets/recipe_now.png", width: 250), // 이미지 크기 소폭 축소
-              SizedBox(height: 10),
-
-              // ★ 재료 목록 영역: 최대 높이(MaxHeight) 및 가로 폭(SizedBox) 제한
-              SizedBox(
-                width: 305, // 하단 버튼 2개의 합(140+140) + 사이 간격(25)에 맞춘 폭
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: 200, // 약 3~4줄 분량
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Scrollbar(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        child: ingredients.isEmpty
-                            ? Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text("현재 선택된 재료가 없습니다."),
-                        )
-                            : IngreTextListWidget(detectedIngredients: ingredients),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 55),
-
-              // Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-              Image.asset("assets/recipe_keyword.png", width: 250), // 이미지 크기 소폭 축소
-              SizedBox(height: 10),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _keywordController,
-                  decoration: InputDecoration(
-                    hintText: "ex) 다이어트 / 목록에 없는 재료도 입력 가능!",
-                    hintStyle: TextStyle(
-                      fontSize: 13.0,
-                    ),
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    isDense: true, // 입력창 높이 최적화
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 40), // 간격 소폭 축소
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      onPressed: (){
-                        FocusScope.of(context).unfocus(); // 키보드 숨기기
-                        if (ingredients.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
-                              duration: Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
+                                    )
+                                ),
+                              ],
                             ),
-                          );
-                        } else {
-                          // ★ Provider에 현재 입력된 "키워드" 저장 후
-                          context.read<TempIngredientProvider>().setKeyword(_keywordController.text.trim());
+                            SizedBox(height: 20),
+                            // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
 
-                          // 쉐킷하시겠습니까? 팝업 띄우기
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (_) => ShakeCheck(),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(140, 60),
-                          backgroundColor: AppColors.primaryColor
+                            // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
+                            Image.asset("assets/recipe_now.png", width: 300), // 이미지 크기 소폭 축소
+                            SizedBox(height: 10),
+
+                            // ★ 재료 목록 영역: 높이 제한 제거, 전체 스크롤 가능하도록
+                            // 좌우 여백을 줄여서 가로로 3개씩 표시되도록
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0), // 최소 여백만 유지 (Container의 24 패딩 대신 8만 사용)
+                              child: ingredients.isEmpty
+                                  ? Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Text("현재 선택된 재료가 없습니다."),
+                              )
+                                  : IngreTextListWidget(detectedIngredients: ingredients),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Text(
-                          "레시피 추천받기",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 15
-                          )
-                      )
-                  ),
-                  SizedBox(width: 25),
-                  ElevatedButton(
-                      onPressed: () async {
-                        FocusScope.of(context).unfocus(); // 키보드 숨기기
-                        final authProvider = context.read<AuthProvider>();
-
-                        if (authProvider.isAuthenticated) {
-                          // 로그인한 경우, 로딩 다이얼로그 등을 띄워주기(선택사항)
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => const Center(child: CircularProgressIndicator()),
-                          );
-                          await _saveToUserRefrigerator(); // db에 냉장고 재료 저장
-                          if (mounted) Navigator.pop(context); // 로딩 닫기
-
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => LoginScreen()),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(140, 60),
-                          backgroundColor: AppColors.primaryColor
+                    ),
+                    // 위 박스와 키워드 입력 박스 사이 간격
+                    const SizedBox(height: 16),
+                    // 키워드 입력 영역을 담는 별도 박스
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                    // Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
+                    Image.asset("assets/recipe_keyword.png", width: 300), // 이미지 크기 소폭 축소
+                    SizedBox(height: 10),
+                    SizedBox(
+                      width: 300,
+                      child: TextField(
+                        controller: _keywordController,
+                        decoration: InputDecoration(
+                          hintText: "ex) 다이어트 / 목록에 없는 재료도 입력 가능!",
+                          hintStyle: TextStyle(
+                            fontSize: 13.0,
+                          ),
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          isDense: true, // 입력창 높이 최적화
+                        ),
                       ),
-                      child: Text(
-                          "내 냉장고로\n재료 등록하기",
-                          style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 15
-                          )
-                      )
-                  ),
-                ],
+                    ),
+
+                    SizedBox(height: 40), // 간격 소폭 축소
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                              onPressed: (){
+                                FocusScope.of(context).unfocus(); // 키보드 숨기기
+                                if (ingredients.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                } else {
+                                  // ★ Provider에 현재 입력된 "키워드" 저장 후
+                                  context.read<TempIngredientProvider>().setKeyword(_keywordController.text.trim());
+
+                                  // 쉐킷하시겠습니까? 팝업 띄우기
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => ShakeCheck(),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                minimumSize: const Size(0, 90), // 최소 높이 설정
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: const Text(
+                                  "레시피 추천받기",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textWhite,
+                                  )
+                              )
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                              onPressed: () async {
+                                FocusScope.of(context).unfocus(); // 키보드 숨기기
+                                final authProvider = context.read<AuthProvider>();
+
+                                if (authProvider.isAuthenticated) {
+                                  // 로그인한 경우, 로딩 다이얼로그 등을 띄워주기(선택사항)
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => const Center(child: CircularProgressIndicator()),
+                                  );
+                                  await _saveToUserRefrigerator(); // db에 냉장고 재료 저장
+                                  if (mounted) Navigator.pop(context); // 로딩 닫기
+
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                minimumSize: const Size(0, 90), // 최소 높이 설정 (다른 버튼과 동일)
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: const Text(
+                                  "내 냉장고로\n재료 등록하기",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textWhite,
+                                  )
+                              )
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                ),
               ),
-              SizedBox(height: 20),
+            ),
+                    const SizedBox(height: 16), // 하단 여백
+                  ],
+                ),
+              ),
+            ),
             ],
           ),
         ),
-      ),
-      // 풋터
       bottomNavigationBar: CustomFooter(
         currentIndex: _currentIndex,
         onTap: (index) => _onFooterTap(index, authProvider),

@@ -72,161 +72,224 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
         appName: "인식 결과",
       ),
       drawer: const CustomDrawer(),
-      body: SafeArea(
-        child: Padding(
-          // 화면 전체에 상하좌우 고정 패딩 부여 (Column을 직접 감싸도록 조정)
-          padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
-              Image.asset("assets/recipe_ingreChk_result.png", width: 300,),
-              SizedBox(height: 20), // 간격 두기
-
-              // 인식된 사진 담기는 곳
-              Container(
-                width: 300,
-                height: 200,
-                color: Color(0xFFEEEEEE),
-                alignment: Alignment.center, // 텍스트 중앙 정렬
-                child: context.watch<TempIngredientProvider>().photos.isNotEmpty
-                    ? Image.file(
-                  context.watch<TempIngredientProvider>().photos.last,
-                  fit: BoxFit.cover,
-                  width: double.infinity, // 컨테이너 너비에 맞춤
-                  height: double.infinity,
-                )
-                    : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+      body: Container(
+        color: AppColors.backgroundColor,
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView( // 전체 화면 스크롤
+                child: Column(
                   children: [
-                    Image.asset(
-                      'assets/image_no_picture.png',
-                      width: 120,
-                      height: 120,
+                    // 위 박스: 이미지와 재료 목록
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0), // 재료 리스트 영역만 좌우 패딩 줄임
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
+                            Image.asset("assets/recipe_ingreChk_result.png", width: 300,),
+                            SizedBox(height: 20), // 간격 두기
+
+                            // 인식된 사진 담기는 곳
+                            Container(
+                              width: 300,
+                              height: 200,
+                              color: Color(0xFFEEEEEE),
+                              alignment: Alignment.center, // 텍스트 중앙 정렬
+                              child: context.watch<TempIngredientProvider>().photos.isNotEmpty
+                                  ? Image.file(
+                                context.watch<TempIngredientProvider>().photos.last,
+                                fit: BoxFit.cover,
+                                width: double.infinity, // 컨테이너 너비에 맞춤
+                                height: double.infinity,
+                              )
+                                  : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/image_no_picture.png',
+                                    width: 120,
+                                    height: 120,
+                                  ),
+                                  //SizedBox(height: 5), // 이미지와 텍스트 사이 간격
+                                  Text(
+                                    '사진 없이 목록에서만 체크된\n재료 내용입니다.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 20, color: AppColors.textDark),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: 30), // 간격 두기
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("인식된 재료 ",
+                                  style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.w600,
+                                      color : AppColors.textDark
+                                  ),
+                                ),
+                                Text(
+                                  "${ingredients.length}개",
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w600,
+                                    // 색상은 나중에 색코드 파일 따로 만들어서 지정하면 끌고올 예정
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 15), // 간격 두기
+
+                            // 인식된 재료명 나열할거임!
+                            // 높이 제한 제거, 전체 스크롤 가능하도록
+                            // 좌우 여백을 줄여서 가로로 3개씩 표시되도록
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0), // 최소 여백만 유지 (Container의 24 패딩 대신 8만 사용)
+                              child: IngreTextListWidget(detectedIngredients: ingredients),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    //SizedBox(height: 5), // 이미지와 텍스트 사이 간격
-                    Text(
-                      '사진 없이 목록에서만 체크된\n재료 내용입니다.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20, color: AppColors.textDark),
+                    // 위 박스와 아래 박스 사이 간격
+                    const SizedBox(height: 20),
+                    // 아래 박스: 버튼과 텍스트
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                      onPressed: (){ // 쉐킷 팝업창 띄우기
+                                        // 재료가 0개인지 확인
+                                        if (ingredients.isEmpty) {
+                                          // 0개라면 안내 스낵바 띄우기
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
+                                              duration: Duration(seconds: 2), // 2초 동안 표시
+                                              behavior: SnackBarBehavior.floating, // 떠 있는 스타일 (선택사항)
+                                            ),
+                                          );
+                                        } else { // 재료가 1개 이상일 시
+                                          showDialog(
+                                            context: context,
+                                            barrierDismissible: false, // 바깥 터치로 닫히지 않게
+                                            builder: (_) => ShakeCheck(),
+                                          );
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryColor,
+                                        padding: const EdgeInsets.symmetric(vertical: 18),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        elevation: 2,
+                                      ),
+                                      child: const Text(
+                                          "이대로\n레시피 추천받기",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textWhite,
+                                          )
+                                      )
+                                  ),
+                                ),
+                                SizedBox(width: 12), // 간격 두기
+
+                                Expanded(
+                                  child: ElevatedButton(
+                                      onPressed: (){
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) => IngreeditScreen()
+                                              // 재료 편집 화면으로 이동
+                                            )
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryColor,
+                                        padding: const EdgeInsets.symmetric(vertical: 18),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        elevation: 2,
+                                      ),
+                                      child: const Text(
+                                          "재료편집 또는\n키워드 넣기",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textWhite,
+                                          )
+                                      )
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20), // 간격 두기
+                            Text(
+                                "재료를 냉장고에 넣어두고 싶다면, 오른쪽 버튼 클릭!",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: AppColors.textDark,
+                                    fontSize: 15
+                                )
+                            )
+                          ],
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 16), // 하단 여백
                   ],
                 ),
               ),
-
-              SizedBox(height: 30), // 간격 두기
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("인식된 재료 ",
-                    style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w600,
-                        color : AppColors.textDark
-                    ),
-                  ),
-                  Text(
-                    "${ingredients.length}개",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.w600,
-                      // 색상은 나중에 색코드 파일 따로 만들어서 지정하면 끌고올 예정
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 15), // 간격 두기
-
-              // 인식된 재료명 나열할거임!
-              // Flexible과 SingleChildScrollView로 중간 영역 스크롤 처리
-              // Expanded를 사용하여 남은 공간을 차지하게 하고 이 내부에서만 스크롤이 되도록 함
-              Expanded(
-                child: SizedBox(
-                  width: 300,
-                  child: SingleChildScrollView(
-                    physics: BouncingScrollPhysics(), // 부드러운 스크롤 효과
-                    child: IngreTextListWidget(detectedIngredients: ingredients),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20), // 간격 두기
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      onPressed: (){ // 쉐킷 팝업창 띄우기
-                        // 재료가 0개인지 확인
-                        if (ingredients.isEmpty) {
-                          // 0개라면 안내 스낵바 띄우기
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
-                              duration: Duration(seconds: 2), // 2초 동안 표시
-                              behavior: SnackBarBehavior.floating, // 떠 있는 스타일 (선택사항)
-                            ),
-                          );
-                        } else { // 재료가 1개 이상일 시
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false, // 바깥 터치로 닫히지 않게
-                            builder: (_) => ShakeCheck(),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(140, 60),
-                          backgroundColor: AppColors.primaryColor
-                      ),
-                      child: Text(
-                          "이대로\n레시피 추천받기",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 16
-                          )
-                      )
-                  ),
-                  SizedBox(width: 25), // 간격 두기
-
-                  ElevatedButton(
-                      onPressed: (){
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => IngreeditScreen()
-                              // 재료 편집 화면으로 이동
-                            )
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(140, 60),
-                          backgroundColor: AppColors.primaryColor
-                      ),
-                      child: Text(
-                          "재료편집 또는\n키워드 넣기",
-                          textAlign: TextAlign.center, // 텍스트 중앙 정렬 추가
-                          style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 17
-                          )
-                      )
-                  ),
-                ],
-              ),
-              SizedBox(height: 20), // 간격 두기
-              Text(
-                  "재료를 냉장고에 넣어두고 싶다면, 오른쪽 버튼 클릭!",
-                  style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 15
-                  )
-              )
+            ),
+            const SizedBox(height: 16), // 하단 여백
             ],
           ),
         ),
-      ),
-      // 풋터
       bottomNavigationBar: CustomFooter(
         currentIndex: _currentIndex,
         onTap: (index) => _onFooterTap(index, authProvider),

@@ -5,18 +5,29 @@
   import 'package:provider/provider.dart';
   import '../common/app_colors.dart';
   import '../common/custom_appbar.dart';
+  import '../common/custom_footer.dart';
+  import '../common/custom_drawer.dart';
   import 'package:firebase_auth/firebase_auth.dart';
   import '../auth/login_screen.dart';
+  import '../auth/home_screen.dart';
   import 'dart:async';
   import 'package:flutter_speed_dial/flutter_speed_dial.dart';
   import 'user_ingredient_add.dart';
   import 'user_ingredient_remove.dart';
   import '../providers/temp_ingre_provider.dart';
+  import '../auth/auth_provider.dart' as app_auth;
   import '../recipes/ingreCheck_screen.dart';
 
 
   class UserRefrigerator extends StatefulWidget {
-    const UserRefrigerator({super.key});
+    final bool isForRecommendation; // true: 레시피 추천용, false: 단순 관리용
+    final bool fromRecipeOption; // true: recipe_option_screen에서 온 경우, false: 그 외
+    
+    const UserRefrigerator({
+      super.key,
+      this.isForRecommendation = false, // 기본값은 관리용
+      this.fromRecipeOption = false, // 기본값은 false
+    });
 
     @override
     State<UserRefrigerator> createState() => _UserRefrigeratorState();
@@ -33,6 +44,38 @@
     int selectedCategoryIndex = 0;
     List<Map<String, String>> selectedIngredients = [];
     bool providerFlg = false;
+    int _currentIndex = 1; // 내 냉장고 인덱스
+
+    void _onFooterTap(int index, app_auth.AuthProvider authProvider, BuildContext context) {
+      // 현재 화면이 "내 냉장고"이므로, "내 냉장고" 클릭 시 아무 동작도 하지 않음
+      if (index == 1) {
+        return;
+      }
+
+      // 로그인이 필요한 메뉴 (커뮤니티)
+      if (index == 2) {
+        if (!authProvider.isAuthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('로그인이 필요한 메뉴입니다.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+          return;
+        }
+      }
+
+      // 홈 또는 커뮤니티로 이동
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(initialIndex: index),
+        ),
+        (route) => false,
+      );
+    }
 
     //선택되었는지 확인
     bool _isSelected(Map<String, String> ingredient) {
@@ -218,6 +261,18 @@
     void initState() {
       // TODO: implement initState
       super.initState();
+      // 레시피 추천용 모드일 때 선택된 재료 초기화
+      if (widget.isForRecommendation) {
+        selectedIngredients.clear();
+        // '내 냉장고 재료로 추천 받기'에서 진입할 때만 Provider도 초기화
+        // (재료 편집 화면에서 호출할 때는 기존 재료 유지)
+        if (widget.fromRecipeOption) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final provider = Provider.of<TempIngredientProvider>(context, listen: false);
+            provider.clear();
+          });
+        }
+      }
       _checkLoginStatus();
       _listenToAuthChanges();
       _getUserIngredients();
@@ -230,6 +285,10 @@
     @override
     void dispose() {
       _authSubscription?.cancel(); // 리스너 해제
+      // 레시피 추천용 모드일 때 화면을 나갈 때 선택된 재료 초기화
+      if (widget.isForRecommendation) {
+        selectedIngredients.clear();
+      }
       super.dispose();
     }
 
@@ -303,6 +362,9 @@
 
     @override
     Widget build(BuildContext context) {
+      print('build 호출됨: userIngredients.length=${userIngredients.length}');
+      final authProvider = Provider.of<app_auth.AuthProvider>(context);
+      
       return PopScope(
         onPopInvoked: (didPop) {
           if (didPop) {
@@ -311,19 +373,26 @@
               print('뒤로가기: Provider 초기화');
               provider.clear(); // 또는 setIngredients([])
             }
+            // 레시피 추천용 모드일 때 선택된 재료 초기화
+            if (widget.isForRecommendation) {
+              selectedIngredients.clear();
+            }
           }
         },
         child: Scaffold(
-          floatingActionButton: SpeedDial(
+          backgroundColor: AppColors.backgroundColor,
+          floatingActionButton: widget.isForRecommendation
+              ? null // 레시피 추천용 모드에서는 SpeedDial 숨김
+              : SpeedDial(
             spaceBetweenChildren: 14,
-            icon: Icons.menu,
-            activeIcon: Icons.close,
-            backgroundColor: AppColors.secondaryColor,
-            foregroundColor: AppColors.textDark,
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            activeChild: const Icon(Icons.close, color: Colors.white),
             children: [
               SpeedDialChild(
-                child: const Icon(Icons.remove),
+                child: const Icon(Icons.remove, color: Colors.white),
                 label: '재료 삭제하기',
+                backgroundColor: AppColors.secondaryColor,
                 onTap: () async {
                   final removedNames = await Navigator.push<List<String>>(
                     context,
@@ -343,8 +412,9 @@
                 },
               ),
               SpeedDialChild(
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
                 label: '재료 추가하기',
+                backgroundColor: AppColors.secondaryColor,
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -354,93 +424,99 @@
                 },
               ),
             ],
-          ),
-          appBar: AppBar(
-            title: Text('내 냉장고'),
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: AppColors.textWhite,
-          ),
-          body: userIngredients.isEmpty
-              ? _buildEmptyState()
-              : _buildIngredientGrid(),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                      onPressed: () {
-                        if(providerFlg) {
-                          final Set<String> names =
-                          selectedIngredients.map((e) => e['name'] as String).toSet();
-                          // print(names);
-        
-                          late final provider = Provider.of<TempIngredientProvider>(
-                              context,
-                              listen: false
-                          );
-        
-                          // print(provider.ingredients);
-        
-                          final Set<String> mergeSet = {
-                            ...names,
-                            ...provider.ingredients
-                          };
-                          // print(mergeSet);
-        
-                          final List<String> finalList = mergeSet.toList();
-        
-                          provider.setIngredients(finalList);
-        
-                          print(provider.ingredients);
-        
-                          // print(finalList);
-        
-                          Navigator.pop(context);
-                        } else {
-                          // print('뭐');
-                          final Set<String> names =
-                            selectedIngredients.map((e) => e['name'] as String).toSet();
-                          // print(names);
-                          
-                          final List<String> namesList = names.toList();
-                          // print(namesList);
-
-                          final provider = Provider.of<TempIngredientProvider>(
-                              context,
-                              listen: false
-                          );
-
-                          provider.setIngredients(namesList);
-
-                          print('Provider에 등록된 재료: ${provider.ingredients}');
-                          
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_)=>IngrecheckScreen()
-                              )
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.circular(13),
-                          side: BorderSide(
-                            color: AppColors.secondaryColor,
-                            width: 1.5
-                          )
-                        )
-                      ),
-                      child: Text('확인',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppColors.primaryColor
-                        ),
-                      )
-                  ),
-                ),
+            child: ColorFiltered(
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
+              child: Image.asset(
+                'assets/icon/icon_burgerMenu.png',
+                width: 24,
+                height: 24,
+              ),
             ),
+          ),
+          appBar: const CustomAppBar(
+            appName: '내 냉장고',
+          ),
+          drawer: const CustomDrawer(),
+          body: Stack(
+            children: [
+              userIngredients.isEmpty
+                  ? _buildEmptyState()
+                  : _buildIngredientGrid(),
+              // 확인 버튼 (레시피 추천용일 때만 표시, 재료가 선택되었을 때만 표시)
+              if (widget.isForRecommendation && (selectedIngredients.isNotEmpty || providerFlg))
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 0, // Stack의 최하단 (푸터 바로 위)
+                  child: ElevatedButton(
+                        onPressed: () {
+                          if (providerFlg) {
+                            // Provider에 이미 재료가 있는 경우
+                            final Set<String> names =
+                                selectedIngredients.map((e) => e['name'] as String).toSet();
+                            final provider = Provider.of<TempIngredientProvider>(
+                                context,
+                                listen: false
+                            );
+                            final Set<String> mergeSet = {
+                              ...names,
+                              ...provider.ingredients
+                            };
+                            final List<String> finalList = mergeSet.toList();
+                            provider.setIngredients(finalList);
+                            print(provider.ingredients);
+                            Navigator.pop(context);
+                          } else {
+                            // Provider에 재료가 없는 경우 (재료 편집 화면에서 호출한 경우 기존 재료 유지)
+                            final Set<String> names =
+                                selectedIngredients.map((e) => e['name'] as String).toSet();
+                            final provider = Provider.of<TempIngredientProvider>(
+                                context,
+                                listen: false
+                            );
+                            // 기존 재료와 새로 선택한 재료 병합
+                            final Set<String> mergeSet = {
+                              ...names,
+                              ...provider.ingredients
+                            };
+                            final List<String> finalList = mergeSet.toList();
+                            provider.setIngredients(finalList);
+                            print('Provider에 등록된 재료: ${provider.ingredients}');
+                            // 모든 경우에 IngrecheckScreen으로 이동
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const IngrecheckScreen()
+                                )
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 8, // elevation을 높여서 컨텐츠 위에 표시
+                        ),
+                        child: const Text(
+                          '확인',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textWhite,
+                          ),
+                        ),
+                      ),
+                  ),
+            ],
+          ),
+          bottomNavigationBar: CustomFooter(
+            currentIndex: _currentIndex,
+            onTap: (index) => _onFooterTap(index, authProvider, context),
           ),
         ),
       );
@@ -512,104 +588,96 @@
 
     Widget _buildIngredientGrid() {
       final Size screenSize = MediaQuery.of(context).size;
-
+      final double screenWidth = screenSize.width;
+      final double itemWidth = (screenWidth - 32 - 12) / 2; // padding(32) + spacing(12) 제외
+      final double itemHeight = 60.0; // 높이 직접 지정 (원하는 값으로 변경 가능)
+      
       return Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          itemCount: userIngredients.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,          // ⭐ 2개씩
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-          ),
-          itemBuilder: (context, index) {
-            final ingredient = userIngredients[index];
-            final bool isSelected = _isSelected(ingredient);
-            final bool isDuplicate = isAlreadyAdded(ingredient['name']!);
-
-            return GestureDetector(
-              onTap: isDuplicate
-                  ? null
-                  : () {
-                    setState(() {
-                      if (_isSelected(ingredient)) {
-                        selectedIngredients.removeWhere((item) =>
-                        item['name'] == ingredient['name'] &&
-                            item['category'] == ingredient['category']);
-                      } else {
-                        selectedIngredients.add(ingredient);
-                      }
-                    });
-              },
-              // onTap: () {
-              //   setState(() {
-              //     if (_isSelected(ingredient)) {
-              //       selectedIngredients.removeWhere((item) =>
-              //       item['name'] == ingredient['name'] &&
-              //           item['category'] == ingredient['category']);
-              //     } else {
-              //       selectedIngredients.add(ingredient);
-              //     }
-              //   });
-              //   // print(selectedIngredients);
-              // },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDuplicate
-                      ? Colors.grey.shade300
-                      : isSelected
-                        ? AppColors.secondaryColor.withAlpha(30)
-                        : Colors.white,
-                  border: Border.all(
-                      color: AppColors.primaryColor,
-                      width: 1
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // 하단에 확인 버튼 공간 확보
+        child: SingleChildScrollView(
+          child: Wrap(
+            spacing: 12, // 가로 간격
+            runSpacing: 12, // 세로 간격
+            children: userIngredients.map((ingredient) {
+              final bool isSelected = _isSelected(ingredient);
+              // 레시피 추천용 모드에서만 중복 체크 (단, Provider에 재료가 없을 때는 중복 체크 안 함)
+              final bool isDuplicate = widget.isForRecommendation && 
+                  providerFlg && 
+                  isAlreadyAdded(ingredient['name']!);
+              
+              return GestureDetector(
+                onTap: widget.isForRecommendation && !isDuplicate
+                    ? () {
+                      setState(() {
+                        if (_isSelected(ingredient)) {
+                          selectedIngredients.removeWhere((item) =>
+                          item['name'] == ingredient['name'] &&
+                              item['category'] == ingredient['category']);
+                        } else {
+                          selectedIngredients.add(ingredient);
+                        }
+                      });
+                    }
+                    : null, // 관리용 모드에서는 클릭 비활성화
+                child: SizedBox(
+                  width: itemWidth,
+                  height: itemHeight, // 높이 직접 지정
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: isDuplicate
+                          ? Colors.grey.shade300
+                          : isSelected
+                            ? AppColors.secondaryColor.withAlpha(30)
+                            : Colors.white,
+                      border: Border.all(
+                          color: AppColors.primaryColor,
+                          width: 1
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          ingredient['name'] ?? '',
+                          style: TextStyle(
+                            fontSize: screenSize.width * 0.038,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          ingredient['category'] ?? '',
+                          style: TextStyle(
+                            fontSize: screenSize.width * 0.028,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Icon(
-                    //   Icons.kitchen,
-                    //   size: 40,
-                    //   color: AppColors.primaryColor,
-                    // ),
-                    const SizedBox(height: 10),
-                    Text(
-                      ingredient['name'] ?? '',
-                      style: TextStyle(
-                        fontSize: screenSize.width * 0.045,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      ingredient['category'] ?? '',
-                      style: TextStyle(
-                        fontSize: screenSize.width * 0.032,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+              );
+            }).toList(),
+          ),
         ),
       );
     }
 
   }
-
-  //할거
-  //확인 눌렀을 때, selectIngredients를 provider에 넣기(완)
-  //내 냉장고로 이동할 때, 기존 ingredients를 받아온 후,
-  // ingredients와 내 재료중 겹치는게 있으면 이미 체크되있도록 하기(완)

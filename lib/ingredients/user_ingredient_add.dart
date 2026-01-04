@@ -33,6 +33,7 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
   final IngredientService _service = IngredientService();
   final TextEditingController _searchController = TextEditingController();
   final GetCategoryIngre _getCategoryIngre = GetCategoryIngre();
+  final ScrollController _scrollController = ScrollController();
 
   List<String> categoryTabs = [];
   List<Map<String, String>> ingredientList = [];
@@ -51,6 +52,13 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
     _getUserIngredients();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
     categoryTabs = await _service.getCategories();
     await _loadIngredients();
@@ -64,12 +72,28 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
 
     // 3. Firestore에서 사용자 재료 목록 불러오기
     List<String> userIngredients = await _getUserIngredients();
+    final userIngredientsSet = userIngredients.toSet();
+
+    // 이미 저장된 재료들을 먼저 배치하고, 나머지 재료들을 뒤에 배치
+    final sortedIngredients = <Map<String, String>>[];
+    final otherIngredients = <Map<String, String>>[];
+
+    for (var ingredient in ingredients) {
+      if (userIngredientsSet.contains(ingredient['name'])) {
+        sortedIngredients.add(ingredient);
+      } else {
+        otherIngredients.add(ingredient);
+      }
+    }
+
+    // 이미 저장된 재료들 + 나머지 재료들 순서로 합치기
+    final finalIngredients = [...sortedIngredients, ...otherIngredients];
 
     setState(() {
-      ingredientList = ingredients;
-      filteredIngredients = ingredients;
+      ingredientList = finalIngredients;
+      filteredIngredients = finalIngredients;
 
-      disabledIngredients = userIngredients.toSet();
+      disabledIngredients = userIngredientsSet;
     });
   }
 
@@ -98,6 +122,14 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
       _searchController.clear();
       _filterIngredients('');
     });
+    // 스크롤을 맨 위로 초기화
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
     _loadIngredients();
   }
 
@@ -189,32 +221,35 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
         backgroundColor: AppColors.backgroundColor,
         foregroundColor: AppColors.textDark,
       ),
-      body: Column(
-        children: [
-          IngredientSearchBar(
-            controller: _searchController,
-            onChanged: _filterIngredients,
-          ),
-          CategoryBar(
-            categories: categoryTabs,
-            selectedIndex: selectedCategoryIndex,
-            onCategoryChanged: _onCategoryChanged,
-          ),
-          Expanded(
-            child: IngredientGridWithCategory(
-              ingredients: filteredIngredients.map((item) => item['name']!).toList(),
-              selectedIngredients: selectedIngredients,
-              disabledIngredients: disabledIngredients,
-              onIngredientTap: (name) {
-                // 이미 선택된 재료는 클릭할 수 없도록 처리
-                if (selectedIngredients.containsKey(name)) return;
-
-                final item = filteredIngredients.firstWhere((item) => item['name'] == name);
-                _onIngredientTap(item);
-              },
+      body: SafeArea(
+        child: Column(
+          children: [
+            IngredientSearchBar(
+              controller: _searchController,
+              onChanged: _filterIngredients,
             ),
-          ),
-        ],
+            CategoryBar(
+              categories: categoryTabs,
+              selectedIndex: selectedCategoryIndex,
+              onCategoryChanged: _onCategoryChanged,
+            ),
+            Expanded(
+              child: IngredientGridWithCategory(
+                ingredients: filteredIngredients.map((item) => item['name']!).toList(),
+                selectedIngredients: selectedIngredients,
+                disabledIngredients: disabledIngredients,
+                scrollController: _scrollController,
+                onIngredientTap: (name) {
+                  // 이미 선택된 재료는 클릭할 수 없도록 처리
+                  if (selectedIngredients.containsKey(name)) return;
+
+                  final item = filteredIngredients.firstWhere((item) => item['name'] == name);
+                  _onIngredientTap(item);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: selectedIngredients.isNotEmpty
           ? ElevatedButton(
