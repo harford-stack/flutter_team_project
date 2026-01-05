@@ -26,6 +26,7 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // 배경을 흰색으로 유지
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min, // 세로 중앙 배치를 위해 필수
@@ -132,8 +133,17 @@ Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[300], // 와이어프레임의 회색 배경
+        //color: Colors.grey[300], // 와이어프레임의 회색 배경
+        color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2), // 그림자 색상
+            spreadRadius: 2, // 그림자 퍼지는 범위
+            blurRadius: 10, // 그림자의 흐림 정도
+            offset: Offset(0, 0), // ★ 추가: 4면 동일하게 동동 뜬 느낌
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,9 +153,8 @@ Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
             children: [
               Text(
                 recipe.title, // ★ 변경: JSON 키값 대신 모델 속성 사용
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
               ),
-
             ],
           ),
           SizedBox(height: 10),
@@ -161,8 +170,8 @@ Widget _buildRecipeCard(BuildContext context, RecipeModel recipe) {
               // 첫 번째 재료 이름 표시
               _buildIngredientTag(
                   recipe.ingredients.isNotEmpty
-                  ? recipe.ingredients[0]["이름"]!
-                  : "재료"
+                      ? recipe.ingredients[0]["이름"]!
+                      : "재료"
               ),
               const SizedBox(width: 12),
 
@@ -188,12 +197,16 @@ Widget _buildIngredientTag(String text) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: AppColors.secondaryColor, // ★ 추가: 재료 부분 secondaryColor 적용
       borderRadius: BorderRadius.circular(20),
     ),
     child: Text(
       text,
-      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: Colors.white, // ★ 추가: 글자 색상을 흰색으로 변경
+      ),
     ),
   );
 }
