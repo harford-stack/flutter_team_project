@@ -4,6 +4,7 @@ import '../../common/app_colors.dart';
 class IngredientGrid extends StatelessWidget {
   final List<String> ingredients;
   final Set<String> selectedIngredients;
+  // final Set<String> disabledIngredients;
   final ValueChanged<String> onIngredientTap;
 
   const IngredientGrid({
@@ -22,7 +23,7 @@ class IngredientGrid extends StatelessWidget {
         crossAxisCount: 3,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1,
+        childAspectRatio: 2,
       ),
       itemBuilder: (context, index) {
         final ingredientName = ingredients[index];
@@ -32,7 +33,14 @@ class IngredientGrid extends StatelessWidget {
           onTap: () => onIngredientTap(ingredientName),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              // color: Colors.grey.shade300,
+              color: AppColors.textWhite,
+              boxShadow: [BoxShadow(
+                color: Colors.black.withOpacity(0.1), // 그림자 색
+                blurRadius: 8,        // 퍼짐 정도
+                spreadRadius: 1,      // 그림자 크기
+                offset: Offset(0, 2), // x, y 위치 (아래쪽)
+              )],
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: AppColors.secondaryColor, width: 2)
