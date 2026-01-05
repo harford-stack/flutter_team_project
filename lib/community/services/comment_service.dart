@@ -24,8 +24,9 @@ class CommentService {
     }
   }
 
-  ///  댓글 추가 (주 댓글 또는 답글)
-  Future<bool> addComment({
+  /// ✅ 修改：댓글 추가 - 返回新评论ID
+  /// 返回值：String? (成功返回评论ID，失败返回null)
+  Future<String?> addComment({
     required String postId,
     required String userId,
     required String nickName,
@@ -44,8 +45,8 @@ class CommentService {
         'pComment': pComment, // 如果是回复，存储父评论 ID
       };
 
-      // 添加评论到 comment 子集合
-      await _firestore
+      // ✅ 修改：获取 DocumentReference
+      final docRef = await _firestore
           .collection('post')
           .doc(postId)
           .collection('comment')
@@ -56,15 +57,15 @@ class CommentService {
         'commentCount': FieldValue.increment(1),
       });
 
-      return true;
+      print('✅ 댓글 추가 성공: ${docRef.id}');
+      return docRef.id;  // ✅ 返回新评论ID
     } catch (e) {
-      print('댓글 추가 실패: $e');
-      return false;
+      print('❌ 댓글 추가 실패: $e');
+      return null;  // ✅ 失败返回null
     }
   }
 
   /// deleteComment - 댓글 삭제
-
   Future<bool> deleteComment(String postId, String commentId) async {
     try {
       // 删除评论文档
