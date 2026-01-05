@@ -8,6 +8,7 @@ import '../common/custom_footer.dart';
 import '../common/custom_drawer.dart';
 import '../ingredients/select_screen.dart';
 import '../ingredients/image_confirm.dart';
+import '../ingredients/user_refrigerator.dart';
 import '../community/screens/community_list_screen.dart';
 import 'auth_provider.dart';
 import 'home_screen.dart';
@@ -42,7 +43,29 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
       }
     }
 
-    // 홈 화면으로 이동하면서 해당 인덱스로 설정
+    // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
+    if (index == 2) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const CommunityListScreen(showAppBarAndFooter: true),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // "내 냉장고"는 독립 화면으로 이동
+    if (index == 1) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => UserRefrigerator(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // 홈 화면으로 이동
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) => HomeScreen(initialIndex: index),

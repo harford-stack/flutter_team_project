@@ -22,6 +22,7 @@ import '../ingredients/service_ingredientFirestore.dart';
 import '../ingredients/user_refrigerator.dart';
 import '../ingredients/user_ingredient_regist.dart';
 import '../providers/temp_ingre_provider.dart';
+import '../community/screens/community_list_screen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider; // AuthProvider만 숨기기
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -164,6 +165,34 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => destination),
           (route) => false,
+    // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
+    if (index == 2) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const CommunityListScreen(showAppBarAndFooter: true),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // "내 냉장고"는 독립 화면으로 이동
+    if (index == 1) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const UserRefrigerator(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // 홈 화면으로 이동
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(initialIndex: index),
+      ),
+      (route) => false,
     );
   }
 
