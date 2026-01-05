@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_team_project/recipes/ingreEdit_screen.dart';
 import 'package:flutter_team_project/recipes/shakeCheck_widget.dart';
 import 'package:flutter_team_project/recipes/ingreTextList_widget.dart';
+import 'package:flutter_team_project/recipes/shakeDialog_widget.dart';
 import 'package:provider/provider.dart';
 import '../auth/auth_provider.dart';
 import '../auth/home_screen.dart';
@@ -14,6 +15,7 @@ import '../common/custom_appbar.dart';
 import '../common/custom_drawer.dart';
 import '../common/custom_footer.dart';
 import '../providers/temp_ingre_provider.dart';
+import 'package:flutter_team_project/recipes/shakeDialog_widget.dart';
 import '../community/screens/community_list_screen.dart';
 import '../ingredients/user_refrigerator.dart';
 
@@ -233,75 +235,72 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                                             ),
                                           );
                                         } else { // 재료가 1개 이상일 시
-                                          showDialog(
+                                          // ★ 기존 ShakeCheck 대신 ShakeDialog 호출 (통합 관리자)
+                                          showFadeDialog(
                                             context: context,
-                                            barrierDismissible: false, // 바깥 터치로 닫히지 않게
-                                            builder: (_) => ShakeCheck(),
+                                            child: const ShakeDialog(),
                                           );
+
+                                          // 팝업 2개로 갈렸을 때 기존 내용 주석처리
+                                          // showDialog(
+                                          //   context: context,
+                                          //   barrierDismissible: false, // 바깥 터치로 닫히지 않게
+                                          //   builder: (_) => ShakeCheck(),
+                                          // );
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.primaryColor,
-                                        padding: const EdgeInsets.symmetric(vertical: 18),
+                                        padding: const EdgeInsets.symmetric(vertical: 20),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         elevation: 2,
                                       ),
                                       child: const Text(
-                                          "이대로\n레시피 추천받기",
-                                          textAlign: TextAlign.center,
+                                          "레시피 추천받기",
                                           style: TextStyle(
-                                              fontSize: 18,
+                                              fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: AppColors.textWhite,
+                                              color: AppColors.textWhite
                                           )
                                       )
                                   ),
                                 ),
-                                SizedBox(width: 12), // 간격 두기
-
+                                SizedBox(width: 12),
                                 Expanded(
                                   child: ElevatedButton(
-                                      onPressed: (){
+                                      onPressed: (){ // 인식결과 편집화면으로 이동
                                         Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (_) => IngreeditScreen()
-                                              // 재료 편집 화면으로 이동
-                                            )
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const IngreeditScreen()),
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.primaryColor,
-                                        padding: const EdgeInsets.symmetric(vertical: 18),
+                                        padding: const EdgeInsets.symmetric(vertical: 20),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         elevation: 2,
                                       ),
                                       child: const Text(
-                                          "재료편집 또는\n키워드 넣기",
-                                          textAlign: TextAlign.center,
+                                          "인식 결과 수정",
                                           style: TextStyle(
-                                              fontSize: 18,
+                                              fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: AppColors.textWhite,
+                                              color: AppColors.textWhite
                                           )
                                       )
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 20), // 간격 두기
-                            Text(
-                                "재료를 냉장고에 넣어두고 싶다면, 오른쪽 버튼 클릭!",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: AppColors.textDark,
-                                    fontSize: 15
-                                )
-                            )
+                            SizedBox(height: 20),
+                            Text("인식 결과가 다른가요? \n 수정 버튼을 눌러 직접 편집해 보세요!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, color: AppColors.textDark),
+                            ),
                           ],
                         ),
                       ),
@@ -311,14 +310,36 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16), // 하단 여백
-            ],
-          ),
+          ],
         ),
+      ),
       bottomNavigationBar: CustomFooter(
         currentIndex: _currentIndex,
         onTap: (index) => _onFooterTap(index, authProvider),
       ),
+    );
+  }
+
+  // ★ 빨간줄 방지를 위해 함수 직접 포함
+  Future<void> showFadeDialog({required BuildContext context, required Widget child}) {
+    return showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.4),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) => child,
+      transitionBuilder: (_, animation, __, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            ),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
