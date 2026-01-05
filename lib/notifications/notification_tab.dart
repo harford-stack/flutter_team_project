@@ -1,6 +1,6 @@
 // ============================================
-// 文件 1: lib/notifications/widgets/notification_tab.dart
-// 职责：只负责 Tab 切换
+// lib/notifications/notification_tab.dart
+// 职责：只负责 Tab 切换 + 显示未读红点
 // ============================================
 
 import 'package:flutter/material.dart';
@@ -11,7 +11,7 @@ import 'notification_service.dart';
 import '../../common/app_colors.dart';
 import 'notification_list.dart';
 
-/// 通知 Tab 组件（只负责 Tab 切换）
+/// 通知 Tab 组件（负责 Tab 切换 + 未读红点显示）
 class NotificationTab extends StatefulWidget {
   const NotificationTab({Key? key}) : super(key: key);
 
@@ -115,13 +115,63 @@ class _NotificationTabState extends State<NotificationTab>
               fontWeight: FontWeight.normal,
             ),
             tabs: [
-              Tab(text: '북마크'),
-              Tab(text: '댓글'),
-              Tab(text: '대댓글'),
+              _buildTabWithBadge(userId, '북마크', NotificationType.bookmark),
+              _buildTabWithBadge(userId, '댓글', NotificationType.comment),
+              _buildTabWithBadge(userId, '대댓글', NotificationType.reply),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTabWithBadge(String userId, String label, NotificationType type) {
+    return StreamBuilder<int>(
+      stream: _notificationService.getUnreadCountByType(userId, type),
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.data ?? 0;
+
+        return Tab(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Tab 文字
+              Align(
+                alignment: Alignment.center,
+                child: Text(label),
+              ),
+              // 未读红点
+              if (unreadCount > 0)
+                Positioned(
+                  right: -12,
+                  top: 0,
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 8,
+                      minHeight: 8,
+                    ),
+                    child: unreadCount > 9
+                        ? Text(
+                      '9+',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                        : null,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

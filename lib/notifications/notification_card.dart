@@ -1,12 +1,12 @@
 // ============================================
-// 文件 3: lib/notifications/widgets/notification_card.dart
+// lib/notifications/notification_card.dart
 // 职责：负责单个通知卡片的样式和内容展示
 // ============================================
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_model.dart';
-import '../../common/app_colors.dart';
+import '../common/app_colors.dart';
 
 /// 单个通知卡片组件（负责样式和内容展示）
 class NotificationCard extends StatelessWidget {
@@ -292,6 +292,11 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
+  // ============================================
+  // 辅助方法
+  // ============================================
+
+  /// 获取帖子信息
   Future<Map<String, dynamic>?> _getPostInfo(String postId) async {
     try {
       final doc = await FirebaseFirestore.instance
@@ -309,31 +314,60 @@ class NotificationCard extends StatelessWidget {
     }
   }
 
+  /// ✅ 修改：获取被回复的原始评论内容
+  /// 通过新回复的ID -> 找到它的pComment -> 获取原始评论内容
   Future<String?> _getOriginalComment(
       String postId,
-      String? commentId,
+      String? replyCommentId,
       ) async {
-    if (commentId == null) return null;
+    if (replyCommentId == null) return null;
 
     try {
-      final snapshot = await FirebaseFirestore.instance
+      // 第1步：获取新回复评论的数据
+      final replyDoc = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
           .collection('comment')
+          .doc(replyCommentId)
           .get();
 
-      for (var doc in snapshot.docs) {
-        if (doc.id == commentId) {
-          return doc.data()['content'] as String?;
-        }
+      if (!replyDoc.exists) {
+        print('❌ 回复评论不存在: $replyCommentId');
+        return null;
       }
+
+      // 第2步：从回复评论中获取 pComment（被回复的评论ID）
+      final pCommentId = replyDoc.data()?['pComment'] as String?;
+
+      if (pCommentId == null) {
+        print('❌ 没有找到父评论ID');
+        return null;
+      }
+
+      print('✅ 找到父评论ID: $pCommentId');
+
+      // 第3步：获取被回复的原始评论内容
+      final originalDoc = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(postId)
+          .collection('comment')
+          .doc(pCommentId)
+          .get();
+
+      if (originalDoc.exists) {
+        final content = originalDoc.data()?['content'] as String?;
+        print('✅ 找到原始评论内容: $content');
+        return content;
+      }
+
       return null;
     } catch (e) {
-      print('원본 댓글 가져오기 실패: $e');
+      print('❌ 원본 댓글 가져오기 실패: $e');
       return null;
     }
   }
 
+  /// ✅ 添加：格式化日期显示
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
