@@ -11,7 +11,7 @@ class PostService {
   /// ========== 查询功能（保留原有代码）==========
   Future<List<Post>> getPosts({
     String? searchQuery,
-    String sortOrder = '시간순',
+    String sortOrder = '최신순',
     List<String>? categories,
   }) async {
     Query query = _firestore.collection('post');
@@ -21,7 +21,7 @@ class PostService {
     }
 
     switch (sortOrder) {
-      case '시간순':
+      case '최신순':
         query = query.orderBy('cdate', descending: true);
         break;
       case '인기순':
