@@ -3,6 +3,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_team_project/common/app_colors.dart';
 import 'package:flutter_team_project/recipes/recipe_model.dart';
 import 'package:flutter_team_project/recipes/recipesList_screen.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -35,18 +36,21 @@ class _ShakingWidgetState extends State<ShakingWidget> {
       Navigator.pop(context); //  닫기
     });
 
+    // 흔들림 감지 시작
     detector = ShakeDetector.autoStart(
       shakeThresholdGravity: 1.5, // 민감도를 높임 (shake 패키지의 기본 민감도(shakeThresholdGravity = 2.7))
-      onPhoneShake: (event) {
+      onPhoneShake: (event) { // ★ 빨간 줄 해결: 매개변수 event 추가
 
         // 흔들림 감지 시 로딩바 증가
-        setState(() {
-          _percent += 0.2; // 흔들기마다 20%씩 증가
-          if (_percent > 1.0) {
-            _percent = 1.0;
-            _navigateToRecipes(); // 100% 도달 시 이동
-          }
-        });
+        if (mounted) {
+          setState(() {
+            _percent += 0.2; // 흔들기마다 20%씩 증가
+            if (_percent > 1.0) {
+              _percent = 1.0;
+              _navigateToRecipes(); // 100% 도달 시 이동
+            }
+          });
+        }
       },
     );
   }
@@ -89,118 +93,112 @@ class _ShakingWidgetState extends State<ShakingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Material(
-        color: Colors.transparent, // 다이얼로그 배경 투명
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.8,
-          height: MediaQuery.of(context).size.height * 0.65,
-          padding: const EdgeInsets.all(30),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Stack(
+    // 부모(ShakeDialog)의 Container 내부에서 보여질 핵심 UI만 반환합니다.
+    return Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
 
-                      // 이미지 영역
-                      SizedBox(
-                        width: 170,
-                        height: 170,
-                        child: Image.asset(
-                          'assets/shaking.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-
-                      SizedBox(height: 15),
-
-                      // 텍스트 영역
-                      Text(
-                        "마구 흔들어 보세요!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-
-                      SizedBox(height: 10),
-
-                      Text(
-                        "오늘의 레시피가\n만들어지는 중이에요",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-
-                      SizedBox(height: 25),
-
-                      // 로딩바(percent_indicator) 위젯 가져오기
-                      LinearPercentIndicator(
-                        width: MediaQuery.of(context).size.width * 0.65,
-                        animation: false, // true로 하면 로딩바가 0부터 계속 초기화
-                        lineHeight: 28.0,
-                        animationDuration: 300,
-                        percent: _percent,
-                        center: Text("${(_percent * 100).toStringAsFixed(0)}%"),
-                        linearStrokeCap: LinearStrokeCap.roundAll,
-                        progressColor: Colors.blue[100], // 공통컬러 넣을 예정
-                        barRadius: Radius.circular(10.0),
-                      ),
-
-                      // 로딩바와 바닥 사이 정중앙에 배치될 버튼
-                      // 아래 SizedBox의 높이를 조절하여 "중간 지점"을 맞춥니다.
-                      const SizedBox(height: 35),
-
-                      ElevatedButton(
-                        onPressed: () => _navigateToRecipes(force: true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[50],
-                          foregroundColor: Colors.blue[700],
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12), // 약간 각진 둥근 형태
-                          ),
-                        ),
-                        child: const Text(
-                          "바로 결과보기",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-
-                    ],
+                // 이미지 영역 (1번 위젯과 크기 및 위치 동일하게 설정)
+                SizedBox(
+                  width: 170,
+                  height: 170,
+                  child: Image.asset(
+                    "assets/shaking_move.gif",
+                    // 'assets/shaking.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
 
-                // 오른쪽 상단 X 버튼 (팝업 닫기)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'X',
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      ),
+                SizedBox(height: 15),
+
+                // 텍스트 영역
+                Text(
+                  "마구 흔들어 보세요!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                SizedBox(height: 10),
+
+                Text(
+                  "오늘의 레시피가\n만들어지는 중이에요",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                SizedBox(height: 25),
+
+                // 로딩바(percent_indicator) 위젯 가져오기
+                LinearPercentIndicator(
+                  width: MediaQuery.of(context).size.width * 0.65,
+                  animation: false, // true로 하면 로딩바가 0부터 계속 초기화
+                  lineHeight: 28.0,
+                  animationDuration: 300,
+                  percent: _percent,
+                  center: Text("${(_percent * 100).toStringAsFixed(0)}%"),
+                  linearStrokeCap: LinearStrokeCap.roundAll,
+                  progressColor: Colors.blue[100], // 공통컬러 넣을 예정
+                  barRadius: Radius.circular(10.0),
+                  alignment: MainAxisAlignment.center, // 중앙 정렬 추가
+                ),
+
+                // 로딩바와 바닥 사이 정중앙에 배치될 버튼
+                // 아래 SizedBox의 높이를 조절하여 "중간 지점"을 맞춥니다.
+                const SizedBox(height: 35),
+
+                ElevatedButton(
+                  onPressed: () => _navigateToRecipes(force: true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[50],
+                    foregroundColor: Colors.blue[700],
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // 약간 각진 둥근 형태
                     ),
                   ),
+                  child: const Text(
+                    "흔들지 않고 결과보기",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ]
+                SizedBox(height: 10,),
+                Text(
+                  "레시피 생성 중으로 몇 초 소요될 수 있습니다.",
+                  style: TextStyle(color: AppColors.textDark),
+                )
+              ],
+            ),
           ),
-        ),
-      ),
+
+          // 오른쪽 상단 X 버튼 (팝업 닫기)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'X',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // 색상 일치
+                ),
+              ),
+            ),
+          ),
+        ]
     );
   }
 }

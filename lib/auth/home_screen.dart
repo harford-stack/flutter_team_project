@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = 0; // 홈화면에서는 푸터 첫번째 메뉴(레시피&) 활성화
+    _currentIndex = widget.initialIndex; // initialIndex로 초기화
   }
 
   String _getAppbarTitle(int index){

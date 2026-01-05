@@ -30,7 +30,6 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
   @override
   void initState() {
     super.initState();
-    // 화면 초기화 시 DB에서 데이터 호출
     _savedRecipes = RecipeService().getSavedRecipes();
   }
 
@@ -41,7 +40,8 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
         appName: '나의 레시피',
       ),
       drawer: const CustomDrawer(),
-      backgroundColor: AppColors.backgroundColor,
+      //backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Colors.white,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildBody(),
@@ -52,13 +52,10 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
   Widget _buildBody() {
     return Column(
       children: [
-        // 상단 안내 영역 (선택사항)
         _buildHeader(),
-        // 리스트 영역 (다른 팀원이 구현할 부분)
         Expanded(
           child: _buildRecipeList(),
         ),
-        // [수정된 위젯] 하단 고정 조작 영역 (삭제하기 & 돌아가기)
         _buildBottomActions(),
       ],
     );
@@ -68,7 +65,6 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16.0),
-
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -80,25 +76,18 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
               color: AppColors.textDark,
             ),
           ),
-          // 정렬/필터 버튼 영역 (필요시 추가)
-          // IconButton(
-          //   icon: const Icon(Icons.sort),
-          //   onPressed: () {
-          //     // 정렬 옵션 표시
-          //   },
-          // ),
         ],
       ),
     );
   }
 
-  /// [수정된 메서드] 하단 고정 버튼 영역 (삭제하기와 돌아가기 나란히 배치)
+  /// 하단 고정 버튼 영역
   Widget _buildBottomActions() {
     bool hasSelection = _selectedRecipeTitles.isNotEmpty;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 60), // 마지막 숫자가 바닥 여백
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -111,20 +100,14 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
       ),
       child: Row(
         children: [
-          // ===== 왼쪽 버튼: 삭제하기 (참고 코드의 ElevatedButton 스타일) =====
           Expanded(
             child: ElevatedButton(
               onPressed: hasSelection ? () async {
-                // [추가된 로직] DB 삭제 시작
-                setState(() => _isLoading = true); // 로딩 시작
-
+                setState(() => _isLoading = true);
                 try {
-                  // 선택된 모든 제목에 대해 삭제 메서드 반복 호출
                   for (String title in _selectedRecipeTitles) {
                     await RecipeService().deleteRecipeFromHistory(title);
                   }
-                  print("선택한 레시피들 DB 삭제 성공");
-                  // 삭제 성공 시 스낵바 표시
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -137,16 +120,14 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                 } catch (e) {
                   print("선택 삭제 실패: $e");
                 } finally {
-                  // 삭제 완료 후 데이터 새로고침 및 상태 초기화
                   setState(() {
                     _savedRecipes = RecipeService().getSavedRecipes();
                     _selectedRecipeTitles.clear();
-                    _isLoading = false; // 로딩 종료
+                    _isLoading = false;
                   });
                 }
               } : null,
               style: ElevatedButton.styleFrom(
-                // 선택 시 빨간색 또는 기본색 적용
                 backgroundColor: hasSelection ? Colors.red : AppColors.primaryColor,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.grey[300],
@@ -161,7 +142,6 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          // ===== 오른쪽 버튼: 돌아가기 (참고 코드의 OutlinedButton 스타일) =====
           Expanded(
             child: OutlinedButton(
               onPressed: () {
@@ -191,76 +171,50 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
   }
 
   /// 레시피 리스트 영역
-  /// 다른 팀원이 이 부분에 리스트 구현
   Widget _buildRecipeList() {
-    // TODO: 다른 팀원이 리스트 구현 예정
-    // 현재는 빈 화면 또는 플레이스홀더 표시
-
-    // FutureBuilder를 사용하여 실시간으로 DB 데이터를 기다림
     return FutureBuilder<List<RecipeModel>>(
       future: _savedRecipes,
       builder: (context, snapshot) {
-        // 로딩 중 표시
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // 데이터가 없거나 비어있는 경우 기존 UI 반환
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.restaurant_menu,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
-                Text(
-                  '저장한 레시피가 없습니다',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '레시피를 저장하면 여기에 표시됩니다',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[400],
-                  ),
-                ),
+                Text('저장한 레시피가 없습니다', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
               ],
             ),
           );
         }
 
-        // 데이터가 있는 경우 리스트 뷰 반환
         final recipes = snapshot.data!;
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           itemCount: recipes.length,
           itemBuilder: (context, index) {
             final recipe = recipes[index];
-            // [추가] 현재 카드의 선택 여부 확인
             final bool isSelected = _selectedRecipeTitles.contains(recipe.title);
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              // [수정] 선택 시 테두리 색상 강조 추가
+              color: Colors.white,
+              // [수정] 기본 상태에서 그림자 살짝 부여
+              elevation: isSelected ? 0 : 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
+                  // [수정] 기본 상태일 때는 투명하게(테두리 없음), 선택 시만 강조
                   color: isSelected ? AppColors.primaryColor : Colors.transparent,
                   width: 2,
                 ),
               ),
               child: ListTile(
-                // [수정] 체크박스 공간 확보를 위해 패딩 소폭 조정
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                // [수정] 기존 CircleAvatar 대신 체크박스를 leading으로 배치
                 leading: Checkbox(
                   activeColor: AppColors.primaryColor,
                   value: isSelected,
@@ -274,31 +228,16 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                     });
                   },
                 ),
-                title: Text(
-                  recipe.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  recipe.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                title: Text(recipe.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(recipe.description, maxLines: 1, overflow: TextOverflow.ellipsis),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () async {
-                  // 레시피 상세 화면으로 이동하고, 그 화면이 닫힐 때까지 기다림
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      // ★ 추가) isFromSaved 인자를 true로 전달
-                      // 즉 나의 레시피 화면에선 '홈으로' 버튼 사라지게 함
-                      builder: (context) => RecipedetailScreen(recipe: recipe, isFromSaved: true),
-                    ),
+                    MaterialPageRoute(builder: (context) => RecipedetailScreen(recipe: recipe, isFromSaved: true)),
                   );
-
-                  // 상세 화면에서 돌아오면(back키 포함) DB 데이터를 다시 읽어와서 화면을 갱신
                   setState(() {
                     _savedRecipes = RecipeService().getSavedRecipes();
-                    // [추가] 상세 페이지 다녀온 후 선택 상태 초기화 (필요 시 유지 가능)
                     _selectedRecipeTitles.clear();
                   });
                 },
@@ -309,20 +248,4 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
       },
     );
   }
-
-/// 레시피 카드 위젯 (예시, 다른 팀원이 구현)
-/// 다른 팀원이 이 메서드를 구현하거나 수정할 예정
-// Widget _buildRecipeCard(Recipe recipe) {
-//   return Card(
-//     margin: const EdgeInsets.only(bottom: 12),
-//     child: ListTile(
-//       leading: Image.network(recipe.thumbnailUrl),
-//       title: Text(recipe.title),
-//       subtitle: Text(recipe.description),
-//       onTap: () {
-//         // 레시피 상세 화면으로 이동
-//       },
-//     ),
-//   );
-// }
 }
