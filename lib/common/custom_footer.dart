@@ -134,7 +134,7 @@ class CustomFooter extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -155,23 +155,27 @@ class CustomFooter extends StatelessWidget {
                       ]),
                 child: Image.asset(
                   iconAsset,
-                  width: 28,
-                  height: 28,
+                  width: 24,
+                  height: 24,
                 ),
               )
             else if (icon != null)
               Icon(
                 icon,
                 color: isSelected ? AppColors.primaryColor : Colors.grey[600],
-                size: 28,
+                size: 24,
               ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                color: isSelected ? AppColors.primaryColor : Colors.grey[600],
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? AppColors.primaryColor : Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
