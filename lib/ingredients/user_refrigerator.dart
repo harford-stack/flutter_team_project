@@ -18,6 +18,7 @@
   import '../auth/auth_provider.dart' as app_auth;
   import '../recipes/ingreCheck_screen.dart';
   import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+  import '../community/screens/community_list_screen.dart';
 
 
   class UserRefrigerator extends StatefulWidget {
@@ -103,9 +104,17 @@
           );
           return;
         }
+        // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const CommunityListScreen(showAppBarAndFooter: true),
+          ),
+          (route) => false,
+        );
+        return;
       }
 
-      // 홈 또는 커뮤니티로 이동
+      // 홈으로 이동
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => HomeScreen(initialIndex: index),
