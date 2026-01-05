@@ -86,6 +86,14 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
       }
     }
 
+    sortedIngredients.sort((a, b) {
+      return a['name']!.compareTo(b['name']!);
+    });
+
+    otherIngredients.sort((a, b) {
+      return a['name']!.compareTo(b['name']!);
+    });
+
     // 이미 저장된 재료들 + 나머지 재료들 순서로 합치기
     final finalIngredients = [...sortedIngredients, ...otherIngredients];
 
@@ -241,7 +249,7 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
                 scrollController: _scrollController,
                 onIngredientTap: (name) {
                   // 이미 선택된 재료는 클릭할 수 없도록 처리
-                  if (selectedIngredients.containsKey(name)) return;
+                  // if (selectedIngredients.containsKey(name)) return;
 
                   final item = filteredIngredients.firstWhere((item) => item['name'] == name);
                   _onIngredientTap(item);

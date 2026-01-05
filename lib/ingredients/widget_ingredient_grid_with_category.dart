@@ -38,11 +38,19 @@ class IngredientGridWithCategory extends StatelessWidget {
           onTap: isDisabled ? null : () => onIngredientTap(ingredient),
           child: Container(
             decoration: BoxDecoration(
+              boxShadow: isDisabled
+                ? null
+                : [BoxShadow(
+                color: Colors.black.withOpacity(0.1), // 그림자 색
+                  blurRadius: 8,        // 퍼짐 정도
+                  spreadRadius: 1,      // 그림자 크기
+                  offset: Offset(0, 2), // x, y 위치 (아래쪽)
+                )],
               color: isDisabled
                   ? Colors.grey.shade200
                   : isSelected
-                  ? AppColors.secondaryColor.withOpacity(0.15)
-                  : Colors.grey.shade300,
+                    ? AppColors.secondaryColor.withOpacity(0.15)
+                    : AppColors.textWhite,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: AppColors.secondaryColor, width: 2)

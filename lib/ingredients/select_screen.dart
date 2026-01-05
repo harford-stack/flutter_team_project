@@ -12,6 +12,7 @@ import 'widget_category_bar.dart';
 import 'widget_ingredient_grid.dart';
 import 'service_ingredientFirestore.dart';
 import '../recipes/ingreCheck_screen.dart';
+import '../providers/temp_ingre_provider.dart';
 
 class SelectScreen extends StatefulWidget {
   // ★ 최초 진입 여부 플래그 추가 (기본값 true)
@@ -44,6 +45,9 @@ class _SelectScreenState extends State<SelectScreen> {
     selectedIngredients.clear();
     _loadData();
     _checkLoginStatus();
+    if(!widget.isInitialFlow){
+      _syncWithProvider();
+    }
   }
 
   Future<void> _loadData() async {
@@ -65,7 +69,7 @@ class _SelectScreenState extends State<SelectScreen> {
   void _checkLoginStatus() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      print("로그인 상태: ${user.displayName}");
+      print("로그인 상태");
     } else {
       print("로그아웃 상태");
     }
@@ -96,6 +100,19 @@ class _SelectScreenState extends State<SelectScreen> {
         selectedIngredients.add(name);
       }
     });
+  }
+
+  void _syncWithProvider() {
+    final provider =
+    Provider.of<TempIngredientProvider>(context, listen: false);
+
+    print(provider.ingredients);
+    // provider에 이미 담긴 재료를 선택 상태로 반영
+    selectedIngredients
+      ..clear()
+      ..addAll(provider.ingredients);
+
+
   }
 
   @override
@@ -147,7 +164,9 @@ class _SelectScreenState extends State<SelectScreen> {
             provider.addAll(selectedList);
           } else {
             // 재료 편집 화면에서 진입한 경우: 기존 재료 유지하고 새로 선택한 재료 추가
+            provider.clearAll();
             provider.addAll(selectedList);
+            // provider.addAll(selectedList);
           }
 
           // ★ SelectScreen은 이동 책임을 버리고 pop만 수행

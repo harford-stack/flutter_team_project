@@ -17,6 +17,7 @@
   import '../providers/temp_ingre_provider.dart';
   import '../auth/auth_provider.dart' as app_auth;
   import '../recipes/ingreCheck_screen.dart';
+  import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
   import '../community/screens/community_list_screen.dart';
 
 
@@ -46,6 +47,42 @@
     List<Map<String, String>> selectedIngredients = [];
     bool providerFlg = false;
     int _currentIndex = 1; // 내 냉장고 인덱스
+
+    final GlobalKey tutorialKey = GlobalKey();
+    late List<TargetFocus> targets;
+    void initTargets() {
+      targets = [
+        TargetFocus(
+          identify: "fab",
+          keyTarget: tutorialKey,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.left,
+              child: Builder(
+                  builder: (context) {
+                    final size = MediaQuery.of(context).size;
+
+                    return Padding(
+                      padding: EdgeInsetsGeometry.only(
+                        right: size.width * 0.33
+                      ),
+                      child: Text(
+                        "여기서 재료를 추가하거나 삭제할 수 있어요",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    );
+                  }
+              )
+            ),
+          ],
+        ),
+      ];
+    }
 
     void _onFooterTap(int index, app_auth.AuthProvider authProvider, BuildContext context) {
       // 현재 화면이 "내 냉장고"이므로, "내 냉장고" 클릭 시 아무 동작도 하지 않음
@@ -266,6 +303,10 @@
       }
     }
 
+    void tutorial() {
+      print("왁!");
+    }
+
     @override
     void initState() {
       // TODO: implement initState
@@ -288,6 +329,19 @@
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkProvider();
+      });
+
+      initTargets();
+
+      tutorial();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!widget.isForRecommendation && tutorialKey.currentContext != null) {
+          TutorialCoachMark(
+            targets: targets,
+            colorShadow: Colors.black.withOpacity(0.8),
+            textSkip: "건너뛰기",
+          ).show(context: context);
+        }
       });
     }
 
@@ -391,60 +445,61 @@
         child: Scaffold(
           backgroundColor: AppColors.backgroundColor,
           floatingActionButton: widget.isForRecommendation
-              ? null // 레시피 추천용 모드에서는 SpeedDial 숨김
-              : SpeedDial(
-            spaceBetweenChildren: 14,
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            activeChild: const Icon(Icons.close, color: Colors.white),
-            children: [
-              SpeedDialChild(
-                child: const Icon(Icons.remove, color: Colors.white),
-                label: '재료 삭제하기',
-                backgroundColor: AppColors.secondaryColor,
-                onTap: () async {
-                  final removedNames = await Navigator.push<List<String>>(
-                    context,
-                    MaterialPageRoute(builder: (_) => UserIngredientRemove()),
-                  );
-        
-                  await _getUserIngredients();
-        
-                  // 삭제된 재료를 Provider에서도 제거
-                  if (removedNames != null && removedNames.isNotEmpty) {
-                    final provider = context.read<TempIngredientProvider>();
-                    for (final name in removedNames) {
-                      provider.removeIngredient(name);
+            ? null // 레시피 추천용 모드에서는 SpeedDial 숨김
+            : SpeedDial(
+              key: tutorialKey,
+              spaceBetweenChildren: 14,
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              activeChild: const Icon(Icons.close, color: Colors.white),
+              children: [
+                SpeedDialChild(
+                  child: const Icon(Icons.remove, color: Colors.white),
+                  label: '재료 삭제하기',
+                  backgroundColor: AppColors.secondaryColor,
+                  onTap: () async {
+                    final removedNames = await Navigator.push<List<String>>(
+                      context,
+                      MaterialPageRoute(builder: (_) => UserIngredientRemove()),
+                    );
+
+                    await _getUserIngredients();
+
+                    // 삭제된 재료를 Provider에서도 제거
+                    if (removedNames != null && removedNames.isNotEmpty) {
+                      final provider = context.read<TempIngredientProvider>();
+                      for (final name in removedNames) {
+                        provider.removeIngredient(name);
+                      }
+                      print('Provider에서 제거된 재료: $removedNames');
                     }
-                    print('Provider에서 제거된 재료: $removedNames');
-                  }
-                },
-              ),
-              SpeedDialChild(
-                child: const Icon(Icons.add, color: Colors.white),
-                label: '재료 추가하기',
-                backgroundColor: AppColors.secondaryColor,
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => UserIngredientAdd()),
-                  );
-                  _getUserIngredients();
-                },
-              ),
-            ],
-            child: ColorFiltered(
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
-              ),
-              child: Image.asset(
-                'assets/icon/icon_burgerMenu.png',
-                width: 24,
-                height: 24,
+                  },
+                ),
+                SpeedDialChild(
+                  child: const Icon(Icons.add, color: Colors.white),
+                  label: '재료 추가하기',
+                  backgroundColor: AppColors.secondaryColor,
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => UserIngredientAdd()),
+                    );
+                    _getUserIngredients();
+                  },
+                ),
+              ],
+              child: ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+                child: Image.asset(
+                  'assets/icon/icon_burgerMenu.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
             ),
-          ),
           appBar: const CustomAppBar(
             appName: '내 냉장고',
           ),
