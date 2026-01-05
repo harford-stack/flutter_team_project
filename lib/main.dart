@@ -8,6 +8,7 @@ import 'auth/splash_screen.dart';
 import 'auth/auth_provider.dart';
 import 'providers/temp_ingre_provider.dart'; // 추가 (현지)
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'ingredients/add_ingredients_script.dart'; // 재료 추가 스크립트
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,18 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // ============================================
+  // 재료 추가 스크립트 실행 (일회성)
+  // ============================================
+  // try {
+  //   final script = AddIngredientsScript();
+  //   await script.addIngredients();
+  //   print('✅ 재료 추가 완료!');
+  // } catch (e) {
+  //   print('❌ 재료 추가 중 에러 발생: $e');
+  // }
+  // ============================================
 
   runApp(const MyApp());
 }

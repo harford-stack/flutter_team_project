@@ -113,9 +113,11 @@ class AuthService {
       return userCredential;
     } on FirebaseAuthException catch (e) {
       // 에러 메시지 한글화
-      if (e.code == 'user-not-found') {
-        throw Exception('등록되지 않은 이메일입니다. 회원가입을 먼저 진행해주세요.');
-      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        // invalid-credential은 신규 사용자 또는 잘못된 비밀번호 모두에서 발생할 수 있음
+        // 보안상 이메일 존재 여부를 확인할 수 없으므로, 회원가입을 유도하는 메시지 표시
+        throw Exception('등록되지 않은 이메일이거나 비밀번호가 올바르지 않습니다.\n계정이 없으시다면 회원가입을 진행해주세요.');
+      } else if (e.code == 'wrong-password') {
         throw Exception('비밀번호가 올바르지 않습니다. 다시 확인해주세요.');
       } else if (e.code == 'invalid-email') {
         throw Exception('올바른 이메일 형식이 아닙니다.');

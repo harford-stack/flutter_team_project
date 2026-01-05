@@ -40,34 +40,10 @@ class _SelectScreenState extends State<SelectScreen> {
   @override
   void initState() {
     super.initState();
+    // 화면에 처음 들어올 때 선택된 재료 초기화
+    selectedIngredients.clear();
     _loadData();
     _checkLoginStatus();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final existingIngredients =
-          context.read<TempIngredientProvider>().ingredients;
-
-      setState(() {
-        selectedIngredients
-          ..clear() // ★ 기존 값 제거
-          ..addAll(existingIngredients); // ★ Provider 기준 동기화
-      });
-    });
-  }
-
-  // ★ 뒤로가기(back) 등으로 다시 돌아왔을 때 Provider 기준 재동기화
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final providerIngredients =
-        context.read<TempIngredientProvider>().ingredients;
-
-    setState(() {
-      selectedIngredients
-        ..clear()
-        ..addAll(providerIngredients);
-    });
   }
 
   Future<void> _loadData() async {
@@ -164,8 +140,15 @@ class _SelectScreenState extends State<SelectScreen> {
 
           // Provider에 임시 저장
           final provider = context.read<TempIngredientProvider>();
-          provider.clearAll();              // ★ 기존 재료 완전 제거
-          provider.addAll(selectedList);    // ★ 현재 선택 상태로 덮어쓰기
+          
+          if (widget.isInitialFlow) {
+            // 최초 진입인 경우: 기존 재료 제거하고 새로 선택한 재료만 추가
+            provider.clearAll();
+            provider.addAll(selectedList);
+          } else {
+            // 재료 편집 화면에서 진입한 경우: 기존 재료 유지하고 새로 선택한 재료 추가
+            provider.addAll(selectedList);
+          }
 
           // ★ SelectScreen은 이동 책임을 버리고 pop만 수행
           Navigator.pop(context);

@@ -12,6 +12,7 @@ import '../auth/profile_edit_screen.dart';
 import '../recipes/my_recipes_screen.dart';
 import 'package:flutter_team_project/community/screens/my_post_list_screen.dart';
 import '../ingredients/user_ingredient_regist.dart';
+import '../ingredients/user_refrigerator.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -21,15 +22,29 @@ class CustomDrawer extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Drawer(
+      width: 260,
       backgroundColor: Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
-            child: authProvider.isAuthenticated && authProvider.user != null
+      child: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.secondaryColor,
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: authProvider.isAuthenticated && authProvider.user != null
                 ? FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance
                         .collection('users')
@@ -53,7 +68,7 @@ class CustomDrawer extends StatelessWidget {
                           Text(
                             nickname,
                             style: const TextStyle(
-                              color: AppColors.textDark,
+                              color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -64,7 +79,7 @@ class CustomDrawer extends StatelessWidget {
                               child: Text(
                                 authProvider.user!.email!,
                                 style: const TextStyle(
-                                  color: AppColors.textDark,
+                                  color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
@@ -80,21 +95,27 @@ class CustomDrawer extends StatelessWidget {
                       Text(
                         '로그인 후 이용하세요',
                         style: TextStyle(
-                          color: AppColors.textDark,
+                          color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-          ),
-          ListTile(
-            leading: Image.asset(
-              'assets/icon_home.png',
-              width: 24,
-              height: 24,
-            ),
-            title: const Text('홈'),
+                ),
+                ListTile(
+                  leading: ColorFiltered(
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.primaryColor,
+                      BlendMode.srcIn,
+                    ),
+                    child: Image.asset(
+                      'assets/icon/icon_home.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                  ),
+                  title: const Text('홈'),
             onTap: () {
               // ★ 홈으로 가기 전에 provider의 임시 재료 데이터 삭제
               context.read<TempIngredientProvider>().clearAll();
@@ -106,35 +127,46 @@ class CustomDrawer extends StatelessWidget {
                 ),
                 (route) => false,
               );
-            },
-          ),
-          if (authProvider.isAuthenticated)
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_fridge.png',
-                width: 24,
-                height: 24,
+              },
+            ),
+                if (authProvider.isAuthenticated)
+                  ListTile(
+              leading: ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  AppColors.primaryColor,
+                  BlendMode.srcIn,
+                ),
+                child: Image.asset(
+                  'assets/icon/icon_refrigerator.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
-              title: const Text('내 냉장고 재료'),
+              title: const Text('내 냉장고'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.of(context).pushAndRemoveUntil(
+                Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const HomeScreen(initialIndex: 1),
+                    builder: (context) => const UserRefrigerator(),
                   ),
-                  (route) => false,
                 );
               },
             ),
-          if (authProvider.isAuthenticated) ...[
-            const Divider(),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_myrecipe.png',
-                width: 24,
-                height: 24,
+                if (authProvider.isAuthenticated) ...[
+                  const Divider(),
+                  ListTile(
+              leading: ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  AppColors.primaryColor,
+                  BlendMode.srcIn,
+                ),
+                child: Image.asset(
+                  'assets/icon/icon_myRecipe.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
-              title: const Text('나의 레시피'),
+              title: const Text('저장한 레시피'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.of(context).push(
@@ -144,11 +176,17 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_bookmarklist.png',
-                width: 24,
-                height: 24,
+                  ListTile(
+                    leading: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        'assets/icon/icon_bookmark.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               title: const Text('북마크 목록'),
               onTap: () {
@@ -160,11 +198,17 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_myposts.png',
-                width: 24,
-                height: 24,
+                  ListTile(
+                    leading: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        'assets/icon/icon_myPosts.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               title: const Text('내가 쓴 게시글'),
               onTap: () {
@@ -176,12 +220,18 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            const Divider(),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_profile.png',
-                width: 24,
-                height: 24,
+                  const Divider(),
+                  ListTile(
+                    leading: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        'assets/icon/icon_profile.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               title: const Text('프로필 수정'),
               onTap: () {
@@ -193,11 +243,17 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_logout.png',
-                width: 24,
-                height: 24,
+                  ListTile(
+                    leading: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        'assets/icon/icon_logout.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               title: const Text('로그아웃'),
               onTap: () async {
@@ -216,11 +272,12 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_delete.png',
+                  ListTile(
+                    leading: Image.asset(
+                      'assets/icon/icon_xmark.png',
                 width: 24,
                 height: 24,
+                color: Colors.red,
               ),
               title: const Text('계정정보 삭제', style: TextStyle(color: Colors.red)),
               onTap: () {
@@ -232,12 +289,18 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-          ] else ...[
-            ListTile(
-              leading: Image.asset(
-                'assets/icon_login.png',
-                width: 24,
-                height: 24,
+                ] else ...[
+                  ListTile(
+                    leading: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        'assets/icon/icon_login.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               title: const Text('로그인'),
               onTap: () {
@@ -247,8 +310,21 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
+                ],
+              ],
+            ),
+          ),
+            // 하단 로고 이미지
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Image.asset(
+                'assets/image_appLogo4.png',
+                height: 190,
+                fit: BoxFit.contain,
+              ),
+            ),
           ],
-        ],
+        ),
       ),
     );
   }

@@ -171,9 +171,12 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
           ),
           Expanded(
             child: GridView.builder(
+                padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 3/2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    mainAxisExtent: 60, // 내 냉장고와 동일한 높이
                 ),
                 itemCount: displayedIngredients.length,
                 itemBuilder: (context, index) {

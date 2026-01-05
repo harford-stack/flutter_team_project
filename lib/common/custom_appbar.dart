@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app_colors.dart';
 import '../auth/auth_provider.dart';
+import '../auth/home_screen.dart';
 import '../notifications/notification_service.dart';
 import '../notifications/notification_screen.dart';
 
@@ -25,7 +26,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: Builder(
         builder: (context) => IconButton(
           icon: Image.asset(
-            'assets/icon_menu.png',
+            'assets/icon/icon_burgerMenu.png',
             width: 24,
             height: 24,
           ),
@@ -44,6 +45,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        // 홈 아이콘
+        IconButton(
+          icon: Image.asset(
+            'assets/icon/icon_home.png',
+            width: 24,
+            height: 24,
+          ),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+              (route) => false,
+            );
+          },
+        ),
         // ✅ 修改通知图标部分,添加红点
         _buildNotificationButton(context),
       ],
@@ -58,7 +75,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (currentUser == null) {
       return IconButton(
-        icon: Image.asset('assets/icon_notification.png', width: 24, height: 24),
+        icon: Image.asset('assets/icon/icon_bell.png', width: 24, height: 24),
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('로그인이 필요합니다')),
@@ -82,7 +99,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           clipBehavior: Clip.none, // 允许红点超出边界
           children: [
             IconButton(
-              icon: Image.asset('assets/icon_notification.png', width: 24, height: 24),
+              icon: Image.asset('assets/icon/icon_bell.png', width: 24, height: 24),
               onPressed: () {
                 Navigator.push(
                   context,
