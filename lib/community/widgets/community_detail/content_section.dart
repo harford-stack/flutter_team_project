@@ -27,7 +27,7 @@ class PostContentSection extends StatelessWidget {
           // 图片
           PostThumbnail(post: post),
 
-          // ✅ 新增：分类标签（在标题上方）
+          // 分类标签（在标题上方）
           PostCategoryTag(post: post),
           SizedBox(height: 8),
 
@@ -35,7 +35,7 @@ class PostContentSection extends StatelessWidget {
           PostTitle(post: post),
           SizedBox(height: 8),
 
-          // ✅ 修改：作者信息（只显示昵称，放在标题下方）
+          // 作者信息（只显示昵称，放在标题下方）
           PostAuthorInfo(post: post),
           SizedBox(height: 18),
 
@@ -61,7 +61,7 @@ class PostContentSection extends StatelessWidget {
   }
 }
 
-/// ✅ 新增：分类标签（单独放在标题上方）
+/// 分类标签（单独放在标题上方）
 class PostCategoryTag extends StatelessWidget {
   final Post post;
 
@@ -113,7 +113,7 @@ class PostTitle extends StatelessWidget {
   }
 }
 
-/// 帖子缩略图（无圆角）
+/// ✅ 帖子缩略图（限制最大高度为屏幕的2/3）
 class PostThumbnail extends StatelessWidget {
   final Post post;
 
@@ -125,26 +125,34 @@ class PostThumbnail extends StatelessWidget {
       return SizedBox.shrink();
     }
 
-    return Image.network(
-      post.thumbnailUrl,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          height: 300,
-          color: Colors.grey[200],
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return SizedBox.shrink();
-      },
+    // ✅ 获取屏幕高度的 2/3
+    final maxHeight = MediaQuery.of(context).size.height * 0.67;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,  // ✅ 限制最大高度
+      ),
+      child: Image.network(
+        post.thumbnailUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,  // ✅ 填满宽度，超出部分裁剪
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 300,
+            color: Colors.grey[200],
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return SizedBox.shrink();
+        },
+      ),
     );
   }
 }
 
-/// ✅ 修改：作者信息（只显示昵称，放在标题下方）
+/// 作者信息（只显示昵称，放在标题下方）
 class PostAuthorInfo extends StatelessWidget {
   final Post post;
 

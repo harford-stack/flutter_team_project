@@ -8,12 +8,12 @@ class NotificationService {
 
   /// 새로운 알림을 만드는
   Future<void> createNotification({
-    required String userId,       // 接收者ID
-    required String postId,       // 帖子ID
-    String? commentId,            // 评论ID（可选）
-    required String fromUserId,   // 发送者ID
-    required String fromNickName, // 发送者昵称
-    String? commentContent,       // 评论内容
+    required String userId,
+    required String postId,
+    String? commentId,
+    required String fromUserId,
+    required String fromNickName,
+    String? commentContent,
     required NotificationType type,
   }) async {
     try {
@@ -73,7 +73,19 @@ class NotificationService {
         .toList());
   }
 
-  /// ✅ 新增：检查帖子是否存在
+  /// ✅ 新增：按类型获取未读通知数量
+  Stream<int> getUnreadCountByType(String userId, NotificationType type) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .where('type', isEqualTo: type.toString())
+        .where('isRead', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// 检查帖子是否存在
   Future<bool> checkPostExists(String postId) async {
     try {
       final doc = await _firestore
@@ -88,7 +100,7 @@ class NotificationService {
     }
   }
 
-  /// ✅ 新增：检查评论是否存在
+  /// 检查评论是否存在
   Future<bool> checkCommentExists(String postId, String commentId) async {
     try {
       final doc = await _firestore
@@ -166,7 +178,7 @@ class NotificationService {
     }
   }
 
-  /// ✅ 新增：清理无效通知（帖子已删除的通知）
+  /// 清理无效通知（帖子已删除的通知）
   Future<int> cleanInvalidNotifications(String userId) async {
     int deletedCount = 0;
 

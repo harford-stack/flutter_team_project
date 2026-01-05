@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_plus/share_plus.dart';
+
 
 // Models
 import '../models/post_model.dart';
@@ -556,6 +558,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           icon: Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share, color: Colors.black87),
+            onPressed: () {
+              if (_post != null) {
+                String shareText = _post!.content;
+
+                // 如果内容太长，截取前200字
+                if (shareText.length > 200) {
+                  shareText = shareText.substring(0, 200) + '...';
+                }
+
+                Share.share(shareText);
+              };
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

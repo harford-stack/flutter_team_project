@@ -5,7 +5,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../models/post_model.dart';
 import '../../../common/app_colors.dart';
 
-/// 帖子瀑布流网格组件（高度仿小红书）
 class PostGrid extends StatelessWidget {
   final bool isLoading;
   final List<Post> posts;
@@ -53,7 +52,6 @@ class PostGrid extends StatelessWidget {
   }
 }
 
-/// 单个帖子卡片（高度仿小红书）
 class PostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onTap;
@@ -131,7 +129,6 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  /// 构建封面
   Widget _buildCover() {
     if (post.thumbnailUrl.isNotEmpty) {
       return ClipRRect(
@@ -160,119 +157,37 @@ class PostCard extends StatelessWidget {
     return _buildTextCover();
   }
 
-  /// ✅ 文字封面（带网格背景，小红书风格）
+  /// ✅ 纯背景图封面（根据分类使用不同背景图）
   Widget _buildTextCover() {
-    final displayText = post.title.length > 80
-        ? '${post.title.substring(0, 80)}...'
-        : post.title;
+    // 根据category选择背景图
+    final bgImage = _getBackgroundByCategory(post.category);
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
       child: Container(
-        constraints: BoxConstraints(
-          minHeight: 160,
-          maxHeight: 240,
-        ),
-        child: Stack(
-          children: [
-            // ✅ 网格背景
-            Positioned.fill(
-              child: CustomPaint(
-                painter: GridPainter(
-                  gridColor: Color(0xFFCEDEF2),
-                  gridSize: 20.0,
-                ),
-              ),
-            ),
-            // ✅ 白色渐变遮罩（让网格不会太抢眼）
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withOpacity(0.50),
-                      Colors.white.withOpacity(0.60),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ✅ 文字内容（自适应大小）
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // 根据容器高度自适应字体大小
-                  final containerHeight = constraints.maxHeight;
-                  final fontSize = (containerHeight / 8).clamp(16.0, 28.0);
-
-                  return Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      displayText,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFF4A5568),
-                        fontSize: fontSize,
-                        fontWeight: FontWeight.w400,
-                        height: 1.4,
-                        letterSpacing: 0.3,
-                      ),
-                      maxLines: 6,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+        height: 180, // 固定高度
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(bgImage),
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
   }
-}
 
-/// ✅ 网格背景绘制器
-class GridPainter extends CustomPainter {
-  final Color gridColor;
-  final double gridSize;
+  /// ✅ 根据分类获取背景图
+  String _getBackgroundByCategory(String category) {
+    switch (category) {
+      case '자유게시판':
+        return 'assets/post_bg/bg_free.png';
 
-  GridPainter({
-    required this.gridColor,
-    required this.gridSize,
-  });
+      case '문의사항':
+        return 'assets/post_bg/bg_inquiry.png';
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 2.0  // ✅ 加粗网格线
-      ..style = PaintingStyle.stroke;
-
-    // 绘制垂直线
-    for (double x = 0; x <= size.width; x += gridSize) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        paint,
-      );
+    // 默认背景（以防万一）
+      default:
+        return 'assets/post_bg/bg_default.png';
     }
-
-    // 绘制水平线
-    for (double y = 0; y <= size.height; y += gridSize) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(GridPainter oldDelegate) {
-    return oldDelegate.gridColor != gridColor ||
-        oldDelegate.gridSize != gridSize;
   }
 }
