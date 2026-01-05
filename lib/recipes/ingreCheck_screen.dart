@@ -14,6 +14,8 @@ import '../common/custom_appbar.dart';
 import '../common/custom_drawer.dart';
 import '../common/custom_footer.dart';
 import '../providers/temp_ingre_provider.dart';
+import '../community/screens/community_list_screen.dart';
+import '../ingredients/user_refrigerator.dart';
 
 class IngrecheckScreen extends StatefulWidget {
   const IngrecheckScreen({super.key});
@@ -49,11 +51,34 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
       context.read<TempIngredientProvider>().clearAll();
     }
 
+    // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
+    if (index == 2) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const CommunityListScreen(showAppBarAndFooter: true),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // "내 냉장고"는 독립 화면으로 이동
+    if (index == 1) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const UserRefrigerator(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    // 홈 화면으로 이동
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) => HomeScreen(initialIndex: index),
       ),
-          (route) => false,
+      (route) => false,
     );
   }
 
