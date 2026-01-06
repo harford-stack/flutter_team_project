@@ -6,12 +6,14 @@ class IngredientGrid extends StatelessWidget {
   final Set<String> selectedIngredients;
   // final Set<String> disabledIngredients;
   final ValueChanged<String> onIngredientTap;
+  final ScrollController? scrollController; // ★ 추가
 
   const IngredientGrid({
     super.key,
     required this.ingredients,
     required this.selectedIngredients,
     required this.onIngredientTap,
+    this.scrollController,
   });
 
   @override
@@ -19,6 +21,7 @@ class IngredientGrid extends StatelessWidget {
     // final Size screenSize = MediaQuery.of(context).size;
 
     return GridView.builder(
+      controller: scrollController,
       padding: const EdgeInsets.all(12),
       itemCount: ingredients.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

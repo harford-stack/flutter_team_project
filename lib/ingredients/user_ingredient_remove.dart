@@ -24,6 +24,33 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
 
   List<Map<String, String>> selectedIngredients = [];
 
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTopButton = false;
+
+  void _scrollListener() {
+    if (_scrollController.offset >= 50) {
+      if (!_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = true;
+        });
+      }
+    } else {
+      if (_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = false;
+        });
+      }
+    }
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
+
   void _checkLoginStatus() {
     if (user != null) {
       print("로그인 상태");
@@ -145,6 +172,15 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
     // TODO: implement initState
     super.initState();
     _getUserIngredients();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener); // ★ 추가
+    _scrollController.dispose(); // ★ 추가
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -169,8 +205,10 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
               selectedIndex: selectedCategoryIndex,
               onCategoryChanged: _onCategoryChanged
           ),
+          SizedBox(height: 13,),
           Expanded(
             child: GridView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -249,27 +287,50 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
           ),
         ],
       ),
-      floatingActionButton: selectedIngredients.isNotEmpty
-          ? ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          backgroundColor: AppColors.primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        onPressed: () async {
-          // print(selectedIngredients);
-          await _removeSelectIngredients();
-        },
-        child: const Text(
-          "확인",
-          style: TextStyle(color: AppColors.textWhite),
-        ),
-      )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Stack(
+        children: [
+          // 맨 위로 가기 버튼 (중앙 하단)
+          if (_showScrollToTopButton)
+            Positioned(
+              left: MediaQuery.of(context).size.width / 2 - 20,
+              bottom: 0,
+              child: FloatingActionButton(
+                heroTag: 'scrollToTop',
+                mini: true,
+                backgroundColor: AppColors.primaryColor,
+                elevation: 4,
+                onPressed: _scrollToTop,
+                child: const Icon(
+                  Icons.arrow_upward,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          // 확인 버튼 (우측 하단)
+          if (selectedIngredients.isNotEmpty)
+            Positioned(
+              right: 16,
+              bottom: 0,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () async {
+                  await _removeSelectIngredients();
+                },
+                child: const Text(
+                  "확인",
+                  style: TextStyle(color: AppColors.textWhite),
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
-

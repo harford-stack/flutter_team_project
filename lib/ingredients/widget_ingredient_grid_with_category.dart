@@ -28,7 +28,7 @@ class IngredientGridWithCategory extends StatelessWidget {
         crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        mainAxisExtent: 100, // 내 냉장고와 동일한 높이
+        mainAxisExtent: 120, // 내 냉장고와 동일한 높이
       ),
       itemCount: ingredients.length,
       itemBuilder: (context, index) {
@@ -55,6 +55,12 @@ class IngredientGridWithCategory extends StatelessWidget {
                   offset: const Offset(0, 2),
                 ),
               ],
+              border: isSelected
+                ? Border.all(
+                    color: AppColors.secondaryColor,
+                    width: 2
+                  )
+                : null
             ),
             child: Stack(
               children: [
@@ -88,6 +94,7 @@ class IngredientGridWithCategory extends StatelessWidget {
                         ),
                       ),
                     ),
+                    SizedBox(height: 8,),
                   ],
                 ),
 
@@ -101,7 +108,7 @@ class IngredientGridWithCategory extends StatelessWidget {
                 if (isSelected)
                   const Positioned(
                     top: 6,
-                    right: 6,
+                    left: 6,
                     child: Icon(
                       Icons.check_circle,
                       size: 20,
