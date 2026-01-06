@@ -127,7 +127,12 @@ class ReplyingToHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('${replyingTo.nickName}님에게 답글'),
+        Text(
+          '${replyingTo.nickName}님에게 답글',
+          style:TextStyle(
+            fontSize: 15
+          )
+        ),
         Spacer(),
         IconButton(
           icon: Icon(Icons.close),

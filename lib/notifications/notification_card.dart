@@ -37,13 +37,23 @@ class NotificationCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    notification.fromNickName,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        notification.fromNickName,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 22,
+                        color: Colors.grey[400],
+                      ),
+                    ],
                   ),
                   SizedBox(height: 4),
                   _buildNotificationContent(context),
@@ -51,7 +61,7 @@ class NotificationCard extends StatelessWidget {
                   Text(
                     _formatDate(notification.cdate),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: Colors.grey[500],
                     ),
                   ),
@@ -125,7 +135,7 @@ class NotificationCard extends StatelessWidget {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Text(
-            '게시글을 수집했습니다',
+            '게시글을 북마크했습니다',
             style: TextStyle(fontSize: 14, color: Colors.grey[700]),
           );
         }
@@ -136,7 +146,7 @@ class NotificationCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '게시글을 수집했습니다',
+              '게시글을 북마크했습니다',
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
             SizedBox(height: 4),
@@ -244,24 +254,30 @@ class NotificationCard extends StatelessWidget {
                     Text(
                       '내 댓글: ',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         originalComment.length > 20
                             ? '${originalComment.substring(0, 20)}...'
                             : originalComment,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           color: Colors.grey[700],
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    // Spacer(),
+                    // Icon(
+                    //   Icons.chevron_right,
+                    //   size: 22,
+                    //   color: Colors.grey[400],
+                    // ),
                   ],
                 ),
               ),

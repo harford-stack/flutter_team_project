@@ -46,19 +46,19 @@ class PostListCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryColor : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
+          borderRadius: BorderRadius.circular(15),
+          border: isSelected
+              ? Border.all(color: AppColors.primaryColor, width: 2)
+              : null,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 12,
-              offset: Offset(0, 4),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
@@ -69,41 +69,49 @@ class PostListCard extends StatelessWidget {
 
             // 右侧信息区域
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 分类标签
-                    _buildCategoryTag(),
-                    SizedBox(height: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部：分类标签 + > 图标
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildCategoryTag(),
+                      if (!isSelectionMode)
+                        Icon(
+                          Icons.chevron_right,
+                          size: 22,
+                          color: Colors.grey[400],
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
 
-                    // 标题
-                    Text(
-                      post.title,
-                      maxLines: 2,  // ✅ 改为2行，没有图片时可以显示更多标题
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  // 标题
+                  Text(
+                    post.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: 4),
+                  ),
+                  SizedBox(height: 4),
 
-                    // 作者昵称
-                    Text(
-                      post.nickName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                  // 作者昵称
+                  Text(
+                    post.nickName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
                     ),
-                    SizedBox(height: 8),
+                  ),
+                  SizedBox(height: 8),
 
-                    // 底部信息栏
-                    _buildMetaInfo(),
-                  ],
-                ),
+                  // 底部信息栏
+                  _buildMetaInfo(),
+                ],
               ),
             ),
           ],
@@ -115,7 +123,7 @@ class PostListCard extends StatelessWidget {
   /// 缩略图
   Widget _buildThumbnail() {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.only(right: 16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
@@ -135,7 +143,6 @@ class PostListCard extends StatelessWidget {
             );
           },
           errorBuilder: (context, error, stackTrace) {
-            // ✅ 如果图片加载失败，返回空容器（不占位）
             return SizedBox.shrink();
           },
         ),
@@ -154,7 +161,7 @@ class PostListCard extends StatelessWidget {
       child: Text(
         post.category,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 12,
           color: AppColors.primaryColor,
           fontWeight: FontWeight.bold,
         ),
@@ -168,12 +175,12 @@ class PostListCard extends StatelessWidget {
       children: [
         Text(
           '댓글 ${post.commentCount}',
-          style: TextStyle(fontSize: 10, color: Colors.grey),
+          style: TextStyle(fontSize: 13, color: Colors.grey),
         ),
         SizedBox(width: 8),
         Text(
           '북마크 ${post.bookmarkCount}',
-          style: TextStyle(fontSize: 10, color: Colors.grey),
+          style: TextStyle(fontSize: 13, color: Colors.grey),
         ),
         Spacer(),
 
@@ -234,31 +241,41 @@ class PostListCard extends StatelessWidget {
     );
   }
 
-  /// 我的帖子操作按钮（编辑/删除）
+  /// 我的帖子操作按钮（编辑/删除）- 更紧凑
   Widget _buildMyPostActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         // 编辑按钮
         if (onEdit != null)
-          IconButton(
-            icon: Icon(Icons.edit_outlined, size: 20),
-            color: AppColors.primaryColor,
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-            onPressed: onEdit,
+          InkWell(
+            onTap: onEdit,
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(
+                Icons.edit_outlined,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+            ),
           ),
 
-        SizedBox(width: 8),
+        SizedBox(width: 4),
 
         // 删除按钮
         if (onDelete != null)
-          IconButton(
-            icon: Icon(Icons.delete_outline, size: 20),
-            color: Colors.red,
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-            onPressed: onDelete,
+          InkWell(
+            onTap: onDelete,
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: Colors.red,
+              ),
+            ),
           ),
       ],
     );

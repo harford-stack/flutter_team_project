@@ -234,7 +234,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
     return Scaffold(
       appBar: CustomAppBar(appName: '북마크 목록'),
       drawer: CustomDrawer(),
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           // 直接从 CategoryTabs 开始，删除上面的空 Container
@@ -257,10 +257,10 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         onPrimaryAction: _handleBookmarkRemove,
         onSecondaryAction: _handleSecondaryAction,
       ),
-      bottomNavigationBar: CustomFooter(
-        currentIndex: 2,
-        onTap: _handleFooterTap,
-      ),
+      // bottomNavigationBar: CustomFooter(
+      //   currentIndex: 2,
+      //   onTap: _handleFooterTap,
+      // ),
     );
   }
 
