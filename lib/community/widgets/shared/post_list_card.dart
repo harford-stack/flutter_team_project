@@ -62,64 +62,66 @@ class PostListCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ 只有当有图片时才显示缩略图
-            if (post.thumbnailUrl.isNotEmpty) _buildThumbnail(),
+            // 顶部：分类标签 + > 图标
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildCategoryTag(),
+                if (!isSelectionMode)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 22,
+                    color: Colors.grey[400],
+                  ),
+              ],
+            ),
+            SizedBox(height: 12),
 
-            // 右侧信息区域
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 顶部：分类标签 + > 图标
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // 中间：图片 + 标题和姓名
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (post.thumbnailUrl.isNotEmpty) _buildThumbnail(),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCategoryTag(),
-                      if (!isSelectionMode)
-                        Icon(
-                          Icons.chevron_right,
-                          size: 22,
-                          color: Colors.grey[400],
+                      Text(
+                        post.title,
+                        maxLines: post.thumbnailUrl.isNotEmpty ? 2 : 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        post.nickName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
                     ],
                   ),
-                  SizedBox(height: 8),
-
-                  // 标题
-                  Text(
-                    post.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-
-                  // 作者昵称
-                  Text(
-                    post.nickName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-
-                  // 底部信息栏
-                  _buildMetaInfo(),
-                ],
-              ),
+                ),
+              ],
             ),
+
+            SizedBox(height: 12),
+
+            // 底部：评论数和书签数
+            _buildMetaInfo(),
           ],
         ),
       ),
     );
   }
-
   /// 缩略图
   Widget _buildThumbnail() {
     return Padding(
@@ -231,7 +233,7 @@ class PostListCard extends StatelessWidget {
 
     return BookmarkButton(
       isInitialBookmarked: true,
-      size: 20,
+      size: 30,
       isTransparent: true,
       onToggle: (isBookmarked) async {
         if (!isBookmarked && onBookmarkRemove != null) {
@@ -255,7 +257,7 @@ class PostListCard extends StatelessWidget {
               padding: EdgeInsets.all(4),
               child: Icon(
                 Icons.edit_outlined,
-                size: 18,
+                size: 23,
                 color: AppColors.primaryColor,
               ),
             ),
@@ -272,7 +274,7 @@ class PostListCard extends StatelessWidget {
               padding: EdgeInsets.all(4),
               child: Icon(
                 Icons.delete_outline,
-                size: 18,
+                size: 23,
                 color: Colors.red,
               ),
             ),

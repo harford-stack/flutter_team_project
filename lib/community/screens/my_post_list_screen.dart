@@ -301,7 +301,7 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
     return Scaffold(
       appBar: CustomAppBar(appName: '내가 쓴 게시글'),
       drawer: CustomDrawer(),
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           // 分类标签栏 - 使用共享组件
@@ -324,10 +324,10 @@ class _MyPostListScreenState extends State<MyPostListScreen> {
         onPrimaryAction: _handlePostDelete,
         onSecondaryAction: _handleSecondaryAction,
       ),
-      bottomNavigationBar: CustomFooter(
-        currentIndex: 2,
-        onTap: _handleFooterTap,
-      ),
+      // bottomNavigationBar: CustomFooter(
+      //   currentIndex: 2,
+      //   onTap: _handleFooterTap,
+      // ),
     );
   }
 

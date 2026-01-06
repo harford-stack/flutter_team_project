@@ -563,15 +563,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             icon: Icon(Icons.share, color: Colors.black87),
             onPressed: () {
               if (_post != null) {
-                String shareText = _post!.content;
-
-                // 如果内容太长，截取前200字
-                if (shareText.length > 200) {
-                  shareText = shareText.substring(0, 200) + '...';
-                }
+                // ✅ 分享完整内容
+  String shareText = '''
+  ${_post!.title}
+  
+  ${_post!.content}
+  
+  작성자: ${_post!.nickName}
+  카테고리: ${_post!.category}
+  날짜: ${_post!.cdate.toString().split(' ')[0]}
+            '''.trim();
 
                 Share.share(shareText);
-              };
+              }
             },
           ),
         ],
@@ -601,6 +605,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       onReplyToComment: _replyToComment,
                       onToggleExpanded: _toggleCommentExpanded,
                       getAllReplies: _getAllRepliesForMainComment,
+                      postAuthorId: _post!.userId, // ✅ 添加这一行
                     ),
                   ),
                 ),

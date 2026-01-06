@@ -1,4 +1,4 @@
-// community/widgets/community_detail/comment_item_v2.dart
+// comment_item_v2.dart - 完整修改版
 
 import 'package:flutter/material.dart';
 import '../../models/comment_model.dart';
@@ -13,6 +13,7 @@ class CommentItem extends StatelessWidget {
   final Map<String, GlobalKey> commentKeys;
   final Function(Comment) onReplyToComment;
   final VoidCallback onToggleExpanded;
+  final String? postAuthorId; // ✅ 新增：帖子作者ID
 
   const CommentItem({
     Key? key,
@@ -23,6 +24,7 @@ class CommentItem extends StatelessWidget {
     required this.commentKeys,
     required this.onReplyToComment,
     required this.onToggleExpanded,
+    this.postAuthorId, // ✅ 新增
   }) : super(key: key);
 
   @override
@@ -39,6 +41,7 @@ class CommentItem extends StatelessWidget {
           comment: mainComment,
           isHighlighted: isMainHighlighted,
           onTap: () => onReplyToComment(mainComment),
+          postAuthorId: postAuthorId, // ✅ 传递
         ),
 
         // 回复区域
@@ -50,6 +53,7 @@ class CommentItem extends StatelessWidget {
             commentKeys: commentKeys,
             onReplyToComment: onReplyToComment,
             onToggleExpanded: onToggleExpanded,
+            postAuthorId: postAuthorId, // ✅ 传递
           ),
 
         Divider(height: 1, thickness: 1, color: Colors.grey[100]),
@@ -63,19 +67,25 @@ class MainCommentTile extends StatelessWidget {
   final Comment comment;
   final bool isHighlighted;
   final VoidCallback onTap;
+  final String? postAuthorId; // ✅ 新增
 
   const MainCommentTile({
     Key? key,
     required this.comment,
     required this.isHighlighted,
     required this.onTap,
+    this.postAuthorId, // ✅ 新增
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isAuthor = postAuthorId != null && postAuthorId == comment.userId;
+
     return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isHighlighted ? Colors.amber[50] : Colors.transparent,
+        color: isHighlighted ? AppColors.secondaryColor.withOpacity(0.1): Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
@@ -85,12 +95,36 @@ class MainCommentTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                comment.nickName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+              // ✅ 昵称 + 作者标签
+              Row(
+                children: [
+                  Text(
+                    comment.nickName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  if (isAuthor) ...[
+                    SizedBox(width: 6),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '작성자',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               SizedBox(height: 4),
               Text(
@@ -118,6 +152,7 @@ class RepliesSection extends StatelessWidget {
   final Map<String, GlobalKey> commentKeys;
   final Function(Comment) onReplyToComment;
   final VoidCallback onToggleExpanded;
+  final String? postAuthorId; // ✅ 新增
 
   const RepliesSection({
     Key? key,
@@ -127,6 +162,7 @@ class RepliesSection extends StatelessWidget {
     required this.commentKeys,
     required this.onReplyToComment,
     required this.onToggleExpanded,
+    this.postAuthorId, // ✅ 新增
   }) : super(key: key);
 
   @override
@@ -152,6 +188,7 @@ class RepliesSection extends StatelessWidget {
               reply: reply,
               isHighlighted: isReplyHighlighted,
               onTap: () => onReplyToComment(reply),
+              postAuthorId: postAuthorId, // ✅ 传递
             );
           }).toList(),
 
@@ -194,21 +231,25 @@ class ReplyTile extends StatelessWidget {
   final Comment reply;
   final bool isHighlighted;
   final VoidCallback onTap;
+  final String? postAuthorId; // ✅ 新增
 
   const ReplyTile({
     Key? key,
     required this.reply,
     required this.isHighlighted,
     required this.onTap,
+    this.postAuthorId, // ✅ 新增
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isAuthor = postAuthorId != null && postAuthorId == reply.userId;
+
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: double.infinity,  // ← 添加这一行，强制填满宽度
-        margin: EdgeInsets.only(bottom: 8),  // 把 Padding 改成 margin
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: isHighlighted ? AppColors.secondaryColor.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
@@ -217,17 +258,41 @@ class ReplyTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              reply.nickName,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
+            // ✅ 昵称 + 作者标签
+            Row(
+              children: [
+                Text(
+                  reply.nickName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: AppColors.primaryColor.withOpacity(0.6),
+                  ),
+                ),
+                if (isAuthor) ...[
+                  SizedBox(width: 6),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '작성자',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
             SizedBox(height: 2),
             Text(
               reply.content,
-              style: TextStyle(fontSize: 14, height: 1.3),
+              style: TextStyle(fontSize: 14, height: 1.3, color: Colors.black.withOpacity(0.7)),
             ),
             SizedBox(height: 2),
             Text(
@@ -241,6 +306,5 @@ class ReplyTile extends StatelessWidget {
         ),
       ),
     );
-
   }
 }
