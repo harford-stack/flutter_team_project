@@ -457,9 +457,10 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                   (route) => false,
             );
           } else if (index == 1) {
+            // "내 냉장고"는 독립 화면으로 이동
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (context) => const HomeScreen(initialIndex: 1),
+                builder: (context) => const UserRefrigerator(),
               ),
                   (route) => false,
             );

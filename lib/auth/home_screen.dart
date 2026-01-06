@@ -550,11 +550,12 @@ class _HomeScreenState extends State<HomeScreen> {
         appName: _getAppbarTitle(_currentIndex),
         customTitle: _currentIndex == 0
             ? const Text(
-          'ShakeCook',
+          'ShakeCook!',
           style: TextStyle(
             color: AppColors.textDark,
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            fontFamily: 'Hakgyoansim Dunggeunmiso B',
           ),
         )
             : null,

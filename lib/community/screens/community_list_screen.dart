@@ -175,12 +175,12 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
             posts: _posts,
             onPostTap: (post) async {
               // 게시글 클릭 시 상세 화면으로 이동
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PostDetailScreen(postId: post.id),
-                ),
-              );
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PostDetailScreen(postId: post.id),
+                    ),
+                  );
               _loadPosts(); // 돌아온 후 목록 새로고침
             },
           ),
@@ -190,7 +190,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
       floatingActionButton: widget.showAppBarAndFooter
           ? Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom, // SafeArea + Footer 높이
+                bottom: MediaQuery.of(context).padding.bottom -20,
               ),
               child: FloatingActionButton(
                 onPressed: _navigateToCreatePost, // 클릭 시 작성 화면으로

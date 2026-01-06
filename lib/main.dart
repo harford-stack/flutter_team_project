@@ -10,6 +10,7 @@ import 'providers/temp_ingre_provider.dart'; // 추가 (현지)
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ingredients/add_ingredients_script.dart'; // 재료 추가 스크립트
 import 'ingredients/cleanup_ingredients_script.dart'; // 재료 정리 스크립트
+import 'community/scripts/add_test_posts.dart'; // 커뮤니티 테스트 게시글 추가 스크립트
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,18 @@ void main() async {
   //   print('✅ 재료 정리 완료!');
   // } catch (e) {
   //   print('❌ 재료 정리 중 에러 발생: $e');
+  // }
+  // ============================================
+
+  // ============================================
+  // 커뮤니티 테스트 게시글 추가 스크립트 실행 (일회성)
+  // ============================================
+  // try {
+  //   final testPostsScript = AddTestPostsScript();
+  //   await testPostsScript.addTestPosts();
+  //   print('✅ 테스트 게시글 추가 완료!');
+  // } catch (e) {
+  //   print('❌ 테스트 게시글 추가 중 에러 발생: $e');
   // }
   // ============================================
 
