@@ -162,10 +162,6 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
         destination = const HomeScreen(initialIndex: 0);
     }
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => destination),
-          (route) => false,
-    // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
     if (index == 2) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(

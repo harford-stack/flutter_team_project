@@ -80,7 +80,7 @@ class PostCategoryTag extends StatelessWidget {
         child: Text(
           post.category,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             color: Colors.grey[700],
             fontWeight: FontWeight.w500,
           ),
@@ -104,7 +104,7 @@ class PostTitle extends StatelessWidget {
         post.title,
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 18,
+          fontSize: 20,
           height: 1.4,
           color: Colors.black,
         ),
@@ -165,7 +165,7 @@ class PostAuthorInfo extends StatelessWidget {
       child: Text(
         post.nickName,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 16,
           color: Colors.grey[600],
           fontWeight: FontWeight.w400,
         ),
@@ -187,7 +187,7 @@ class PostContentText extends StatelessWidget {
       child: Text(
         post.content,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 15,
           color: Colors.black87,
           height: 1.6,
         ),
@@ -211,7 +211,7 @@ class PostMetaInfo extends StatelessWidget {
           // 日期
           Text(
             post.cdate.toString().split(' ')[0],
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
 
           SizedBox(width: 12),
@@ -221,7 +221,7 @@ class PostMetaInfo extends StatelessWidget {
           SizedBox(width: 3),
           Text(
             '${post.bookmarkCount}',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -244,7 +244,7 @@ class PostCommentHeader extends StatelessWidget {
           Text(
             '댓글',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               color: Colors.black87,
               fontWeight: FontWeight.w600,
             ),
@@ -253,7 +253,7 @@ class PostCommentHeader extends StatelessWidget {
           Text(
             '$commentCount',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               color: Colors.grey[600],
             ),
           ),
