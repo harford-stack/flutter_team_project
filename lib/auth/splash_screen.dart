@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import '../common/app_colors.dart';
 import 'auth_provider.dart';
 import 'home_screen.dart';
-import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -51,17 +49,23 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Transform.translate(
-          offset: const Offset(10, 0), // 오른쪽으로 이동하여 이미지 내 텍스트가 가운데 보이도록
-          child: Image.asset(
-            // 'assets/image_appLogo3.PNG',
-            'assets/image_appLogo4.png',
-            fit: BoxFit.contain,
-            width: 350,
-            height: 350,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Transform.translate(
+              offset: const Offset(5, 0), // 오른쪽으로 이동하여 이미지 내 텍스트가 가운데 보이도록
+              child: Image.asset(
+                // 'assets/image_appLogo3.PNG',
+                'assets/image_appLogo4.png',
+                fit: BoxFit.contain,
+                width: 250,
+                height: 250,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
 }

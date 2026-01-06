@@ -49,6 +49,7 @@ dependencies:
   flutter_branch_sdk: ^7.0.0
   share_plus: ^10.1.2
   tutorial_coach_mark:
+  shared_preferences:
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -79,6 +80,7 @@ flutter:
     - assets/icon/
     - assets/image/
     - assets/post_bg/
+    - assets/ingredientIcons/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

@@ -16,6 +16,8 @@ class IngredientGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // final Size screenSize = MediaQuery.of(context).size;
+
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: ingredients.length,
@@ -23,11 +25,12 @@ class IngredientGrid extends StatelessWidget {
         crossAxisCount: 3,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 2,
+        childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
         final ingredientName = ingredients[index];
         final isSelected = selectedIngredients.contains(ingredientName);
+        final Size screenSize = MediaQuery.of(context).size;
 
         return GestureDetector(
           onTap: () => onIngredientTap(ingredientName),
@@ -47,12 +50,36 @@ class IngredientGrid extends StatelessWidget {
                   : null,
             ),
             child: Stack(
+              alignment: Alignment.center,
               children: [
-                Center(
-                  child: Text(
-                    ingredientName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                Column(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/ingredientIcons/$ingredientName.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.fastfood, size: 32),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        ingredientName,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenSize.width * 0.038,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 if (isSelected)
                   const Positioned(
