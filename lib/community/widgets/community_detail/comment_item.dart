@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/comment_model.dart';
+import '../../../common/app_colors.dart';
 
 /// 单个评论项组件 V2（支持展开/收起）
 class CommentItem extends StatelessWidget {
@@ -88,7 +89,7 @@ class MainCommentTile extends StatelessWidget {
                 comment.nickName,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 15,
                 ),
               ),
               SizedBox(height: 4),
@@ -99,7 +100,7 @@ class MainCommentTile extends StatelessWidget {
               SizedBox(height: 4),
               Text(
                 comment.cdate.toString().split(' ')[0],
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
             ],
           ),
@@ -173,7 +174,7 @@ class RepliesSection extends StatelessWidget {
                           ? '접기'
                           : '${replies.length - 1}개의 답글 더보기',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         color: Colors.blue[700],
                         fontWeight: FontWeight.w500,
                       ),
@@ -203,43 +204,43 @@ class ReplyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: isHighlighted ? Colors.amber[100] : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          padding: EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                reply.nickName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,  // ← 添加这一行，强制填满宽度
+        margin: EdgeInsets.only(bottom: 8),  // 把 Padding 改成 margin
+        decoration: BoxDecoration(
+          color: isHighlighted ? AppColors.secondaryColor.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        padding: EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              reply.nickName,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
               ),
-              SizedBox(height: 2),
-              Text(
-                reply.content,
-                style: TextStyle(fontSize: 13, height: 1.3),
+            ),
+            SizedBox(height: 2),
+            Text(
+              reply.content,
+              style: TextStyle(fontSize: 14, height: 1.3),
+            ),
+            SizedBox(height: 2),
+            Text(
+              reply.cdate.toString().split(' ')[0],
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
               ),
-              SizedBox(height: 2),
-              Text(
-                reply.cdate.toString().split(' ')[0],
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+
   }
 }

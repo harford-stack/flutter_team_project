@@ -19,6 +19,8 @@
   import '../recipes/ingreCheck_screen.dart';
   import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
   import '../community/screens/community_list_screen.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+
 
 
   class UserRefrigerator extends StatefulWidget {
@@ -48,6 +50,78 @@
     bool providerFlg = false;
     int _currentIndex = 1; // 내 냉장고 인덱스
 
+    bool _targetsInitialized = false;
+    bool _tutorialShown = false;
+
+    // 테스트용: 튜토리얼 다시 보기
+    Future<void> _resetTutorial() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('tutorial_shown_refrigerator');
+      setState(() {
+        _tutorialShown = false;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _tryShowTutorial();
+      });
+    }
+
+    Future<void> _loadTutorialShown() async {
+      final prefs = await SharedPreferences.getInstance();
+      _tutorialShown = prefs.getBool('tutorial_shown_refrigerator') ?? false;
+    }
+
+    Future<void> _saveTutorialShown() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('tutorial_shown_refrigerator', true);
+    }
+
+    void _tryShowTutorial() {
+      // 레시피 추천 모드거나 이미 튜토리얼을 본 경우 리턴
+      if (widget.isForRecommendation) return;
+      if (_tutorialShown) return;
+
+      // GlobalKey가 아직 렌더링되지 않았으면 리턴
+      if (tutorialKey.currentContext == null) {
+        // 약간의 딜레이 후 다시 시도
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && tutorialKey.currentContext != null) {
+            _tryShowTutorial();
+          }
+        });
+        return;
+      }
+
+      // targets 초기화 (아직 안 했다면)
+      if (!_targetsInitialized) {
+        initTargets();
+        _targetsInitialized = true;
+      }
+
+      // 튜토리얼 표시
+      TutorialCoachMark(
+        targets: targets,
+        colorShadow: Colors.black.withOpacity(0.8),
+        textSkip: "건너뛰기",
+        paddingFocus: 10,
+        opacityShadow: 0.8,
+        onFinish: () {
+          _saveTutorialShown();
+          setState(() {
+            _tutorialShown = true;
+          });
+        },
+        onSkip: () {
+          _saveTutorialShown();
+          setState(() {
+            _tutorialShown = true;
+          });
+          return true;
+        },
+      ).show(context: context);
+    }
+
+
     final GlobalKey tutorialKey = GlobalKey();
     late List<TargetFocus> targets;
     void initTargets() {
@@ -60,29 +134,27 @@
             TargetContent(
               align: ContentAlign.left,
               child: Builder(
-                  builder: (context) {
-                    final size = MediaQuery.of(context).size;
+                builder: (context) {
+                  final size = MediaQuery.of(context).size;
 
-                    return Padding(
-                      padding: EdgeInsetsGeometry.only(
-                        right: size.width * 0.33
-                      ),
-                      child: Text(
-                        "여기서 재료를 추가하거나 삭제할 수 있어요",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    );
-                  }
-              )
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: size.width * 0.05,
+                      top: size.height * 0.02,
+                    ),
+                    child: const Text(
+                      "여기서 재료를 추가하거나 \n삭제할 수 있어요",
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
       ];
     }
+
 
     void _onFooterTap(int index, app_auth.AuthProvider authProvider, BuildContext context) {
       // 현재 화면이 "내 냉장고"이므로, "내 냉장고" 클릭 시 아무 동작도 하지 않음
@@ -303,10 +375,6 @@
       }
     }
 
-    void tutorial() {
-      print("왁!");
-    }
-
     @override
     void initState() {
       // TODO: implement initState
@@ -331,18 +399,26 @@
         _checkProvider();
       });
 
-      initTargets();
-
-      tutorial();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!widget.isForRecommendation && tutorialKey.currentContext != null) {
-          TutorialCoachMark(
-            targets: targets,
-            colorShadow: Colors.black.withOpacity(0.8),
-            textSkip: "건너뛰기",
-          ).show(context: context);
+      _loadTutorialShown().then((_) {
+        if (!widget.isForRecommendation && !_tutorialShown) {
+          // 튜토리얼을 아직 보지 않았다면
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _tryShowTutorial();
+          });
         }
       });
+
+      // initTargets();
+      //
+      // WidgetsBinding.instance.addPostFrameCallback((_) {
+      //   if (!widget.isForRecommendation && tutorialKey.currentContext != null) {
+      //     TutorialCoachMark(
+      //       targets: targets,
+      //       colorShadow: Colors.black.withOpacity(0.8),
+      //       textSkip: "건너뛰기",
+      //     ).show(context: context);
+      //   }
+      // });
     }
 
     @override
@@ -487,6 +563,14 @@
                     _getUserIngredients();
                   },
                 ),
+                SpeedDialChild(
+                  child: const Icon(Icons.help_outline, color: Colors.white),
+                  label: '튜토리얼 다시 보기',
+                  backgroundColor: AppColors.secondaryColor,
+                  onTap: () {
+                    _resetTutorial();
+                  },
+                )
               ],
               child: ColorFiltered(
                 colorFilter: const ColorFilter.mode(
@@ -576,6 +660,7 @@
                         ),
                       ),
                   ),
+
             ],
           ),
           bottomNavigationBar: CustomFooter(
@@ -651,38 +736,67 @@
     }
 
     Widget _buildIngredientGrid() {
+      const double horizontalPadding = 16 * 2; // 좌우 padding
+      const double spacing = 12;
+      const int columnCount = 3;
+
       final Size screenSize = MediaQuery.of(context).size;
       final double screenWidth = screenSize.width;
-      final double itemWidth = (screenWidth - 32 - 12) / 2; // padding(32) + spacing(12) 제외
-      final double itemHeight = 60.0; // 높이 직접 지정 (원하는 값으로 변경 가능)
-      
+      final double itemWidth =
+          (screenWidth - horizontalPadding - (spacing * (columnCount - 1)))
+              / columnCount; // padding(32) + spacing(12) 제외
+      final double itemHeight = 140.0; // 높이 직접 지정 (원하는 값으로 변경 가능)
+      final double bottomPadding =
+      widget.isForRecommendation &&
+          (selectedIngredients.isNotEmpty || providerFlg)
+          ? 80
+          : 16;
+
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // 하단에 확인 버튼 공간 확보
+
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding), // 하단에 확인 버튼 공간 확보
         child: SingleChildScrollView(
           child: Wrap(
             spacing: 12, // 가로 간격
             runSpacing: 12, // 세로 간격
             children: userIngredients.map((ingredient) {
+              String name = ingredient['name'] ?? '';
               final bool isSelected = _isSelected(ingredient);
               // 레시피 추천용 모드에서만 중복 체크 (단, Provider에 재료가 없을 때는 중복 체크 안 함)
-              final bool isDuplicate = widget.isForRecommendation && 
-                  providerFlg && 
+              final bool isDuplicate = widget.isForRecommendation &&
+                  providerFlg &&
                   isAlreadyAdded(ingredient['name']!);
-              
+
               return GestureDetector(
-                onTap: widget.isForRecommendation && !isDuplicate
-                    ? () {
-                      setState(() {
-                        if (_isSelected(ingredient)) {
-                          selectedIngredients.removeWhere((item) =>
-                          item['name'] == ingredient['name'] &&
-                              item['category'] == ingredient['category']);
-                        } else {
-                          selectedIngredients.add(ingredient);
-                        }
-                      });
-                    }
-                    : null, // 관리용 모드에서는 클릭 비활성화
+                onTap: () {
+                  print('클릭된 재료: $name'); // 👈 항상 출력
+
+                  // 레시피 추천용 모드이고 중복이 아닐 때만 선택 로직 실행
+                  if (widget.isForRecommendation && !isDuplicate) {
+                    setState(() {
+                      if (_isSelected(ingredient)) {
+                        selectedIngredients.removeWhere((item) =>
+                        item['name'] == ingredient['name'] &&
+                            item['category'] == ingredient['category']);
+                      } else {
+                        selectedIngredients.add(ingredient);
+                      }
+                    });
+                  }
+                },
+                // onTap: widget.isForRecommendation && !isDuplicate
+                //     ? () {
+                //       setState(() {
+                //         if (_isSelected(ingredient)) {
+                //           selectedIngredients.removeWhere((item) =>
+                //           item['name'] == ingredient['name'] &&
+                //               item['category'] == ingredient['category']);
+                //         } else {
+                //           selectedIngredients.add(ingredient);
+                //         }
+                //       });
+                //     }
+                //     : null, // 관리용 모드에서는 클릭 비활성화
                 child: SizedBox(
                   width: itemWidth,
                   height: itemHeight, // 높이 직접 지정
@@ -712,26 +826,42 @@
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          ingredient['name'] ?? '',
-                          style: TextStyle(
-                            fontSize: screenSize.width * 0.038,
-                            fontWeight: FontWeight.bold,
+                        SizedBox(height: 15,),
+                        Expanded(
+                          flex: 2,
+                          child: Image.asset(
+                            'assets/ingredientIcons/${ingredient['name']}.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.fastfood, size: 24, color: Colors.grey),
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 1),
-                        Text(
-                          ingredient['category'] ?? '',
-                          style: TextStyle(
-                            fontSize: screenSize.width * 0.028,
-                            color: Colors.grey[600],
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            ingredient['name'] ?? '',
+                            style: TextStyle(
+                              fontSize: screenSize.width * 0.038,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        // const SizedBox(height: 1),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            ingredient['category'] ?? '',
+                            style: TextStyle(
+                              fontSize: screenSize.width * 0.028,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

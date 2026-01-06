@@ -1,3 +1,4 @@
+// community에서 게시글 메이슨리 레이아웃
 // community/widgets/community_list/post_grid.dart
 
 import 'package:flutter/material.dart';
@@ -6,10 +7,16 @@ import '../../models/post_model.dart';
 import '../../../common/app_colors.dart';
 
 class PostGrid extends StatelessWidget {
+  /// =====================================================================================
+  /// 필드
+  /// ======================================================================================
   final bool isLoading;
   final List<Post> posts;
   final Function(Post) onPostTap;
 
+  /// =====================================================================================
+  /// 생성자
+  /// ======================================================================================
   const PostGrid({
     Key? key,
     required this.isLoading,
@@ -17,20 +24,26 @@ class PostGrid extends StatelessWidget {
     required this.onPostTap,
   }) : super(key: key);
 
+  /// =====================================================================================
+  /// build method
+  /// =============================================================
   @override
   Widget build(BuildContext context) {
+    //로딩 상태
     if (isLoading) {
       return const Expanded(
         child: Center(child: CircularProgressIndicator()),
       );
     }
 
+    // 성공 but 게기글이 없는 상황: 빈 페이지를 피면
     if (posts.isEmpty) {
       return const Expanded(
         child: Center(child: Text('게시글이 없습니다')),
       );
     }
 
+    // 성공: 메이슨리 레이아웃 (주)
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -52,7 +65,11 @@ class PostGrid extends StatelessWidget {
   }
 }
 
+/// 한개의 카드
 class PostCard extends StatelessWidget {
+  //---------------------------------------------------------------------------
+  // 필드
+  //---------------------------------------------------------------------------
   final Post post;
   final VoidCallback onTap;
 
@@ -91,7 +108,7 @@ class PostCard extends StatelessWidget {
                     post.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      fontSize: 15,
                       height: 1.3,
                       color: Colors.black87,
                     ),
@@ -105,18 +122,18 @@ class PostCard extends StatelessWidget {
                         child: Text(
                           post.nickName,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 13,
                             color: Colors.grey[600],
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(Icons.bookmark_border, size: 12, color: Colors.grey[500]),
+                      Icon(Icons.bookmark_border, size: 13, color: Colors.grey[500]),
                       SizedBox(width: 2),
                       Text(
                         '${post.bookmarkCount}',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ],
                   ),
