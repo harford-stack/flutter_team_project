@@ -146,22 +146,6 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
     }
 
     // 각 화면 이동하기! 여기서 아래 나오는 Widget은 새로운 위젯을 만드는 게 아니라
-    // 기존에 만들어둔 위젯(파일)을 담는 그릇 정도라고 생각하면 됨
-    Widget destination;
-    switch (index) {
-      case 0:
-        destination = const HomeScreen(initialIndex: 0); // 홈(레시피)
-        break;
-      case 1:
-        destination = const UserRefrigerator(); // 내 냉장고
-        break;
-      case 2:
-        destination = const CommunityListScreen(); // 커뮤니티
-        break;
-      default:
-        destination = const HomeScreen(initialIndex: 0);
-    }
-
     // 커뮤니티 탭은 바로 CommunityListScreen으로 이동
     if (index == 2) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -336,7 +320,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                             // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
 
                             // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_now.png", width: 250), // 이미지 크기 소폭 축소
+                            Image.asset("assets/recipe_now.png", width: 270), // 이미지 크기 소폭 축소
                             SizedBox(height: 10),
 
                             // ★ 재료 목록 영역: 높이 제한 제거, 전체 스크롤 가능하도록
