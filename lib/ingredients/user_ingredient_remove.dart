@@ -176,7 +176,7 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    mainAxisExtent: 60, // 내 냉장고와 동일한 높이
+                    mainAxisExtent: 120, // 내 냉장고와 동일한 높이
                 ),
                 itemCount: displayedIngredients.length,
                 itemBuilder: (context, index) {
@@ -207,15 +207,40 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
                           width: 2,
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: screenSize.width * 0.04,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.red[800] : Colors.black,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 6),
+
+                          // 🖼 재료 이미지
+                          SizedBox(
+                            height: screenSize.width * 0.13,
+                            child: Image.asset(
+                              'assets/ingredientIcons/$name.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.fastfood,
+                                  size: 22,
+                                  color: isSelected ? Colors.red[400] : Colors.grey,
+                                );
+                              },
+                            ),
                           ),
-                        ),
+
+                          const SizedBox(height: 4),
+
+                          // 📝 재료 이름
+                          Text(
+                            name,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: screenSize.width * 0.038,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? Colors.red[800] : Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -248,9 +273,3 @@ class _UserIngredientRemoveState extends State<UserIngredientRemove> {
   }
 }
 
-//해야할거
-//1.검색기능(완)
-//2.카테고리 눌렀을 때 분류 기능(완)
-//3.우측 하단에 fab 버튼 만들기(완)
-//4.버튼 누르면 선택한 재료들 목록 print(완)
-//5.버튼 누르면 해당 재료들 remove(완)
