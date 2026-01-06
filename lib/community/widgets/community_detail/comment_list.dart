@@ -14,6 +14,7 @@ class CommentsList extends StatelessWidget {
   final Function(Comment) onReplyToComment;
   final Function(String) onToggleExpanded;
   final List<Comment> Function(String) getAllReplies;
+  final String? postAuthorId; // ✅ 新增
 
   const CommentsList({
     Key? key,
@@ -25,6 +26,7 @@ class CommentsList extends StatelessWidget {
     required this.onReplyToComment,
     required this.onToggleExpanded,
     required this.getAllReplies,
+    this.postAuthorId, // ✅ 新增
   }) : super(key: key);
 
   @override
@@ -63,6 +65,7 @@ class CommentsList extends StatelessWidget {
             commentKeys: commentKeys,
             onReplyToComment: onReplyToComment,
             onToggleExpanded: () => onToggleExpanded(mainComment.id),
+            postAuthorId: postAuthorId, // ✅ 添加这一行
           );
         },
       ),
