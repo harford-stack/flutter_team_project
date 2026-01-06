@@ -11,6 +11,7 @@ import '../ingredients/user_refrigerator.dart';
 import '../community/screens/community_list_screen.dart';
 // import '../community/widgets/community_list_widget.dart';
 import 'auth_provider.dart';
+import 'home_banner_screen.dart';
 import 'login_screen.dart';
 import 'recipe_option_screen.dart';
 import '../notifications/notification_screen.dart';
@@ -424,16 +425,38 @@ class _HomeScreenState extends State<HomeScreen> {
           // 슬라이더 아래 간격
           const SizedBox(height: 20),
 
-          // 추가된 음식 이미지 3개 영역
+          // 추가된 음식 이미지 3개 영역 => 배너로 변경
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSmallFoodCard('assets/homeFood1.jpg'),
-                _buildSmallFoodCard('assets/homeFood2.JPG'),
-                _buildSmallFoodCard('assets/homeFood3.jpg'),
-              ],
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeBannerScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(16), // 클릭 피드백(물결) 범위 제한
+              child: Column(
+                children: [
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     _buildSmallFoodCard('assets/homeFood1.jpg'),
+                  //     _buildSmallFoodCard('assets/homeFood2.JPG'),
+                  //     _buildSmallFoodCard('assets/homeFood3.jpg'),
+                  //   ],
+                  // ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16), // 모든 모서리를 16만큼 둥글게
+                    child: Image.asset(
+                      "assets/home_recipe_rec.jpg",
+                      height: 140,        // 원하는 세로 길이
+                      width: double.infinity, // 가로를 꽉 채우고 싶을 때
+                      fit: BoxFit.cover,  // 이미지가 영역에 꽉 차도록 설정
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 

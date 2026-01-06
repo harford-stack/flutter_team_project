@@ -320,7 +320,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                             // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
 
                             // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_now.png", width: 270), // 이미지 크기 소폭 축소
+                            Image.asset("assets/recipe_now.png", width: 300), // 이미지 크기 소폭 축소
                             SizedBox(height: 10),
 
                             // ★ 재료 목록 영역: 높이 제한 제거, 전체 스크롤 가능하도록
@@ -361,7 +361,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_keyword.png", width: 260), // 이미지 크기 소폭 축소
+                            Image.asset("assets/recipe_keyword.png", width: 285), // 이미지 크기 소폭 축소
                             SizedBox(height: 10),
                             SizedBox(
                               width: 300,

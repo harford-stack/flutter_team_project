@@ -37,7 +37,7 @@ class _RecipeslistScreenState extends State<RecipeslistScreen> {
               padding: EdgeInsets.only(left: 20.0, bottom: 10.0),
               child: Row(
                 children: [
-                  Image.asset("assets/recipe_list.png", width: 270),
+                  Image.asset("assets/recipe_list.png", width: 290),
                   //Icon(Icons.receipt_long_outlined),
                   // SizedBox(width: 10,),
                   // Text(

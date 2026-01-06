@@ -129,8 +129,8 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_ingreChk_result.png", width: 280,),
-                            SizedBox(height: 18), // 간격 두기
+                            Image.asset("assets/recipe_ingreChk_result.png", width: 310,),
+                            SizedBox(height: 10), // 간격 두기
 
                             // 인식된 사진 담기는 곳
                             Container(
