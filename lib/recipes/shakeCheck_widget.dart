@@ -55,14 +55,13 @@ class _ShakeCheckState extends State<ShakeCheck> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ★ 사진 분석 결과, 2번 위젯과 높이를 맞추기 위해 상단 여백을 0으로 조정하거나
-                // ★ 2번 위젯의 Column 시작점과 완전히 동일하게 맞춥니다.
-                const SizedBox(height: 0),
+                // ★ 2단계(ShakingWidget)와 이미지 높이를 맞추기 위해 상단 여백을 살짝 추가
+                const SizedBox(height: 10),
 
-                // 이미지 영역 (2번 위젯과 100% 동일한 SizedBox 크기 사용)
+                // 이미지 영역 (요청하신 대로 200x200으로 키움)
                 SizedBox(
-                  width: 170,
-                  height: 170,
+                  width: 200,
+                  height: 200,
                   child: Image.asset(
                     "assets/shaking_move.gif",
                     fit: BoxFit.contain, // 이미지 비율 보존
@@ -70,7 +69,7 @@ class _ShakeCheckState extends State<ShakeCheck> {
                 ),
 
                 // 2번과 동일한 간격 (이미지 하단 텍스트 시작 위치)
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
 
                 // 포인트 문구
                 Text(
@@ -94,9 +93,9 @@ class _ShakeCheckState extends State<ShakeCheck> {
                   ),
                 ),
 
-                // ★ 2번 위젯의 로딩바 영역 높이만큼을 확보하여 버튼 위치를 아래로 밀어줌
-                // ★ 이 여백이 부족하면 버튼이 위로 올라와 이미지가 밀려 보일 수 있습니다.
-                const SizedBox(height: 95),
+                // ★ 팝업 높이 600에 맞춰 버튼을 하단으로 적절히 밀어줌
+                // ★ 2단계의 로딩바 및 버튼 위치와 밸런스를 맞추기 위한 여백
+                const SizedBox(height: 90),
 
                 // '지금 쉐-킷!' 버튼
                 SizedBox(
@@ -128,21 +127,16 @@ class _ShakeCheckState extends State<ShakeCheck> {
             ),
           ),
 
-          // 오른쪽 상단 X 버튼 (2번 위젯과 위치 및 스타일 완전 일치)
+          // 오른쪽 상단 닫기 버튼 (아이콘으로 변경)
           Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'X',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // 2번 위젯과 색상 통일
-                ),
+            top: -5,   // 아이콘 자체의 여백 때문에 살짝 위로 조정 (위치 완벽 고정)
+            right: -5, // 아이콘 자체의 여백 때문에 살짝 오른쪽으로 조정
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.close,
+                size: 28,
+                color: Colors.black54, // 너무 진한 검정보다 세련된 다크그레이
               ),
             ),
           ),

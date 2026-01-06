@@ -1,15 +1,168 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../common/app_colors.dart';
 import '../common/custom_appbar.dart';
 import '../common/custom_drawer.dart';
 import '../common/custom_footer.dart';
-import 'recipe_recommend_screen.dart';
+import '../ingredients/select_screen.dart';
+import '../ingredients/image_confirm.dart';
 import '../ingredients/user_refrigerator.dart';
 import 'home_screen.dart';
 
 /// 레시피 추천 옵션 선택 화면
-class RecipeOptionScreen extends StatelessWidget {
+class RecipeOptionScreen extends StatefulWidget {
   const RecipeOptionScreen({super.key});
+
+  @override
+  State<RecipeOptionScreen> createState() => _RecipeOptionScreenState();
+}
+
+class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
+  final ImagePicker _picker = ImagePicker();
+
+  // 사진 촬영 로직
+  Future<void> _pickFromCamera() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      final File imageFile = File(pickedFile.path);
+      if (mounted) {
+        Navigator.pop(context); // Bottom Sheet 닫기
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImageConfirm(imageFile: imageFile),
+          ),
+        );
+      }
+    }
+  }
+
+  // 갤러리 선택 로직
+  Future<void> _pickFromGallery() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final File imageFile = File(pickedFile.path);
+      if (mounted) {
+        Navigator.pop(context); // Bottom Sheet 닫기
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImageConfirm(imageFile: imageFile),
+          ),
+        );
+      }
+    }
+  }
+
+  // 이미지 선택 바텀시트
+  void _showImagePickerBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '사진 선택',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _pickFromCamera,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/icon/icon_camera.png',
+                                width: 20,
+                                height: 20,
+                                color: AppColors.textWhite,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '사진 촬영',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textWhite,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _pickFromGallery,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/icon/icon_picture.png',
+                                width: 20,
+                                height: 20,
+                                color: AppColors.textWhite,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '이미지 선택',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textWhite,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,16 +231,10 @@ class RecipeOptionScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            ColorFiltered(
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.primaryColor,
-                                BlendMode.srcIn,
-                              ),
-                              child: Image.asset(
-                                'assets/icon/icon_option1.png',
-                                width: 32,
-                                height: 32,
-                              ),
+                            Image.asset(
+                              'assets/icon/icon_option1.png',
+                              width: 34,
+                              height: 34,
                             ),
                             const SizedBox(height: 8),
                             const Text(
@@ -114,16 +261,10 @@ class RecipeOptionScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            ColorFiltered(
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.primaryColor,
-                                BlendMode.srcIn,
-                              ),
-                              child: Image.asset(
-                                'assets/icon/icon_option2.png',
-                                width: 32,
-                                height: 32,
-                              ),
+                            Image.asset(
+                              'assets/icon/icon_option2.png',
+                              width: 34,
+                              height: 34,
                             ),
                             const SizedBox(height: 8),
                             const Text(
@@ -150,16 +291,10 @@ class RecipeOptionScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            ColorFiltered(
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.primaryColor,
-                                BlendMode.srcIn,
-                              ),
-                              child: Image.asset(
-                                'assets/icon/icon_option3.png',
-                                width: 32,
-                                height: 32,
-                              ),
+                            Image.asset(
+                              'assets/icon/icon_option3.png',
+                              width: 34,
+                              height: 34,
                             ),
                             const SizedBox(height: 8),
                             const Text(
@@ -213,31 +348,61 @@ class RecipeOptionScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // "실시간 추천 받기" 버튼
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const RecipeRecommendScreen(),
+                          // 버튼 2개 가로로 나란히 배치 (실시간 추천 받기 대신 삽입)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _showImagePickerBottomSheet,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: const Text(
+                                    '촬영 또는\n앨범 사진',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textWhite,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
                               ),
-                              elevation: 2,
-                            ),
-                            child: const Text(
-                              '실시간 추천 받기',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textWhite,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const SelectScreen(),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: const Text(
+                                    '재료 직접\n선택',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textWhite,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           // "내 냉장고 재료로 추천 받기" 버튼
@@ -289,21 +454,21 @@ class RecipeOptionScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => const HomeScreen(),
               ),
-              (route) => false,
+                  (route) => false,
             );
           } else if (index == 1) {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => const HomeScreen(initialIndex: 1),
               ),
-              (route) => false,
+                  (route) => false,
             );
           } else if (index == 2) {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => const HomeScreen(initialIndex: 2),
               ),
-              (route) => false,
+                  (route) => false,
             );
           }
         },
@@ -311,4 +476,3 @@ class RecipeOptionScreen extends StatelessWidget {
     );
   }
 }
-

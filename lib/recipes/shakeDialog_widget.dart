@@ -49,15 +49,16 @@ class _ShakeDialogState extends State<ShakeDialog> {
                   ? ShakingWidget(recipeTask: _recipeTask)
                   : ShakeCheck(onStart: _handleStart),
 
-              // 공통 X 버튼 (여기서 관리하면 두 화면 모두 똑같은 위치에 고정됨)
+              // ★ 여기 기존 Text('X') 부분을 아래 아이콘 코드로 교체!
               Positioned(
-                top: -10,
-                right: -10,
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text('X', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                top: -5, // IconButton 자체 여백 때문에 조금 더 바깥으로 조정
+                right: -5,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 28,
+                    color: Colors.black54,
                   ),
                 ),
               ),

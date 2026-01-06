@@ -100,11 +100,13 @@ class _ShakingWidgetState extends State<ShakingWidget> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // ★ 1단계(ShakeCheck)와 이미지 높이를 맞추기 위한 상단 여백 (동일하게 10 적용)
+                const SizedBox(height: 10),
 
-                // 이미지 영역 (1번 위젯과 크기 및 위치 동일하게 설정)
+                // 이미지 영역 (1번 위젯과 크기 및 위치 동일하게 200x200 설정)
                 SizedBox(
-                  width: 170,
-                  height: 170,
+                  width: 200,
+                  height: 200,
                   child: Image.asset(
                     "assets/shaking_move.gif",
                     // 'assets/shaking.png',
@@ -112,7 +114,8 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                   ),
                 ),
 
-                SizedBox(height: 15),
+                // ★ 1단계와 동일한 간격 적용 (20)
+                const SizedBox(height: 20),
 
                 // 텍스트 영역
                 Text(
@@ -124,7 +127,7 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                   ),
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
                 Text(
                   "오늘의 레시피가\n만들어지는 중이에요",
@@ -135,7 +138,7 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                   ),
                 ),
 
-                SizedBox(height: 25),
+                const SizedBox(height: 25),
 
                 // 로딩바(percent_indicator) 위젯 가져오기
                 LinearPercentIndicator(
@@ -147,12 +150,12 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                   center: Text("${(_percent * 100).toStringAsFixed(0)}%"),
                   linearStrokeCap: LinearStrokeCap.roundAll,
                   progressColor: Colors.blue[100], // 공통컬러 넣을 예정
-                  barRadius: Radius.circular(10.0),
+                  barRadius: const Radius.circular(10.0),
                   alignment: MainAxisAlignment.center, // 중앙 정렬 추가
                 ),
 
                 // 로딩바와 바닥 사이 정중앙에 배치될 버튼
-                // 아래 SizedBox의 높이를 조절하여 "중간 지점"을 맞춥니다.
+                // 1단계의 큰 버튼 위치와 밸런스를 맞추기 위해 35 유지
                 const SizedBox(height: 35),
 
                 ElevatedButton(
@@ -171,30 +174,25 @@ class _ShakingWidgetState extends State<ShakingWidget> {
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                 ),
-                SizedBox(height: 10,),
-                Text(
+                const SizedBox(height: 10,),
+                const Text(
                   "레시피 생성 중으로 몇 초 소요될 수 있습니다.",
-                  style: TextStyle(color: AppColors.textDark),
+                  style: TextStyle(color: AppColors.textDark, fontSize: 12),
                 )
               ],
             ),
           ),
 
-          // 오른쪽 상단 X 버튼 (팝업 닫기)
+          // 오른쪽 상단 닫기 버튼 (아이콘으로 변경)
           Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'X',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // 색상 일치
-                ),
+            top: -5,   // 아이콘 자체의 여백 때문에 살짝 위로 조정 (위치 완벽 고정)
+            right: -5, // 아이콘 자체의 여백 때문에 살짝 오른쪽으로 조정
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.close,
+                size: 28,
+                color: Colors.black54, // 너무 진한 검정보다 세련된 다크그레이
               ),
             ),
           ),

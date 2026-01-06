@@ -17,7 +17,7 @@ import '../notifications/notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
-  
+
   const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -39,11 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
     switch(index){
       case 0 :
         return '홈';
-      case 1 : 
+      case 1 :
         return '내 재료';
       case 2 :
         return '커뮤니티';
-      default : 
+      default :
         return '어플 이름';
     }
   }
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildHomeContent();
       case 1:
-        // "내 냉장고"는 푸터 클릭 시 독립 화면으로 이동하므로 여기서는 빈 화면 또는 다른 화면 표시
+      // "내 냉장고"는 푸터 클릭 시 독립 화면으로 이동하므로 여기서는 빈 화면 또는 다른 화면 표시
         return _buildHomeContent();
       case 2:
         return const CommunityListScreen(showAppBarAndFooter: false);
@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSlideItem(int index) {
     switch (index) {
       case 0:
-        // 첫 번째 슬라이드: 이미지와 텍스트
+      // 첫 번째 슬라이드: 이미지와 텍스트
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -108,108 +108,245 @@ class _HomeScreenState extends State<HomeScreen> {
               'assets/image_slide1.png',
               fit: BoxFit.cover,
             ),
+            // 세련된 느낌을 위해 오른쪽 하단 위주로 어두워지는 그라데이션
             Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.black.withOpacity(0.1),
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
               ),
             ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  '사진 촬영 또는 사진 선택으로\n다양한 레시피 추천 받기',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(0, 1),
-                        blurRadius: 3,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                    ],
+            // 텍스트를 오른쪽 하단에 배치
+            Positioned(
+              right: 24, // 오른쪽 여백
+              bottom: 30, // 하단 여백
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end, // 텍스트 오른쪽 정렬
+                children: [
+                  Text(
+                    '사진 촬영 또는 사진 선택으로',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 4), // 줄 간격 살짝 띄움
+                  Text(
+                    '다양한 레시피 추천 받기',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                    ),
+                  ),
+                  // 하단에 엣지를 더해주는 포인트 라인 (선택 사항)
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 3,
+                    color: AppColors.primaryColor, // 앱의 메인 컬러로 포인트
+                  ),
+                ],
               ),
             ),
           ],
         );
       case 1:
-        // 두 번째 슬라이드: 이미지와 텍스트 (이미지 오른쪽)
-        return Container(
-          color: Colors.white,
-          child: Row(
-            children: [
-              // 왼쪽에 텍스트
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Center(
-                    child: Text(
-                      '간단한 터치로\n재료 추가 및 삭제',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                  ),
+      // 두 번째 슬라이드: 이미지와 텍스트 (이미지 오른쪽)
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/image_slide2.JPG',
+              fit: BoxFit.cover,
+            ),
+            // 왼쪽 하단 텍스트 가독성을 위해 그라데이션 방향 수정 (오른쪽 상단 -> 왼쪽 하단)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    Colors.black.withOpacity(0.1),
+                    Colors.black.withOpacity(0.7),
+                  ],
                 ),
               ),
-              // 오른쪽에 정사각형 이미지
-              Image.asset(
-                'assets/image_slide2.PNG',
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
+            ),
+            // 텍스트를 왼쪽 하단에 배치
+            Positioned(
+              left: 24, // 왼쪽 여백
+              bottom: 40, // 하단 여백을 조금 더 줌
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 왼쪽 정렬
+                children: [
+                  Text(
+                    '간단한 터치로',
+                    style: TextStyle(
+                      fontSize: 27, // 더 크게 키움
+                      fontWeight: FontWeight.w800, // 더 굵게 강조
+                      color: Colors.white,
+                      letterSpacing: -1.0, // 글자가 커진 만큼 자간을 더 좁혀 세련미 추가
+                      height: 1.2,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 3),
+                          blurRadius: 12,
+                          color: Colors.black.withOpacity(0.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6), // 줄 간격 살짝 조정
+                  Text(
+                    '재료 추가 및 삭제',
+                    style: TextStyle(
+                      fontSize: 27, // 동일하게 크게
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -1.0,
+                      height: 1.2,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 3),
+                          blurRadius: 12,
+                          color: Colors.black.withOpacity(0.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 하단 포인트 라인도 왼쪽으로 정렬
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 50, // 글씨가 커진 만큼 라인도 살짝 길게
+                    height: 4,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         );
       case 2:
-        // 세 번째 슬라이드: 이미지와 텍스트 (이미지 오른쪽)
-        return Container(
-          color: Colors.white,
-          child: Row(
-            children: [
-              // 왼쪽에 텍스트
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Center(
-                    child: Text(
-                      '커뮤니티에서\n서로 레시피 공유',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                  ),
+      // 세 번째 슬라이드: 이미지와 텍스트 (이미지 오른쪽 => 꽉 채움 변경)
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // 배경 이미지 꽉 채우기
+            Image.asset(
+              'assets/image_slide3_1.JPG',
+              fit: BoxFit.cover,
+            ),
+            // 상단 텍스트 가독성을 위해 위쪽이 더 어두운 그라데이션 적용
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.1),
+                  ],
                 ),
               ),
-              // 오른쪽에 정사각형 이미지
-              Image.asset(
-                'assets/image_slide3.PNG',
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
+            ),
+            // 왼쪽 상단에서 살짝 내려온 위치에 배치
+            Positioned(
+              top: 50,  // 상단에서 50만큼 내려옴
+              left: 24, // 왼쪽 여백
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 포인트 라인을 텍스트 위로 올려서 상단 배치의 안정감을 줌
+                  Container(
+                    width: 40,
+                    height: 4,
+                    color: AppColors.primaryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '레시피를 공유하고',
+                    style: TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 2),
+                          blurRadius: 10,
+                          color: Colors.black.withOpacity(0.1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '자유롭게 소통해보세요',
+                    style: TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 2),
+                          //blurRadius: 10,
+                          color: Colors.black.withOpacity(0.1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         );
       default:
         return const SizedBox.shrink();
     }
   }
 
+  // 작은 음식 카드 위젯 헬퍼 함수 추가
+  Widget _buildSmallFoodCard(String imagePath) {
+    return Container(
+      width: (MediaQuery.of(context).size.width - 64) / 3, // 좌우 패딩 및 간격 고려
+      height: (MediaQuery.of(context).size.width - 64) / 3, // 정사각형
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
   Widget _buildHomeContent() {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Container(
       color: AppColors.backgroundColor,
       child: Column(
@@ -285,7 +422,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // 슬라이더 아래 간격
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+
+          // 추가된 음식 이미지 3개 영역
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSmallFoodCard('assets/homeFood1.jpg'),
+                _buildSmallFoodCard('assets/homeFood2.JPG'),
+                _buildSmallFoodCard('assets/homeFood3.jpg'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
           // 나머지 콘텐츠 (스크롤 가능)
           Expanded(
             child: SingleChildScrollView(
@@ -377,6 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -396,13 +550,13 @@ class _HomeScreenState extends State<HomeScreen> {
         appName: _getAppbarTitle(_currentIndex),
         customTitle: _currentIndex == 0
             ? const Text(
-                'ShakeCook',
-                style: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
+          'ShakeCook',
+          style: TextStyle(
+            color: AppColors.textDark,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        )
             : null,
         onNotificationTap: () {
           Navigator.push(

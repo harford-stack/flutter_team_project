@@ -129,14 +129,14 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Text("인식 결과", style: TextStyle(fontSize: 25, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_ingreChk_result.png", width: 300,),
-                            SizedBox(height: 20), // 간격 두기
+                            Image.asset("assets/recipe_ingreChk_result.png", width: 280,),
+                            SizedBox(height: 18), // 간격 두기
 
                             // 인식된 사진 담기는 곳
                             Container(
                               width: 300,
                               height: 200,
-                              color: Color(0xFFEEEEEE),
+                              color: Color(0xFFCEDEF2),
                               alignment: Alignment.center, // 텍스트 중앙 정렬
                               child: context.watch<TempIngredientProvider>().photos.isNotEmpty
                                   ? Image.file(
@@ -163,7 +163,7 @@ class _IngrecheckScreenState extends State<IngrecheckScreen> {
                               ),
                             ),
 
-                            SizedBox(height: 30), // 간격 두기
+                            SizedBox(height: 25), // 간격 두기
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
