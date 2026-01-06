@@ -44,19 +44,47 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
 
   Set<String> disabledIngredients = {};
 
+  bool _showScrollToTopButton = false;
+
   @override
   void initState() {
     super.initState();
     _loadData();
     _checkLoginStatus();
     _getUserIngredients();
+    _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.offset >= 50) {
+      if (!_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = true;
+        });
+      }
+    } else {
+      if (_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = false;
+        });
+      }
+    }
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _loadData() async {
@@ -241,6 +269,7 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
               selectedIndex: selectedCategoryIndex,
               onCategoryChanged: _onCategoryChanged,
             ),
+            SizedBox(height: 13,),
             Expanded(
               child: IngredientGridWithCategory(
                 ingredients: filteredIngredients.map((item) => item['name']!).toList(),
@@ -259,33 +288,58 @@ class _UserIngredientAddState extends State<UserIngredientAdd> {
           ],
         ),
       ),
-      floatingActionButton: selectedIngredients.isNotEmpty
-          ? ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          backgroundColor: AppColors.primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        onPressed: () {
-          final selectedList = selectedIngredients.entries
-              .map((entry) => {
-              'name': entry.key,
-              'category': entry.value,
-            })
-              .toList();
+      floatingActionButton: Stack(
+        children: [
+          // 맨 위로 가기 버튼 (중앙 하단)
+          if (_showScrollToTopButton)
+            Positioned(
+              left: MediaQuery.of(context).size.width / 2 - 20,
+              bottom: 0,
+              child: FloatingActionButton(
+                heroTag: 'scrollToTop',
+                mini: true,
+                backgroundColor: AppColors.primaryColor,
+                elevation: 4,
+                onPressed: _scrollToTop,
+                child: const Icon(
+                  Icons.arrow_upward,
+                  color: AppColors.textWhite,
+                ),
+              ),
+            ),
+          // 확인 버튼 (우측 하단)
+          if (selectedIngredients.isNotEmpty)
+            Positioned(
+              right: 16,
+              bottom: 0,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () {
+                  final selectedList = selectedIngredients.entries
+                      .map((entry) => {
+                    'name': entry.key,
+                    'category': entry.value,
+                  })
+                      .toList();
 
-          print(selectedList);
-          _saveIngredients();
-        },
-        child: const Text(
-          "확인",
-          style: TextStyle(color: AppColors.textWhite),
-        ),
-      )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+                  print(selectedList);
+                  _saveIngredients();
+                },
+                child: const Text(
+                  "확인",
+                  style: TextStyle(color: AppColors.textWhite),
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

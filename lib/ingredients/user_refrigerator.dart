@@ -53,6 +53,9 @@
     bool _targetsInitialized = false;
     bool _tutorialShown = false;
 
+    final ScrollController _scrollController = ScrollController();
+    bool _showScrollToTopButton = false;
+
     // 테스트용: 튜토리얼 다시 보기
     Future<void> _resetTutorial() async {
       final prefs = await SharedPreferences.getInstance();
@@ -419,6 +422,8 @@
       //     ).show(context: context);
       //   }
       // });
+
+      _scrollController.addListener(_scrollListener);
     }
 
     @override
@@ -428,7 +433,33 @@
       if (widget.isForRecommendation) {
         selectedIngredients.clear();
       }
+      _scrollController.removeListener(_scrollListener);
+      _scrollController.dispose();
       super.dispose();
+    }
+
+    void _scrollListener() {
+      if (_scrollController.offset >= 200) {  // 200px 이상 스크롤하면
+        if (!_showScrollToTopButton) {
+          setState(() {
+            _showScrollToTopButton = true;  // 버튼 표시
+          });
+        }
+      } else {
+        if (_showScrollToTopButton) {
+          setState(() {
+            _showScrollToTopButton = false;  // 버튼 숨김
+          });
+        }
+      }
+    }
+
+    void _scrollToTop() {
+      _scrollController.animateTo(
+        0,  // 맨 위 위치
+        duration: const Duration(milliseconds: 500),  // 0.5초 동안
+        curve: Curves.easeInOut,  // 부드러운 애니메이션
+      );
     }
 
     // @override
@@ -744,134 +775,141 @@
       final double screenWidth = screenSize.width;
       final double itemWidth =
           (screenWidth - horizontalPadding - (spacing * (columnCount - 1)))
-              / columnCount; // padding(32) + spacing(12) 제외
-      final double itemHeight = 140.0; // 높이 직접 지정 (원하는 값으로 변경 가능)
+              / columnCount;
+      final double itemHeight = 140.0;
       final double bottomPadding =
       widget.isForRecommendation &&
           (selectedIngredients.isNotEmpty || providerFlg)
           ? 80
           : 16;
 
-      return Padding(
+      return Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+            child: SingleChildScrollView(
+              controller: _scrollController, // ★ 스크롤 컨트롤러 연결
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: userIngredients.map((ingredient) {
+                  String name = ingredient['name'] ?? '';
+                  final bool isSelected = _isSelected(ingredient);
+                  final bool isDuplicate = widget.isForRecommendation &&
+                      providerFlg &&
+                      isAlreadyAdded(ingredient['name']!);
 
-        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding), // 하단에 확인 버튼 공간 확보
-        child: SingleChildScrollView(
-          child: Wrap(
-            spacing: 12, // 가로 간격
-            runSpacing: 12, // 세로 간격
-            children: userIngredients.map((ingredient) {
-              String name = ingredient['name'] ?? '';
-              final bool isSelected = _isSelected(ingredient);
-              // 레시피 추천용 모드에서만 중복 체크 (단, Provider에 재료가 없을 때는 중복 체크 안 함)
-              final bool isDuplicate = widget.isForRecommendation &&
-                  providerFlg &&
-                  isAlreadyAdded(ingredient['name']!);
+                  return GestureDetector(
+                    onTap: () {
+                      print('클릭된 재료: $name');
 
-              return GestureDetector(
-                onTap: () {
-                  print('클릭된 재료: $name'); // 👈 항상 출력
-
-                  // 레시피 추천용 모드이고 중복이 아닐 때만 선택 로직 실행
-                  if (widget.isForRecommendation && !isDuplicate) {
-                    setState(() {
-                      if (_isSelected(ingredient)) {
-                        selectedIngredients.removeWhere((item) =>
-                        item['name'] == ingredient['name'] &&
-                            item['category'] == ingredient['category']);
-                      } else {
-                        selectedIngredients.add(ingredient);
+                      if (widget.isForRecommendation && !isDuplicate) {
+                        setState(() {
+                          if (_isSelected(ingredient)) {
+                            selectedIngredients.removeWhere((item) =>
+                            item['name'] == ingredient['name'] &&
+                                item['category'] == ingredient['category']);
+                          } else {
+                            selectedIngredients.add(ingredient);
+                          }
+                        });
                       }
-                    });
-                  }
-                },
-                // onTap: widget.isForRecommendation && !isDuplicate
-                //     ? () {
-                //       setState(() {
-                //         if (_isSelected(ingredient)) {
-                //           selectedIngredients.removeWhere((item) =>
-                //           item['name'] == ingredient['name'] &&
-                //               item['category'] == ingredient['category']);
-                //         } else {
-                //           selectedIngredients.add(ingredient);
-                //         }
-                //       });
-                //     }
-                //     : null, // 관리용 모드에서는 클릭 비활성화
-                child: SizedBox(
-                  width: itemWidth,
-                  height: itemHeight, // 높이 직접 지정
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: isDuplicate
-                          ? Colors.grey.shade300
-                          : isSelected
-                            ? AppColors.secondaryColor.withAlpha(30)
-                            : Colors.white,
-                      border: Border.all(
-                          color: AppColors.primaryColor,
-                          width: 1
+                    },
+                    child: SizedBox(
+                      width: itemWidth,
+                      height: itemHeight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: isDuplicate
+                              ? Colors.grey.shade300
+                              : isSelected
+                              ? AppColors.secondaryColor.withAlpha(30)
+                              : Colors.white,
+                          border: Border.all(
+                              color: AppColors.primaryColor,
+                              width: 1
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 6,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 15,),
+                            Expanded(
+                              flex: 2,
+                              child: Image.asset(
+                                'assets/ingredientIcons/${ingredient['name']}.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.fastfood, size: 24, color: Colors.grey),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                ingredient['name'] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenSize.width * 0.038,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                ingredient['category'] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenSize.width * 0.028,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 6,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 15,),
-                        Expanded(
-                          flex: 2,
-                          child: Image.asset(
-                            'assets/ingredientIcons/${ingredient['name']}.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.fastfood, size: 24, color: Colors.grey),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            ingredient['name'] ?? '',
-                            style: TextStyle(
-                              fontSize: screenSize.width * 0.038,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        // const SizedBox(height: 1),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            ingredient['category'] ?? '',
-                            style: TextStyle(
-                              fontSize: screenSize.width * 0.028,
-                              color: Colors.grey[600],
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
-        ),
+          // ★ 맨 위로 가기 버튼 추가
+          if (_showScrollToTopButton)
+            Positioned(
+              left: MediaQuery.of(context).size.width / 2 - 20,
+              bottom: widget.isForRecommendation &&
+                  (selectedIngredients.isNotEmpty || providerFlg)
+                  ? 80  // 확인 버튼이 있을 때는 그 위에 배치
+                  : 16, // 없을 때는 하단에 배치
+              child: FloatingActionButton(
+                heroTag: 'scrollToTop',
+                mini: true,
+                backgroundColor: AppColors.primaryColor,
+                elevation: 4,
+                onPressed: _scrollToTop,
+                child: const Icon(
+                  Icons.arrow_upward,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
       );
     }
-
   }

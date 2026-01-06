@@ -30,6 +30,7 @@ class SelectScreen extends StatefulWidget {
 class _SelectScreenState extends State<SelectScreen> {
   final IngredientService _service = IngredientService();
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   List<String> categoryTabs = [];
   List<String> ingredientList = [];
@@ -37,6 +38,8 @@ class _SelectScreenState extends State<SelectScreen> {
 
   int selectedCategoryIndex = 0;
   final Set<String> selectedIngredients = {};
+
+  bool _showScrollToTopButton = false;
 
   @override
   void initState() {
@@ -48,6 +51,41 @@ class _SelectScreenState extends State<SelectScreen> {
     if(!widget.isInitialFlow){
       _syncWithProvider();
     }
+
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    // 스크롤 위치가 200 이상이면 버튼 표시
+    if (_scrollController.offset >= 200) {
+      if (!_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = true;
+        });
+      }
+    } else {
+      if (_showScrollToTopButton) {
+        setState(() {
+          _showScrollToTopButton = false;
+        });
+      }
+    }
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _loadData() async {
@@ -134,61 +172,87 @@ class _SelectScreenState extends State<SelectScreen> {
             selectedIndex: selectedCategoryIndex,
             onCategoryChanged: _onCategoryChanged,
           ),
+          SizedBox(height: 13,),
           Expanded(
             child: IngredientGrid(
               ingredients: filteredIngredients,
               selectedIngredients: selectedIngredients,
               onIngredientTap: _onIngredientTap,
+              scrollController: _scrollController,
             ),
           ),
         ],
       ),
-      floatingActionButton: selectedIngredients.isNotEmpty
-          ? ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          backgroundColor: AppColors.primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        onPressed: () {
-          final selectedList = selectedIngredients.toList();
-
-          // Provider에 임시 저장
-          final provider = context.read<TempIngredientProvider>();
-          
-          if (widget.isInitialFlow) {
-            // 최초 진입인 경우: 기존 재료 제거하고 새로 선택한 재료만 추가
-            provider.clearAll();
-            provider.addAll(selectedList);
-          } else {
-            // 재료 편집 화면에서 진입한 경우: 기존 재료 유지하고 새로 선택한 재료 추가
-            provider.clearAll();
-            provider.addAll(selectedList);
-            // provider.addAll(selectedList);
-          }
-
-          // ★ SelectScreen은 이동 책임을 버리고 pop만 수행
-          Navigator.pop(context);
-
-          // ★ 최초 진입인 경우에만 ingreCheck로 이동
-          if (widget.isInitialFlow) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const IngrecheckScreen(),
+      floatingActionButton: Stack(
+        children: [
+          // 맨 위로 가기 버튼 (중앙 하단)
+          if (_showScrollToTopButton)
+            Positioned(
+              left: MediaQuery.of(context).size.width / 2 - 20, // 화면 중앙에 배치
+              bottom: 0,
+              child: FloatingActionButton(
+                heroTag: 'scrollToTop',
+                mini: true,
+                backgroundColor: AppColors.primaryColor,
+                elevation: 4,
+                onPressed: _scrollToTop,
+                child: const Icon(
+                  Icons.arrow_upward,
+                  color: AppColors.textWhite,
+                ),
               ),
-            );
-          }
-        },
-        child: const Text(
-          "확인",
-          style: TextStyle(color: AppColors.textWhite),
-        ),
-      )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            ),
+          // 확인 버튼 (우측 하단)
+          if (selectedIngredients.isNotEmpty)
+            Positioned(
+              right: 20,
+              bottom: 0,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () {
+                  final selectedList = selectedIngredients.toList();
+
+                  // Provider에 임시 저장
+                  final provider = context.read<TempIngredientProvider>();
+
+                  if (widget.isInitialFlow) {
+                    // 최초 진입인 경우: 기존 재료 제거하고 새로 선택한 재료만 추가
+                    provider.clearAll();
+                    provider.addAll(selectedList);
+                  } else {
+                    // 재료 편집 화면에서 진입한 경우: 기존 재료 유지하고 새로 선택한 재료 추가
+                    provider.clearAll();
+                    provider.addAll(selectedList);
+                  }
+
+                  // ★ SelectScreen은 이동 책임을 버리고 pop만 수행
+                  Navigator.pop(context);
+
+                  // ★ 최초 진입인 경우에만 ingreCheck로 이동
+                  if (widget.isInitialFlow) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const IngrecheckScreen(),
+                      ),
+                    );
+                  }
+                },
+                child: const Text(
+                  "확인",
+                  style: TextStyle(color: AppColors.textWhite),
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
