@@ -81,6 +81,7 @@ flutter:
     - assets/image/
     - assets/post_bg/
     - assets/ingredientIcons/
+    - assets/banner_recipe/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

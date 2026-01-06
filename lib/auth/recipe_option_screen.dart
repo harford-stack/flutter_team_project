@@ -233,15 +233,15 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                           children: [
                             Image.asset(
                               'assets/icon/icon_option1.png',
-                              width: 34,
-                              height: 34,
+                              width: 40,
+                              height: 40,
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               '간단 야식도!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark,
                               ),
@@ -263,15 +263,15 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                           children: [
                             Image.asset(
                               'assets/icon/icon_option2.png',
-                              width: 34,
-                              height: 34,
+                              width: 40,
+                              height: 40,
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               '캠핑 음식도!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark,
                               ),
@@ -293,15 +293,15 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                           children: [
                             Image.asset(
                               'assets/icon/icon_option3.png',
-                              width: 34,
-                              height: 34,
+                              width: 40,
+                              height: 40,
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               '도시락 메뉴도!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark,
                               ),
@@ -363,7 +363,7 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                                     elevation: 2,
                                   ),
                                   child: const Text(
-                                    '촬영 또는\n앨범 사진',
+                                    '촬영 또는 앨범 사진',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -392,7 +392,7 @@ class _RecipeOptionScreenState extends State<RecipeOptionScreen> {
                                     elevation: 2,
                                   ),
                                   child: const Text(
-                                    '재료 직접\n선택',
+                                    '재료 직접 선택',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
