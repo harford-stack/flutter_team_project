@@ -58,7 +58,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
     if (index == 1) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => UserRefrigerator(),
+          builder: (context) => const UserRefrigerator(),
         ),
         (route) => false,
       );

@@ -41,7 +41,7 @@ class CustomFooter extends StatelessWidget {
                       child: _buildFooterItem(
                         icon: null,
                         iconAsset: 'assets/icon/icon_recipe.png',
-                        label: '레시피&',
+                        label: '레시피',
                         index: 0,
                         isSelected: currentIndex == 0,
                       ),
