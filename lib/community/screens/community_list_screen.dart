@@ -26,6 +26,7 @@ import '../../common/custom_footer.dart';
 import 'community_detail_screen.dart';
 import 'post_editor_screen.dart';
 import '../../auth/home_screen.dart';
+import '../../ingredients/user_refrigerator.dart';
 
 ///할 일:
 //1.try-catch를 _loadPosts에다 추가
@@ -127,11 +128,11 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     if (index == 2) {
       return; // 현재 화면(커뮤니티)이므로 아무것도 안 함
     } else if (index == 1) {
-      // 두 번째 탭 - 홈 화면의 1번 인덱스로 이동
+      // 두 번째 탭 - 내 냉장고 화면으로 직접 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(initialIndex: 1),
+          builder: (context) => const UserRefrigerator(),
         ),
       );
     } else if (index == 0) {
@@ -186,16 +187,22 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
         ],
       ),
       // 게시글 작성 버튼 (화면 하단 중앙에 떠있는 버튼)
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(
-          bottom: widget.showAppBarAndFooter ? 80 : 16, // 하단바 있으면 위로 올리기
-        ),
-        child: FloatingActionButton(
-          onPressed: _navigateToCreatePost, // 클릭 시 작성 화면으로
-          backgroundColor: AppColors.primaryColor,
-          child: Icon(Icons.add, color: Colors.white),
-        ),
-      ),
+      floatingActionButton: widget.showAppBarAndFooter
+          ? Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom, // SafeArea + Footer 높이
+              ),
+              child: FloatingActionButton(
+                onPressed: _navigateToCreatePost, // 클릭 시 작성 화면으로
+                backgroundColor: AppColors.primaryColor,
+                child: Icon(Icons.add, color: Colors.white),
+              ),
+            )
+          : FloatingActionButton(
+              onPressed: _navigateToCreatePost, // 클릭 시 작성 화면으로
+              backgroundColor: AppColors.primaryColor,
+              child: Icon(Icons.add, color: Colors.white),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: widget.showAppBarAndFooter
           ? CustomFooter(
