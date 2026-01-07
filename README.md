@@ -26,7 +26,7 @@
 
 ## 📆 개발 기간
 
-25.12.22 ~ 26.01.07
+25.12.22 ~ 26.01.08
 
 ---
 
@@ -81,6 +81,14 @@
 
 - **알림 목록**: 좋아요, 댓글 등 다양한 알림
 - **실시간 업데이트**: 새로운 알림 즉시 확인
+
+---
+
+## 🎞시연 영상
+- [시연 영상 - 레시피](https://drive.google.com/file/d/1TPqrsv1HfOuypzmF15YKfcdcK_kkpxq0/view?usp=sharing)
+- [시연 영상 - 사용자 인증](https://drive.google.com/file/d/1dn4GZvbSlUclIDuYLoQFCsw9QQXmMJoF/view?usp=sharing)
+- [시연 영상 - 재료 관리](https://drive.google.com/file/d/1tJtbaObTNpCF5yX9e-aY7ZuXjlsFt6qT/view?usp=sharing)
+- [시연 영상 - 커뮤니티&알림 시스템](https://drive.google.com/file/d/1FtAhvKH7XS97wUC3J0onWJ-WjTDgdQ7q/view?usp=sharing)
 
 ---
 
