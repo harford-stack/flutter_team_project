@@ -591,7 +591,8 @@
                       context,
                       MaterialPageRoute(builder: (_) => UserIngredientAdd()),
                     );
-                    _getUserIngredients();
+                    await _getUserIngredients();
+                    // UserIngredientAdd에서 이미 알림을 표시했으므로 여기서는 표시하지 않음
                   },
                 ),
                 SpeedDialChild(
@@ -740,7 +741,8 @@
                       context,
                       MaterialPageRoute(builder: (_) => UserIngredientAdd()),
                     );
-                    _getUserIngredients();
+                    await _getUserIngredients();
+                    // UserIngredientAdd에서 이미 알림을 표시했으므로 여기서는 표시하지 않음
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor, // 버튼 배경색

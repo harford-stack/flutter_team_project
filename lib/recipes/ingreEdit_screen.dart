@@ -37,12 +37,34 @@ class IngreeditScreen extends StatefulWidget {
 }
 
 class _IngreeditScreenState extends State<IngreeditScreen> {
+  // 테마 목록 (음식을 먹는 분위기나 목적)
+  final List<String> _themes = [
+    '다이어트 / 건강식',
+    '든든한 한끼',
+    '아이 간식',
+    '특별한 날 / 파티',
+    '간단한 요리',
+    '훈훈한 국물요리',
+    '바삭한 식감',
+    '달콤한 디저트',
+    '매콤한 맛',
+    '시원한 음식',
+    '따뜻한 음식',
+    '초간단 5분 요리',
+    '손님 접대용',
+    '반찬 만들기',
+    '야식 / 간식',
+  ];
 
-  final TextEditingController _keywordController = TextEditingController(); // 키워드 입력 컨트롤러
+  final List<String> _selectedThemes = []; // 선택된 테마들
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
-    _keywordController.dispose();
     super.dispose();
   }
 
@@ -281,15 +303,21 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                                   ),
                                                 ),
                                                 TextButton(
-                                                  onPressed: () {
+                                                  onPressed: () async {
                                                     Navigator.pop(context);
-                                                    Navigator.push(
+                                                    await Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
-                                                        // ★ ingreEdit에서 진입 → 최초 진입 아님
-                                                        builder: (context) => const SelectScreen(isInitialFlow: false),
+                                                        // ★ ingreEdit에서 진입 → 최초 진입 아님 + 직접 입력 허용
+                                                        // 레시피 추천용이므로 saveToRefrigerator: false (카테고리 선택 불필요)
+                                                        builder: (context) => const SelectScreen(
+                                                          isInitialFlow: false,
+                                                          enableCustomInput: true,
+                                                          saveToRefrigerator: false,
+                                                        ),
                                                       ),
                                                     );
+                                                    // SelectScreen에서 이미 알림을 표시했으므로 여기서는 표시하지 않음
                                                   },
                                                   child: Text(
                                                       "재료 목록에서 선택하기",
@@ -338,9 +366,9 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                         ),
                       ),
                     ),
-                    // 위 박스와 키워드 입력 박스 사이 간격
+                    // 위 박스와 테마 선택 박스 사이 간격
                     const SizedBox(height: 16),
-                    // 키워드 입력 영역을 담는 별도 박스
+                    // 테마 선택 영역을 담는 별도 박스
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Container(
@@ -360,27 +388,54 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Text("키워드 선택(직접 입력)", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
+                            // Text("테마 선택", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
                             Image.asset("assets/recipe_keyword.png", width: 285), // 이미지 크기 소폭 축소
-                            SizedBox(height: 10),
-                            SizedBox(
-                              width: 300,
-                              child: TextField(
-                                controller: _keywordController,
-                                decoration: InputDecoration(
-                                  hintText: "ex) 다이어트 / 목록에 없는 재료도 입력 가능!",
-                                  hintStyle: TextStyle(
-                                    fontSize: 13.0,
+                            const SizedBox(height: 20),
+                            // 테마 선택 버튼들 (Wrap으로 배치)
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              alignment: WrapAlignment.center,
+                              children: _themes.map((theme) {
+                                final isSelected = _selectedThemes.contains(theme);
+                                return ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedThemes.remove(theme);
+                                      } else {
+                                        _selectedThemes.add(theme);
+                                      }
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isSelected
+                                        ? AppColors.primaryColor
+                                        : Colors.grey[200],
+                                    foregroundColor: isSelected
+                                        ? AppColors.textWhite
+                                        : AppColors.textDark,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    elevation: isSelected ? 2 : 0,
                                   ),
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                  isDense: true, // 입력창 높이 최적화
-                                ),
-                              ),
+                                  child: Text(
+                                    theme,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
 
-                            SizedBox(height: 40), // 간격 소폭 축소
+                            const SizedBox(height: 40), // 간격 소폭 축소
 
                             Row(
                               children: [
@@ -390,15 +445,16 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                         FocusScope.of(context).unfocus(); // 키보드 숨기기
                                         if (ingredients.isEmpty) {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
+                                            const SnackBar(
                                               content: Text('인식된 재료는 최소 1개 이상이어야 합니다.'),
                                               duration: Duration(seconds: 2),
-                                              behavior: SnackBarBehavior.floating,
+                                              behavior: SnackBarBehavior.fixed,
                                             ),
                                           );
                                         } else {
-                                          // ★ Provider에 현재 입력된 "키워드" 저장 후
-                                          context.read<TempIngredientProvider>().setKeyword(_keywordController.text.trim());
+                                          // ★ Provider에 선택된 테마들을 저장 (쉼표로 구분된 문자열로)
+                                          final themesString = _selectedThemes.join(', ');
+                                          context.read<TempIngredientProvider>().setKeyword(themesString);
 
                                           // ★ 기존 ShakeCheck 대신 ShakeDialog 호출 (깜빡임 방지용 통합 관리자)
                                           showFadeDialog(
