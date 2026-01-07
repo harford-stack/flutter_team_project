@@ -1,18 +1,21 @@
+// ==================================================================================
+// 1. comment_input.dart - 댓글 입력창 컴포넌트
+// ==================================================================================
 // community/widgets/community_detail/comment_input.dart
 
 import 'package:flutter/material.dart';
 import '../../models/comment_model.dart';
 import '../../../common/app_colors.dart';
 
-/// 评论输入框组件
+/// 댓글 입력창 메인 컴포넌트
 class CommentInput extends StatelessWidget {
-  final bool isExpanded;
-  final Comment? replyingTo;
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final VoidCallback onExpand;
-  final VoidCallback onCancel;
-  final VoidCallback onSubmit;
+  final bool isExpanded; // 입력창 확장 여부
+  final Comment? replyingTo; // 답글 대상 댓글
+  final TextEditingController controller; // 텍스트 입력 컨트롤러
+  final FocusNode focusNode; // 포커스 노드
+  final VoidCallback onExpand; // 확장 콜백
+  final VoidCallback onCancel; // 취소 콜백
+  final VoidCallback onSubmit; // 제출 콜백
 
   const CommentInput({
     Key? key,
@@ -52,7 +55,7 @@ class CommentInput extends StatelessWidget {
   }
 }
 
-/// 折叠状态的输入框
+/// 축소된 상태의 입력창
 class CollapsedCommentInput extends StatelessWidget {
   final VoidCallback onExpand;
 
@@ -67,7 +70,6 @@ class CollapsedCommentInput extends StatelessWidget {
       onTap: onExpand,
       child: Row(
         children: [
-          Icon(Icons.comment),
           SizedBox(width: 8),
           Text('댓글을 작성하세요...'),
         ],
@@ -76,7 +78,7 @@ class CollapsedCommentInput extends StatelessWidget {
   }
 }
 
-/// 展开状态的输入框
+/// 확장된 상태의 입력창
 class ExpandedCommentInput extends StatelessWidget {
   final Comment? replyingTo;
   final TextEditingController controller;
@@ -112,7 +114,7 @@ class ExpandedCommentInput extends StatelessWidget {
   }
 }
 
-/// 回复目标头部
+/// 답글 대상 헤더
 class ReplyingToHeader extends StatelessWidget {
   final Comment replyingTo;
   final VoidCallback onCancel;
@@ -127,23 +129,14 @@ class ReplyingToHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          '${replyingTo.nickName}님에게 답글',
-          style:TextStyle(
-            fontSize: 15
-          )
-        ),
+        Text('${replyingTo.nickName}님에게 답글', style: TextStyle(fontSize: 15)),
         Spacer(),
-        IconButton(
-          icon: Icon(Icons.close),
-          onPressed: onCancel,
-        ),
       ],
     );
   }
 }
 
-/// 评论输入文本框
+/// 댓글 입력 텍스트 필드
 class CommentInputField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -183,10 +176,6 @@ class CommentInputField extends StatelessWidget {
               ),
             ),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.send, color: AppColors.primaryColor),
-          onPressed: onSubmit,
         ),
       ],
     );

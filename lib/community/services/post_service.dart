@@ -1,25 +1,55 @@
+// ============================================
+// lib/community/services/post_service.dart
+// 역할: 게시글 CRUD 및 조회
+// ============================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../models/post_model.dart';
 
-/// PostService 扩展版 - 包含 CRUD 完整功能
+/// 게시글 서비스
+///
+/// 주요 기능:
+/// 1. 게시글 목록 조회 (검색, 정렬, 필터링)
+/// 2. 게시글 생성 (이미지 업로드 포함)
+/// 3. 게시글 수정
+/// 4. 게시글 삭제
+/// 5. 내 게시글 조회
 class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  /// ========== 查询功能（保留原有代码）==========
+  /// ========================================
+  /// 게시글 목록 조회
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - searchQuery: 검색어 (제목 또는 내용에서 검색)
+  /// - sortOrder: 정렬 순서 ('최신순' 또는 '인기순')
+  /// - categories: 카테고리 필터 (null이면 전체)
+  ///
+  /// 리턴:
+  /// - List<Post> - 게시글 리스트
+  ///
+  /// 작동 방식:
+  /// 1. Firestore 쿼리 구성 (카테고리, 정렬)
+  /// 2. 데이터 가져오기
+  /// 3. 검색어로 클라이언트 필터링 (Firestore 검색 제약 때문)
   Future<List<Post>> getPosts({
     String? searchQuery,
     String sortOrder = '최신순',
     List<String>? categories,
   }) async {
+    // ===== 1단계: 기본 쿼리 설정 =====
     Query query = _firestore.collection('post');
 
+    // ===== 2단계: 카테고리 필터링 =====
     if (categories != null && categories.isNotEmpty) {
       query = query.where('category', whereIn: categories);
     }
 
+    // ===== 3단계: 정렬 =====
     switch (sortOrder) {
       case '최신순':
         query = query.orderBy('cdate', descending: true);
@@ -29,11 +59,14 @@ class PostService {
         break;
     }
 
+    // ===== 4단계: 쿼리 실행 =====
     final snapshot = await query.get();
     List<Post> posts = snapshot.docs
         .map((doc) => Post.fromFirestore(doc))
         .toList();
 
+    // ===== 5단계: 검색어 필터링 (클라이언트) =====
+    // Firestore의 텍스트 검색 제약으로 인해 클라이언트에서 처리
     if (searchQuery != null && searchQuery.isNotEmpty) {
       posts = posts.where((post) {
         return post.title.contains(searchQuery) ||
@@ -44,15 +77,28 @@ class PostService {
     return posts;
   }
 
-  /// ========== 创建帖子 ==========
-  /// 参数:
-  /// - title: 标题
-  /// - content: 内容
-  /// - category: 分类
-  /// - userId: 用户ID
-  /// - nickName: 用户昵称
-  /// - imageFile: 图片文件（可选）
-  /// 返回: 成功返回帖子ID，失败返回null
+  /// ========================================
+  /// 게시글 생성
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - title: 제목
+  /// - content: 내용
+  /// - category: 분류
+  /// - userId: 사용자 ID
+  /// - nickName: 사용자 닉네임
+  /// - imageFile: 이미지 파일 (선택사항)
+  ///
+  /// 리턴:
+  /// - String? - 성공 시 게시글 ID, 실패 시 null
+  ///
+  /// 작동 방식:
+  /// 1. 이미지가 있으면 Storage에 업로드
+  /// 2. 게시글 데이터 구성
+  /// 3. Firestore에 문서 추가
+  ///
+  /// 에러 처리:
+  /// - 이미지 업로드 실패 시 예외를 다시 던져서 UI에서 처리
   Future<String?> createPost({
     required String title,
     required String content,
@@ -64,7 +110,7 @@ class PostService {
     try {
       String thumbnailUrl = '';
 
-      // 如果有图片，先上传到 Firebase Storage
+      // ===== 1단계: 이미지 업로드 (있으면) =====
       if (imageFile != null) {
         try {
           thumbnailUrl = await _uploadImage(imageFile, userId);
@@ -72,14 +118,12 @@ class PostService {
             throw Exception('이미지 업로드에 실패했습니다');
           }
         } catch (e) {
-          print('이미지 업로드 실패: $e');
-          // 이미지 업로드 실패해도 게시글은 작성 가능 (이미지 없이)
-          // 하지만 사용자에게 알려주기 위해 예외를 다시 던짐
+          // 이미지 업로드 실패 시 예외를 다시 던짐
           rethrow;
         }
       }
 
-      // 创建帖子数据
+      // ===== 2단계: 게시글 데이터 구성 =====
       final postData = {
         'title': title,
         'content': content,
@@ -94,26 +138,34 @@ class PostService {
         'udate': null,
       };
 
-      // 添加到 Firestore
+      // ===== 3단계: Firestore에 추가 =====
       final docRef = await _firestore.collection('post').add(postData);
 
-      print('게시글 작성 성공: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      print('게시글 작성 실패: $e');
-      rethrow; // 예외를 다시 던져서 UI에서 처리할 수 있도록
+      rethrow; // 예외를 다시 던져서 UI에서 처리
     }
   }
 
-  /// ========== 修改帖子 ==========
-  /// 参数:
-  /// - postId: 帖子ID
-  /// - title: 新标题
-  /// - content: 新内容
-  /// - category: 新分类
-  /// - newImageFile: 新图片（可选，如果不传则保留原图）
-  /// - deleteImage: 是否删除原图
-  /// 返回: bool - true=成功, false=失败
+  /// ========================================
+  /// 게시글 수정
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - postId: 게시글 ID
+  /// - title: 새 제목
+  /// - content: 새 내용
+  /// - category: 새 분류
+  /// - newImageFile: 새 이미지 (선택사항)
+  /// - deleteImage: 기존 이미지 삭제 여부
+  ///
+  /// 리턴:
+  /// - bool - 성공 여부
+  ///
+  /// 작동 방식:
+  /// 1. 기존 게시글 데이터 조회
+  /// 2. 이미지 처리 (삭제/교체)
+  /// 3. 게시글 데이터 업데이트
   Future<bool> updatePost({
     required String postId,
     required String title,
@@ -123,31 +175,30 @@ class PostService {
     bool deleteImage = false,
   }) async {
     try {
-      // 获取原帖子数据
+      // ===== 1단계: 기존 게시글 데이터 조회 =====
       final docSnapshot = await _firestore.collection('post').doc(postId).get();
       if (!docSnapshot.exists) {
-        print('게시글을 찾을 수 없습니다');
         return false;
       }
 
       final oldData = docSnapshot.data()!;
       String thumbnailUrl = oldData['thumbnailUrl'] ?? '';
 
-      // 处理图片更新逻辑
+      // ===== 2단계: 이미지 처리 =====
       if (deleteImage && thumbnailUrl.isNotEmpty) {
-        // 删除旧图片
+        // 기존 이미지 삭제
         await _deleteImage(thumbnailUrl);
         thumbnailUrl = '';
       } else if (newImageFile != null) {
-        // 如果有旧图，先删除
+        // 기존 이미지가 있으면 삭제
         if (thumbnailUrl.isNotEmpty) {
           await _deleteImage(thumbnailUrl);
         }
-        // 上传新图
+        // 새 이미지 업로드
         thumbnailUrl = await _uploadImage(newImageFile, oldData['userId']);
       }
 
-      // 更新帖子数据
+      // ===== 3단계: 게시글 데이터 업데이트 =====
       final updateData = {
         'title': title,
         'content': content,
@@ -159,35 +210,45 @@ class PostService {
 
       await _firestore.collection('post').doc(postId).update(updateData);
 
-      print('게시글 수정 성공');
       return true;
     } catch (e) {
-      print('게시글 수정 실패: $e');
       return false;
     }
   }
 
-  /// ========== 删除帖子 ==========
-  /// 参数: postId - 帖子ID
-  /// 返回: bool - true=成功, false=失败
+  /// ========================================
+  /// 게시글 삭제
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - postId: 게시글 ID
+  ///
+  /// 리턴:
+  /// - bool - 성공 여부
+  ///
+  /// 작동 방식:
+  /// 1. 게시글 데이터 조회
+  /// 2. 이미지 삭제 (있으면)
+  /// 3. 모든 댓글 삭제
+  /// 4. 모든 북마크 삭제
+  /// 5. 게시글 문서 삭제
   Future<bool> deletePost(String postId) async {
     try {
-      // 1. 获取帖子数据
+      // ===== 1단계: 게시글 데이터 조회 =====
       final docSnapshot = await _firestore.collection('post').doc(postId).get();
       if (!docSnapshot.exists) {
-        print('게시글을 찾을 수 없습니다');
         return false;
       }
 
       final data = docSnapshot.data()!;
       final thumbnailUrl = data['thumbnailUrl'] ?? '';
 
-      // 2. 删除图片（如果有）
+      // ===== 2단계: 이미지 삭제 (있으면) =====
       if (thumbnailUrl.isNotEmpty) {
         await _deleteImage(thumbnailUrl);
       }
 
-      // 3. 删除所有评论
+      // ===== 3단계: 모든 댓글 삭제 =====
       final commentsSnapshot = await _firestore
           .collection('post')
           .doc(postId)
@@ -198,7 +259,7 @@ class PostService {
         await doc.reference.delete();
       }
 
-      // 4. 删除所有收藏记录
+      // ===== 4단계: 모든 북마크 삭제 =====
       final bookmarksSnapshot = await _firestore
           .collection('post')
           .doc(postId)
@@ -209,97 +270,34 @@ class PostService {
         await doc.reference.delete();
       }
 
-      // 5. 删除帖子本身
+      // ===== 5단계: 게시글 문서 삭제 =====
       await _firestore.collection('post').doc(postId).delete();
 
-      print('게시글 삭제 성공');
       return true;
     } catch (e) {
-      print('게시글 삭제 실패: $e');
       return false;
     }
   }
 
-  /// ========== 辅助方法：上传图片 ==========
-  Future<String> _uploadImage(File imageFile, String userId) async {
-    try {
-      print('이미지 업로드 시작...');
-      print('파일 경로: ${imageFile.path}');
-
-      // 파일 존재 확인
-      if (!await imageFile.exists()) {
-        print('파일이 존재하지 않습니다');
-        throw Exception('파일이 존재하지 않습니다');
-      }
-
-      // 파일 크기 확인 (10MB 제한)
-      final fileSize = await imageFile.length();
-      if (fileSize > 10 * 1024 * 1024) {
-        print('파일 크기가 너무 큽니다 (최대 10MB)');
-        throw Exception('이미지 크기는 10MB 이하여야 합니다');
-      }
-
-      final fileName = 'posts/${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      print('Storage 경로: $fileName');
-
-      final ref = _storage.ref().child(fileName);
-
-      print('⬆업로드 중...');
-      // 업로드 실행
-      await ref.putFile(
-        imageFile,
-        SettableMetadata(
-          contentType: 'image/jpeg',
-          cacheControl: 'max-age=3600',
-        ),
-      );
-
-      print('업로드 성공, URL 가져오는 중...');
-      final downloadUrl = await ref.getDownloadURL();
-
-      print('URL 가져오기 성공: $downloadUrl');
-      return downloadUrl;
-    } on FirebaseException catch (e) {
-      print('Firebase Storage 오류: ${e.code} - ${e.message}');
-      if (e.code == 'unauthorized') {
-        throw Exception('업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.');
-      } else if (e.code == 'quota-exceeded') {
-        throw Exception('Storage 용량이 초과되었습니다.');
-      } else {
-        throw Exception('이미지 업로드 실패: ${e.message}');
-      }
-    } catch (e) {
-      print('이미지 업로드 실패: $e');
-      print('오류 타입: ${e.runtimeType}');
-      rethrow;
-    }
-  }
-
-  /// ========== 辅助方法：删除图片 ==========
-  Future<void> _deleteImage(String imageUrl) async {
-    try {
-      if (imageUrl.isEmpty) return;
-
-      // 从 URL 中提取 Storage 路径
-      final ref = _storage.refFromURL(imageUrl);
-      await ref.delete();
-      print('이미지 삭제 성공');
-    } catch (e) {
-      print('이미지 삭제 실패: $e');
-    }
-  }
-
+  /// ========================================
+  /// 내 게시글 조회
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - userId: 사용자 ID
+  /// - category: 카테고리 필터 (선택사항)
+  ///
+  /// 리턴:
+  /// - List<Post> - 내 게시글 리스트 (최신순)
   Future<List<Post>> getMyPosts({
     required String userId,
     String? category,
   }) async {
     try {
-      print('📝 내 게시글 조회: userId=$userId, category=$category');
-
       // ===== 1단계: 기본 쿼리 설정 (userId 필터링) =====
       Query query = _firestore
-          .collection('post')  // ⚠ post 컬렉션 (최상위)
-          .where('userId', isEqualTo: userId);  // 내가 쓴 글만
+          .collection('post')
+          .where('userId', isEqualTo: userId);
 
       // ===== 2단계: 카테고리 필터링 (선택적) =====
       if (category != null && category.isNotEmpty) {
@@ -312,18 +310,97 @@ class PostService {
       // ===== 4단계: 쿼리 실행 =====
       final snapshot = await query.get();
 
-      print('내 게시글 ${snapshot.docs.length}개 발견');
-
       // ===== 5단계: Post 모델로 변환 =====
       List<Post> myPosts = snapshot.docs
           .map((doc) => Post.fromFirestore(doc))
           .toList();
 
-      print('내 게시글 ${myPosts.length}개 로드 완료');
       return myPosts;
     } catch (e) {
-      print('내 게시글 조회 실패: $e');
       return [];
+    }
+  }
+
+  /// ========================================
+  /// 보조 함수: 이미지 업로드
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - imageFile: 업로드할 이미지 파일
+  /// - userId: 사용자 ID (폴더 구분용)
+  ///
+  /// 리턴:
+  /// - String - 다운로드 URL
+  ///
+  /// 작동 방식:
+  /// 1. 파일 존재 및 크기 확인 (10MB 제한)
+  /// 2. Storage에 업로드
+  /// 3. 다운로드 URL 반환
+  ///
+  /// 에러 처리:
+  /// - 권한 오류: 'unauthorized'
+  /// - 용량 초과: 'quota-exceeded'
+  /// - 기타 오류: 상세 메시지와 함께 예외 발생
+  Future<String> _uploadImage(File imageFile, String userId) async {
+    try {
+      // 파일 존재 확인
+      if (!await imageFile.exists()) {
+        throw Exception('파일이 존재하지 않습니다');
+      }
+
+      // 파일 크기 확인 (10MB 제한)
+      final fileSize = await imageFile.length();
+      if (fileSize > 10 * 1024 * 1024) {
+        throw Exception('이미지 크기는 10MB 이하여야 합니다');
+      }
+
+      final fileName = 'posts/${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final ref = _storage.ref().child(fileName);
+
+      // 업로드 실행
+      await ref.putFile(
+        imageFile,
+        SettableMetadata(
+          contentType: 'image/jpeg',
+          cacheControl: 'max-age=3600',
+        ),
+      );
+
+      final downloadUrl = await ref.getDownloadURL();
+
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      if (e.code == 'unauthorized') {
+        throw Exception('업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.');
+      } else if (e.code == 'quota-exceeded') {
+        throw Exception('Storage 용량이 초과되었습니다.');
+      } else {
+        throw Exception('이미지 업로드 실패: ${e.message}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// ========================================
+  /// 보조 함수: 이미지 삭제
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - imageUrl: 삭제할 이미지 URL
+  ///
+  /// 작동 방식:
+  /// - URL에서 Storage 경로 추출하여 삭제
+  Future<void> _deleteImage(String imageUrl) async {
+    try {
+      if (imageUrl.isEmpty) return;
+
+      // URL에서 Storage 참조 추출
+      final ref = _storage.refFromURL(imageUrl);
+      await ref.delete();
+    } catch (e) {
+      // 이미지 삭제 실패는 치명적이지 않으므로 로그만 남김
     }
   }
 }

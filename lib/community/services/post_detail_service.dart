@@ -1,18 +1,29 @@
-// ========================================
-// post_detail_service.dart
-// ========================================
+// ============================================
+// lib/community/services/post_detail_service.dart
+// 역할: 게시글 상세 조회 및 북마크 처리
+// ============================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/post_model.dart';
 
-/// 帖子详情页专用服务
-/// 负责单个帖子的 CRUD 操作和互动功能
+/// 게시글 상세 서비스
+///
+/// 주요 기능:
+/// 1. 게시글 상세 정보 조회
+/// 2. 북마크 상태 확인
+/// 3. 북마크 추가/삭제
 class PostDetailService {
-  // Firestore 实例
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// 根据 ID 获取单个帖子详情
-  /// 参数: postId - 帖子的唯一标识符
-  /// 返回: Post? - 找到则返回 Post 对象,找不到返回 null
+  /// ========================================
+  /// ID로 게시글 조회
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - postId: 게시글 ID
+  ///
+  /// 리턴:
+  /// - Post? - 게시글 객체 (없으면 null)
   Future<Post?> getPostById(String postId) async {
     try {
       final doc = await _firestore
@@ -25,16 +36,24 @@ class PostDetailService {
       }
       return null;
     } catch (e) {
-      print('게시글 조회 실패: $e');
       return null;
     }
   }
 
-  /// 检查用户是否已收藏此帖
+  /// ========================================
+  /// 북마크 상태 확인
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - postId: 게시글 ID
+  /// - userId: 사용자 ID
+  ///
+  /// 리턴:
+  /// - bool - 북마크 했으면 true, 아니면 false
   Future<bool> isBookmarked(String postId, String userId) async {
     try {
       final bookmarkSnapshot = await _firestore
-          .collection('users')  // 改这里
+          .collection('users')
           .doc(userId)
           .collection('UserBookmark')
           .where('postId', isEqualTo: postId)
@@ -42,16 +61,27 @@ class PostDetailService {
 
       return bookmarkSnapshot.docs.isNotEmpty;
     } catch (e) {
-      print('북마크 상태 확인 실패: $e');
       return false;
     }
   }
 
-  /// 切换收藏状态
-  /// 参数:
-  /// - postId: 帖子 ID
-  /// - userId: 用户 ID
-  /// - isBookmarking: true=收藏, false=取消收藏
+  /// ========================================
+  /// 북마크 토글
+  /// ========================================
+  ///
+  /// 파라미터:
+  /// - postId: 게시글 ID
+  /// - userId: 사용자 ID
+  /// - post: 게시글 객체
+  /// - isBookmarking: true=추가, false=삭제
+  ///
+  /// 작동 방식:
+  /// 1. isBookmarking=true:
+  ///    - 중복 확인 후 UserBookmark에 문서 추가
+  ///    - Post의 bookmarkCount +1
+  /// 2. isBookmarking=false:
+  ///    - UserBookmark에서 문서 삭제
+  ///    - Post의 bookmarkCount -1
   Future<void> toggleBookmark(
       String postId,
       String userId,
@@ -59,23 +89,21 @@ class PostDetailService {
       bool isBookmarking,
       ) async {
     try {
-      print('북마크 토글: postId=$postId, userId=$userId, isBookmarking=$isBookmarking');
-
       if (isBookmarking) {
-        // ===== 收藏：添加到 users/{userId}/UserBookmark =====
+        // ===== 북마크 추가 =====
 
-        // 1. 检查是否已经收藏
+        // 1단계: 중복 확인
         final existingBookmark = await _firestore
-            .collection('users')  // 改这里
+            .collection('users')
             .doc(userId)
             .collection('UserBookmark')
             .where('postId', isEqualTo: postId)
             .get();
 
         if (existingBookmark.docs.isEmpty) {
-          // 2. 添加新的 UserBookmark 文档
+          // 2단계: UserBookmark 문서 추가
           await _firestore
-              .collection('users')  // 改这里
+              .collection('users')
               .doc(userId)
               .collection('UserBookmark')
               .add({
@@ -87,42 +115,36 @@ class PostDetailService {
             'thumbnailUrl': post.thumbnailUrl,
           });
 
-          // 3. 增加 Post 的 bookmarkCount
+          // 3단계: Post의 bookmarkCount 증가
           await _firestore.collection('post').doc(postId).update({
             'bookmarkCount': FieldValue.increment(1),
           });
-
-          print('북마크 추가 성공');
         }
       } else {
-        // ===== 取消收藏：从 users/{userId}/UserBookmark 删除 =====
+        // ===== 북마크 삭제 =====
 
-        // 1. 查找该用户的这个 postId 的 bookmark
+        // 1단계: 해당 북마크 문서 찾기
         final bookmarkSnapshot = await _firestore
-            .collection('users')  // 改这里
+            .collection('users')
             .doc(userId)
             .collection('UserBookmark')
             .where('postId', isEqualTo: postId)
             .get();
 
-        // 2. 删除找到的 bookmark 文档
+        // 2단계: 북마크 문서 삭제
         for (var doc in bookmarkSnapshot.docs) {
           await doc.reference.delete();
         }
 
-        // 3. 减少 Post 的 bookmarkCount
+        // 3단계: Post의 bookmarkCount 감소
         if (bookmarkSnapshot.docs.isNotEmpty) {
           await _firestore.collection('post').doc(postId).update({
             'bookmarkCount': FieldValue.increment(-1),
           });
-
-          print('북마크 삭제 성공');
         }
       }
     } catch (e) {
-      print('북마크 상태 전환 실패: $e');
       rethrow;
     }
   }
-
 }

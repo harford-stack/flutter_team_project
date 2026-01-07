@@ -1,4 +1,6 @@
-// community에서 게시글 메이슨리 레이아웃
+// ==================================================================================
+// 5. post_grid.dart - 게시글 메이슨리 레이아웃 (커뮤니티 메인용)
+// ==================================================================================
 // community/widgets/community_list/post_grid.dart
 
 import 'package:flutter/material.dart';
@@ -6,17 +8,18 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../models/post_model.dart';
 import '../../../common/app_colors.dart';
 
+/// 게시글 그리드 (메이슨리 레이아웃)
 class PostGrid extends StatelessWidget {
   /// =====================================================================================
   /// 필드
-  /// ======================================================================================
-  final bool isLoading;
-  final List<Post> posts;
-  final Function(Post) onPostTap;
+  /// =====================================================================================
+  final bool isLoading; // 로딩 상태
+  final List<Post> posts; // 게시글 목록
+  final Function(Post) onPostTap; // 게시글 클릭 콜백
 
   /// =====================================================================================
   /// 생성자
-  /// ======================================================================================
+  /// =====================================================================================
   const PostGrid({
     Key? key,
     required this.isLoading,
@@ -25,30 +28,30 @@ class PostGrid extends StatelessWidget {
   }) : super(key: key);
 
   /// =====================================================================================
-  /// build method
-  /// =============================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
-    //로딩 상태
+    // 로딩 중
     if (isLoading) {
       return const Expanded(
         child: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // 성공 but 게기글이 없는 상황: 빈 페이지를 피면
+    // 게시글이 없는 경우
     if (posts.isEmpty) {
       return const Expanded(
         child: Center(child: Text('게시글이 없습니다')),
       );
     }
 
-    // 성공: 메이슨리 레이아웃 (주)
+    // 메이슨리 레이아웃 (핀터레스트 스타일)
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: MasonryGridView.count(
-          crossAxisCount: 2,
+          crossAxisCount: 2, // 2열 그리드
           mainAxisSpacing: 4,
           crossAxisSpacing: 4,
           itemCount: posts.length,
@@ -65,11 +68,11 @@ class PostGrid extends StatelessWidget {
   }
 }
 
-/// 한개의 카드
+/// 개별 게시글 카드
 class PostCard extends StatelessWidget {
-  //---------------------------------------------------------------------------
-  // 필드
-  //---------------------------------------------------------------------------
+  /// =====================================================================================
+  /// 필드
+  /// =====================================================================================
   final Post post;
   final VoidCallback onTap;
 
@@ -79,6 +82,9 @@ class PostCard extends StatelessWidget {
     required this.onTap,
   }) : super(key: key);
 
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -98,12 +104,16 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 커버 이미지
             _buildCover(),
+
+            // 내용
             Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 제목
                   Text(
                     post.title,
                     style: const TextStyle(
@@ -116,6 +126,8 @@ class PostCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
+
+                  // 닉네임 + 북마크 수
                   Row(
                     children: [
                       Expanded(
@@ -146,6 +158,10 @@ class PostCard extends StatelessWidget {
     );
   }
 
+  /// =====================================================================================
+  /// 위젯들
+  /// =====================================================================================
+  /// 커버 이미지 (썸네일 있으면 표시, 없으면 카테고리별 배경)
   Widget _buildCover() {
     if (post.thumbnailUrl.isNotEmpty) {
       return ClipRRect(
@@ -174,15 +190,15 @@ class PostCard extends StatelessWidget {
     return _buildTextCover();
   }
 
-  /// ✅ 纯背景图封面（根据分类使用不同背景图）
+  /// 텍스트 커버 (카테고리별 배경 이미지)
+  /// 중요: 썸네일이 없을 때 카테고리에 따라 다른 배경 표시
   Widget _buildTextCover() {
-    // 根据category选择背景图
     final bgImage = _getBackgroundByCategory(post.category);
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
       child: Container(
-        height: 180, // 固定高度
+        height: 180,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage(bgImage),
@@ -193,7 +209,8 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  /// ✅ 根据分类获取背景图
+  /// 카테고리별 배경 이미지 가져오기
+  /// 중요: assets 폴더에 해당 이미지 파일이 있어야 함
   String _getBackgroundByCategory(String category) {
     switch (category) {
       case '자유게시판':
@@ -202,7 +219,6 @@ class PostCard extends StatelessWidget {
       case '문의사항':
         return 'assets/post_bg/bg_inquiry.png';
 
-    // 默认背景（以防万一）
       default:
         return 'assets/post_bg/bg_default.png';
     }

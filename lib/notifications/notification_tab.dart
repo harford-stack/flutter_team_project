@@ -1,6 +1,6 @@
 // ============================================
 // lib/notifications/notification_tab.dart
-// 职责：只负责 Tab 切换 + 显示未读红点
+// 역할: 탭 전환 + 읽지 않은 알림 개수 표시
 // ============================================
 
 import 'package:flutter/material.dart';
@@ -11,7 +11,12 @@ import 'notification_service.dart';
 import '../../common/app_colors.dart';
 import 'notification_list.dart';
 
-/// 通知 Tab 组件（负责 Tab 切换 + 未读红点显示）
+/// 알림 탭 컴포넌트 (탭 전환 + 읽지 않은 알림 뱃지 표시)
+///
+/// 역할:
+/// - 3개 탭 제공: 북마크, 댓글, 대댓글
+/// - 각 탭에 읽지 않은 알림 개수 뱃지 표시
+/// - "모두 읽음" 버튼으로 모든 알림 일괄 읽음 처리
 class NotificationTab extends StatefulWidget {
   const NotificationTab({Key? key}) : super(key: key);
 
@@ -21,12 +26,19 @@ class NotificationTab extends StatefulWidget {
 
 class _NotificationTabState extends State<NotificationTab>
     with SingleTickerProviderStateMixin {
+  /// =====================================================================================
+  /// 변수 선언
+  /// =====================================================================================
   late TabController _tabController;
   final NotificationService _notificationService = NotificationService();
 
+  /// =====================================================================================
+  /// 초기화
+  /// =====================================================================================
   @override
   void initState() {
     super.initState();
+    // 3개 탭을 위한 컨트롤러 생성
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -36,11 +48,15 @@ class _NotificationTabState extends State<NotificationTab>
     super.dispose();
   }
 
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUser = authProvider.user;
 
+    // 로그인하지 않은 경우
     if (currentUser == null) {
       return _buildLoginRequired();
     }
@@ -51,14 +67,17 @@ class _NotificationTabState extends State<NotificationTab>
       body: TabBarView(
         controller: _tabController,
         children: [
+          // 탭 1: 북마크 알림
           NotificationList(
             userId: currentUser.uid,
             type: NotificationType.bookmark,
           ),
+          // 탭 2: 댓글 알림
           NotificationList(
             userId: currentUser.uid,
             type: NotificationType.comment,
           ),
+          // 탭 3: 대댓글 알림
           NotificationList(
             userId: currentUser.uid,
             type: NotificationType.reply,
@@ -68,6 +87,10 @@ class _NotificationTabState extends State<NotificationTab>
     );
   }
 
+  /// =====================================================================================
+  /// AppBar 구현
+  /// =====================================================================================
+  /// AppBar 빌드 (탭바 포함)
   PreferredSizeWidget _buildAppBar(String userId) {
     return AppBar(
       backgroundColor: Colors.white,
@@ -80,6 +103,7 @@ class _NotificationTabState extends State<NotificationTab>
           fontWeight: FontWeight.w600,
         ),
       ),
+      // 우측: "모두 읽음" 버튼
       actions: [
         TextButton(
           onPressed: () async {
@@ -95,6 +119,7 @@ class _NotificationTabState extends State<NotificationTab>
           ),
         ),
       ],
+      // 하단: 탭바
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(48),
         child: Container(
@@ -125,6 +150,15 @@ class _NotificationTabState extends State<NotificationTab>
     );
   }
 
+  /// =====================================================================================
+  /// 탭 + 뱃지 구현
+  /// =====================================================================================
+  /// 읽지 않은 알림 개수를 표시하는 탭
+  ///
+  /// 뱃지 표시 규칙:
+  /// - 읽지 않은 알림이 없으면 표시 안 함
+  /// - 1~9개: 빨간 점
+  /// - 10개 이상: "9+" 텍스트
   Widget _buildTabWithBadge(String userId, String label, NotificationType type) {
     return StreamBuilder<int>(
       stream: _notificationService.getUnreadCountByType(userId, type),
@@ -135,12 +169,12 @@ class _NotificationTabState extends State<NotificationTab>
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Tab 文字
+              // 탭 텍스트
               Align(
                 alignment: Alignment.center,
                 child: Text(label),
               ),
-              // 未读红点
+              // 읽지 않은 알림 뱃지
               if (unreadCount > 0)
                 Positioned(
                   right: -12,
@@ -155,6 +189,7 @@ class _NotificationTabState extends State<NotificationTab>
                       minWidth: 8,
                       minHeight: 8,
                     ),
+                    // 10개 이상이면 "9+" 텍스트 표시
                     child: unreadCount > 9
                         ? Text(
                       '9+',
@@ -175,6 +210,10 @@ class _NotificationTabState extends State<NotificationTab>
     );
   }
 
+  /// =====================================================================================
+  /// 로그인 필요 화면
+  /// =====================================================================================
+  /// 로그인하지 않은 사용자에게 표시되는 화면
   Widget _buildLoginRequired() {
     return Scaffold(
       backgroundColor: Colors.white,

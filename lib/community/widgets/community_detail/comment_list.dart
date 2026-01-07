@@ -1,20 +1,23 @@
-// community/widgets/community_detail/comment_list_v2.dart
+// ==================================================================================
+// 3. comment_list.dart - 댓글 목록 컴포넌트
+// ==================================================================================
+// community/widgets/community_detail/comment_list.dart
 
 import 'package:flutter/material.dart';
 import '../../models/comment_model.dart';
 import 'comment_item.dart';
 
-/// 评论列表组件 V2（支持展开/收起）
+/// 댓글 목록 컴포넌트 (확장/축소 지원)
 class CommentsList extends StatelessWidget {
-  final bool isLoading;
-  final List<Comment> comments;
-  final String? highlightCommentId;
-  final Map<String, GlobalKey> commentKeys;
-  final Set<String> expandedCommentIds;
-  final Function(Comment) onReplyToComment;
-  final Function(String) onToggleExpanded;
-  final List<Comment> Function(String) getAllReplies;
-  final String? postAuthorId; // ✅ 新增
+  final bool isLoading; // 로딩 중 여부
+  final List<Comment> comments; // 전체 댓글 목록
+  final String? highlightCommentId; // 하이라이트할 댓글 ID
+  final Map<String, GlobalKey> commentKeys; // 댓글 키 맵
+  final Set<String> expandedCommentIds; // 확장된 댓글 ID 세트
+  final Function(Comment) onReplyToComment; // 답글 콜백
+  final Function(String) onToggleExpanded; // 확장 토글 콜백
+  final List<Comment> Function(String) getAllReplies; // 답글 가져오기 함수
+  final String? postAuthorId; // 게시글 작성자 ID
 
   const CommentsList({
     Key? key,
@@ -26,15 +29,17 @@ class CommentsList extends StatelessWidget {
     required this.onReplyToComment,
     required this.onToggleExpanded,
     required this.getAllReplies,
-    this.postAuthorId, // ✅ 新增
+    this.postAuthorId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // 로딩 중일 때
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
     }
 
+    // 댓글이 없을 때
     if (comments.isEmpty) {
       return Padding(
         padding: EdgeInsets.all(32),
@@ -44,6 +49,7 @@ class CommentsList extends StatelessWidget {
       );
     }
 
+    // 주 댓글만 필터링
     final mainComments = comments.where((c) => c.pComment == null).toList();
 
     return Padding(
@@ -65,7 +71,7 @@ class CommentsList extends StatelessWidget {
             commentKeys: commentKeys,
             onReplyToComment: onReplyToComment,
             onToggleExpanded: () => onToggleExpanded(mainComment.id),
-            postAuthorId: postAuthorId, // ✅ 添加这一行
+            postAuthorId: postAuthorId,
           );
         },
       ),

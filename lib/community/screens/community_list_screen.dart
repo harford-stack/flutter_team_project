@@ -7,6 +7,7 @@
 //3. community_list/search_section.dart는 잠시 폐지
 
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 // Models
 import '../models/post_model.dart';
@@ -106,7 +107,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   }
 
   /// =====================================================================================
-  /// navergation를 처리하는 함수들
+  /// navigation를 처리하는 함수들
   /// ======================================================================================
   /// 게시글 작성 화면으로 이동
   Future<void> _navigateToCreatePost() async {
@@ -190,7 +191,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
       floatingActionButton: widget.showAppBarAndFooter
           ? Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom -20,
+                bottom: math.max(0, MediaQuery.of(context).padding.bottom - 20),
               ),
               child: FloatingActionButton(
                 onPressed: _navigateToCreatePost, // 클릭 시 작성 화면으로
@@ -252,7 +253,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
   }
 
 
-  /// 2. category tabd & 정렬 버튼
+  /// 2. category tabs & 정렬 버튼
   Widget _buildCategoryAndSort() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -261,7 +262,7 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
         children: [
           // 왼쪽: 카테고리 탭들(import:shared/category_tabs)
           Expanded(
-            //按照constructor传值
+            //생성자에 따라 값을 전달
             child: CategoryTabs(
               categories: _categories,
               selectedCategory: _selectedCategory,
