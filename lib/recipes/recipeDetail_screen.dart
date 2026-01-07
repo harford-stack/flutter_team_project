@@ -164,9 +164,17 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
               constraints: const BoxConstraints(minHeight: 200), // 최소 높이 확보로 덜렁거림 방지
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5), // 연한 회색 배경
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05), // 너무 진하지 않은 그림자 색상
+                    spreadRadius: 2,   // 그림자가 퍼지는 범위
+                    blurRadius: 10,    // 그림자의 부드러움 정도
+                    offset: const Offset(0, 4), // 그림자 위치 (가로 0, 세로 4 아래로)
+                  ),
+                ],
+                //border: Border.all(color: Colors.grey.shade200),
               ),
               child: _isLoading
                   ? _buildLoadingState() // 로딩 중일 때 보여줄 UI
@@ -222,39 +230,42 @@ class _RecipedetailScreenState extends State<RecipedetailScreen> {
   // 로딩 상태 UI: 사용자가 대기 중임을 인지하고 신뢰감을 갖게 함
   // 로딩 상태 UI에 이미지(또는 GIF) 추가
   Widget _buildLoadingState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 10),
-        // 1. 요리 관련 이미지/GIF (인터넷에서 가져오거나 에셋 사용)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            'assets/recipe_loading.png',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.restaurant, size: 50, color: Colors.grey),
+    return Container(
+      color: Colors.white,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 10),
+          // 1. 요리 관련 이미지/GIF (인터넷에서 가져오거나 에셋 사용)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'assets/recipe_loading.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+              const Icon(Icons.restaurant, size: 50, color: Colors.grey),
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        const CupertinoActivityIndicator(radius: 12),
-        const SizedBox(height: 15),
-        const Text(
-          "AI 셰프가 레시피를\n정성껏 작성하고 있어요",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+          const SizedBox(height: 20),
+          const CupertinoActivityIndicator(radius: 12),
+          const SizedBox(height: 15),
+          const Text(
+            "AI 셰프가 레시피를\n정성껏 작성하고 있어요",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "약 5초 정도 소요될 수 있습니다",
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-        ),
-        const SizedBox(height: 10),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            "약 5초 정도 소요될 수 있습니다",
+            style: TextStyle(fontSize: 15, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
     );
   }
 

@@ -235,8 +235,9 @@ class _ImageConfirmState extends State<ImageConfirm> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(100.0),
           child: Column(
+            //mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -246,11 +247,12 @@ class _ImageConfirmState extends State<ImageConfirm> {
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 50),
               ElevatedButton(
                 onPressed: _isLoading ? null : _analyzeImage,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  backgroundColor: AppColors.primaryColor
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -262,8 +264,8 @@ class _ImageConfirmState extends State<ImageConfirm> {
                   ),
                 )
                     : const Text(
-                  "Gemini에게 전송",
-                  style: TextStyle(fontSize: 16),
+                  "사진 전송하기",
+                  style: TextStyle(fontSize: 17, color: Colors.white),
                 ),
               ),
               const SizedBox(height: 20),

@@ -44,14 +44,10 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
     '아이 간식',
     '특별한 날 / 파티',
     '간단한 요리',
-    '훈훈한 국물요리',
+    '따뜻한 국물요리',
     '바삭한 식감',
     '달콤한 디저트',
-    '매콤한 맛',
     '시원한 음식',
-    '따뜻한 음식',
-    '초간단 5분 요리',
-    '손님 접대용',
     '반찬 만들기',
     '야식 / 간식',
   ];
@@ -352,7 +348,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                       );
                                     },
                                     child: const Text(
-                                        "재료 추가",
+                                        "추가",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -390,8 +386,9 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Text("테마 선택", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_keyword.png", width: 285), // 이미지 크기 소폭 축소
-                            const SizedBox(height: 20),
+                            Image.asset("assets/recipe_theme.png", width: 285), // 이미지 크기 소폭 축소
+                            const SizedBox(height: 15),
+
                             // 테마 선택 버튼들 (Wrap으로 배치)
                             Wrap(
                               spacing: 10,
@@ -412,10 +409,15 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: isSelected
                                         ? AppColors.primaryColor
-                                        : Colors.grey[200],
+                                        : Colors.white,
                                     foregroundColor: isSelected
                                         ? AppColors.textWhite
                                         : AppColors.textDark,
+                                    // --- 테두리 설정 추가 ---
+                                    side: BorderSide(
+                                      color: AppColors.secondaryColor, // 테두리 색상을 AppColors로 설정
+                                      width: 1.0, // 테두리 두께
+                                    ),
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 10,
@@ -436,7 +438,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                               }).toList(),
                             ),
 
-                            const SizedBox(height: 40), // 간격 소폭 축소
+                            const SizedBox(height: 35), // 간격 소폭 축소
 
                             Row(
                               children: [
