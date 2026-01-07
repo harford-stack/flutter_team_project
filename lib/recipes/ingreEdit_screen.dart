@@ -152,7 +152,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
         MaterialPageRoute(
           builder: (context) => const CommunityListScreen(showAppBarAndFooter: true),
         ),
-        (route) => false,
+            (route) => false,
       );
       return;
     }
@@ -163,7 +163,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
         MaterialPageRoute(
           builder: (context) => const UserRefrigerator(),
         ),
-        (route) => false,
+            (route) => false,
       );
       return;
     }
@@ -173,7 +173,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
       MaterialPageRoute(
         builder: (context) => HomeScreen(initialIndex: index),
       ),
-      (route) => false,
+          (route) => false,
     );
   }
 
@@ -222,7 +222,25 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (시작) ----------
+                            // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
+                            Image.asset("assets/recipe_now.png", width: 300), // 이미지 크기 소폭 축소
+                            SizedBox(height: 10),
+
+                            // ★ 재료 목록 영역: 높이 제한 제거, 전체 스크롤 가능하도록
+                            // 좌우 여백을 줄여서 가로로 3개씩 표시되도록
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0), // 최소 여백만 유지 (Container의 24 패딩 대신 8만 사용)
+                              child: ingredients.isEmpty
+                                  ? Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Text("현재 선택된 재료가 없습니다."),
+                              )
+                                  : IngreTextListWidget(detectedIngredients: ingredients),
+                            ),
+
+                            const SizedBox(height: 20), // 재료 목록과 버튼 사이 간격
+
+                            // -------- 오른쪽 하단 '재료 추가' 버튼 및 팝업 (이동됨) ----------
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end, // 버튼만 오른쪽
                               children: [
@@ -316,24 +334,7 @@ class _IngreeditScreenState extends State<IngreeditScreen> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 20),
-                            // -------- 오른쪽 상단 '재료 추가' 버튼 및 팝업 (끝) ----------
-
-                            // Text("현재 재료 목록", style: TextStyle(fontSize: 20, color : AppColors.textDark),),
-                            Image.asset("assets/recipe_now.png", width: 300), // 이미지 크기 소폭 축소
-                            SizedBox(height: 10),
-
-                            // ★ 재료 목록 영역: 높이 제한 제거, 전체 스크롤 가능하도록
-                            // 좌우 여백을 줄여서 가로로 3개씩 표시되도록
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0), // 최소 여백만 유지 (Container의 24 패딩 대신 8만 사용)
-                              child: ingredients.isEmpty
-                                  ? Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Text("현재 선택된 재료가 없습니다."),
-                              )
-                                  : IngreTextListWidget(detectedIngredients: ingredients),
-                            ),
+                            // -------- 오른쪽 하단 '재료 추가' 버튼 및 팝업 (끝) ----------
                           ],
                         ),
                       ),
