@@ -67,7 +67,7 @@
 - **프로필 관리**: 닉네임 수정
 - **비밀번호 재설정**: 이메일 기반 비밀번호 찾기
 
-<img src="./README_IMG/이메일비밀번호 로그인.gif" width="300"><img src="./README_IMG/구글 로그인.gif" width="300"><img src="./README_IMG/회원가입.gif" width="300"><img src="./README_IMG/프로필 관리.gif" width="300"><img src="./README_IMG/비밀번호 재설정.gif" width="300">
+<img src="./README_IMG/이메일비밀번호 로그인.gif" width="250"><img src="./README_IMG/구글 로그인.gif" width="250"><img src="./README_IMG/회원가입.gif" width="250"><img src="./README_IMG/프로필 관리.gif" width="250"><img src="./README_IMG/비밀번호 재설정.gif" width="250">
 
 
 ### 💬 커뮤니티(이미령)
