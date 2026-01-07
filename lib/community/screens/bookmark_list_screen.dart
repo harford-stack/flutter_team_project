@@ -1,4 +1,13 @@
+// ==================================================================================
+// 1. bookmark_list_screen.dart - 북마크 목록 화면
+// ==================================================================================
 // community/screens/bookmark_list_screen.dart
+
+// 관련 파일:
+// 1. shared/category_tabs.dart: 카테고리 탭
+// 2. shared/post_list_card.dart: 게시글 카드
+// 3. shared/list_bottom_actions.dart: 하단 액션 바
+// 4. services/bookmark_service.dart: 북마크 데이터 처리
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +18,7 @@ import '../models/post_model.dart';
 // Services
 import '../services/bookmark_service.dart';
 
-// Widgets - 共享组件
+// Widgets
 import '../widgets/shared/category_tabs.dart';
 import '../widgets/shared/post_list_card.dart';
 import '../widgets/shared/list_bottom_actions.dart';
@@ -34,30 +43,42 @@ class BookmarkListScreen extends StatefulWidget {
 }
 
 class _BookmarkListScreenState extends State<BookmarkListScreen> {
-  // ========== 변수 선언 ==========
+  /// =====================================================================================
+  /// 변수 선언
+  /// =====================================================================================
+  /// 1. 서비스
   final BookmarkService _bookmarkService = BookmarkService();
 
-  List<Post> _bookmarkedPosts = [];
-  bool _isLoading = false;
+  /// 2. 북마크 데이터
+  List<Post> _bookmarkedPosts = []; // 북마크한 게시글 목록
+  bool _isLoading = false; // 로딩 상태
 
-  String _selectedCategory = '전체';
-  final List<String> _categories = ['전체', '자유게시판', '문의사항'];
+  /// 3. 카테고리
+  String _selectedCategory = '전체'; // 선택된 카테고리
+  final List<String> _categories = ['전체', '자유게시판', '문의사항']; // 카테고리 목록
 
-  Set<String> _selectedPostIds = {};
-  bool _isSelectionMode = false;
+  /// 4. 선택 모드 (삭제용)
+  Set<String> _selectedPostIds = {}; // 선택된 게시글 ID 세트
+  bool _isSelectionMode = false; // 선택 모드 활성화 여부
 
-  // ========== 초기화 ==========
+  /// =====================================================================================
+  /// 초기화
+  /// =====================================================================================
   @override
   void initState() {
     super.initState();
-    _loadBookmarkedPosts();
+    _loadBookmarkedPosts(); // 북마크 목록 불러오기
   }
 
-  // ========== 데이터 로드 ==========
+  /// =====================================================================================
+  /// 데이터 로드
+  /// =====================================================================================
+  /// 북마크한 게시글 불러오기
   Future<void> _loadBookmarkedPosts() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
 
+    // 로그인 확인
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('로그인이 필요합니다')),
@@ -76,8 +97,8 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
       setState(() {
         _bookmarkedPosts = posts;
         _isLoading = false;
-        _selectedPostIds.clear();
-        _isSelectionMode = false;
+        _selectedPostIds.clear(); // 선택 초기화
+        _isSelectionMode = false; // 선택 모드 해제
       });
     } catch (e) {
       print('북마크 로딩 실패: $e');
@@ -91,30 +112,42 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
     }
   }
 
-  // ========== 分类切换 ==========
+  /// =====================================================================================
+  /// 카테고리 처리
+  /// =====================================================================================
+  /// 카테고리 변경 시
   void _onCategoryChanged(String category) {
     setState(() {
       _selectedCategory = category;
     });
-    _loadBookmarkedPosts();
+    _loadBookmarkedPosts(); // 선택된 카테고리로 다시 불러오기
   }
 
-  // ========== 书签操作 ==========
+  /// =====================================================================================
+  /// 북마크 해제 처리
+  /// =====================================================================================
+  /// 북마크 해제 버튼 클릭 시 처리
+  /// 중요: 선택 모드가 아니면 선택 모드로 전환, 이미 선택 모드면 해제 실행
   void _handleBookmarkRemove() {
     if (_isSelectionMode && _selectedPostIds.isNotEmpty) {
+      // 선택 모드 + 선택된 항목 있음 → 해제 실행
       _removeSelectedBookmarks();
     } else if (_isSelectionMode && _selectedPostIds.isEmpty) {
+      // 선택 모드 + 선택된 항목 없음 → 경고 메시지
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('삭제할 항목을 선택해주세요')),
       );
     } else {
+      // 일반 모드 → 선택 모드로 전환
       setState(() {
         _isSelectionMode = true;
       });
     }
   }
 
+  /// 선택된 북마크들 해제
   Future<void> _removeSelectedBookmarks() async {
+    // 해제 확인 다이얼로그
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -152,7 +185,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$successCount개의 북마크가 해제되었습니다')),
         );
-        await _loadBookmarkedPosts();
+        await _loadBookmarkedPosts(); // 목록 새로고침
       }
     } catch (e) {
       print('북마크 해제 실패: $e');
@@ -165,9 +198,14 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
     }
   }
 
-  // ========== 卡片点击 ==========
+  /// =====================================================================================
+  /// 카드 액션 처리
+  /// =====================================================================================
+  /// 카드 클릭 시 처리
+  /// 중요: 선택 모드일 때는 선택/해제, 일반 모드일 때는 상세 화면으로 이동
   void _handleCardTap(Post post) {
     if (_isSelectionMode) {
+      // 선택 모드: 선택/해제 토글
       setState(() {
         if (_selectedPostIds.contains(post.id)) {
           _selectedPostIds.remove(post.id);
@@ -176,30 +214,41 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         }
       });
     } else {
+      // 일반 모드: 상세 화면으로 이동
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PostDetailScreen(postId: post.id),
         ),
-      ).then((_) => _loadBookmarkedPosts());
+      ).then((_) => _loadBookmarkedPosts()); // 돌아올 때 목록 새로고침
     }
   }
 
-  // ========== 底部操作 ==========
+  /// =====================================================================================
+  /// 하단 액션 처리
+  /// =====================================================================================
+  /// 하단바 보조 버튼 클릭 시 (취소/돌아가기)
   void _handleSecondaryAction() {
     if (_isSelectionMode) {
+      // 선택 모드: 선택 모드 해제 및 선택 초기화
       setState(() {
         _isSelectionMode = false;
         _selectedPostIds.clear();
       });
     } else {
+      // 일반 모드: 이전 화면으로 돌아가기
       Navigator.pop(context);
     }
   }
 
-  // ========== Footer 导航 ==========
+  /// =====================================================================================
+  /// Footer 네비게이션 처리
+  /// =====================================================================================
+  /// 하단 네비게이션 바 탭 처리
+  /// 중요: HomeScreen을 통해 이동해야 상태가 유지됨
   void _handleFooterTap(int index) {
     if (index == 2) {
+      // 커뮤니티 탭 → HomeScreen의 2번 인덱스로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -207,6 +256,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         ),
       );
     } else if (index == 1) {
+      // 냉장고 탭 → HomeScreen의 1번 인덱스로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -214,18 +264,22 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
         ),
       );
     } else if (index == 0) {
+      // 홈 탭 → HomeScreen의 0번 인덱스로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen(initialIndex: 0)),
       );
     } else {
+      // 개발 중인 기능
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('해당 기능은 개발 중입니다')),
       );
     }
   }
 
-  // ========== UI 构建 ==========
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -237,7 +291,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // 直接从 CategoryTabs 开始，删除上面的空 Container
+          // 카테고리 탭
           CategoryTabs(
             categories: _categories,
             selectedCategory: _selectedCategory,
@@ -246,26 +300,27 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
 
           Divider(height: 1, color: Colors.grey[300]),
 
-          // 帖子列表
+          // 게시글 목록
           Expanded(child: _buildPostList(currentUser)),
         ],
       ),
+      // 하단 액션바
       bottomSheet: ListBottomActions(
-        actionType: ListActionType.bookmark,  // 添加这行
+        actionType: ListActionType.bookmark, // 북마크 해제 타입
         isSelectionMode: _isSelectionMode,
         selectedCount: _selectedPostIds.length,
         onPrimaryAction: _handleBookmarkRemove,
         onSecondaryAction: _handleSecondaryAction,
       ),
-      // bottomNavigationBar: CustomFooter(
-      //   currentIndex: 2,
-      //   onTap: _handleFooterTap,
-      // ),
     );
   }
 
-  /// 帖子列表
+  /// =====================================================================================
+  /// 위젯
+  /// =====================================================================================
+  /// 게시글 목록
   Widget _buildPostList(currentUser) {
+    // 로딩 중
     if (_isLoading) {
       return Center(
         child: Padding(
@@ -275,6 +330,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
       );
     }
 
+    // 북마크가 없는 경우
     if (_bookmarkedPosts.isEmpty) {
       return Center(
         child: Padding(
@@ -292,8 +348,9 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
       );
     }
 
+    // 북마크 목록
     return ListView.builder(
-      padding: EdgeInsets.only(top: 8, bottom: 80),
+      padding: EdgeInsets.only(top: 8, bottom: 80), // 하단바 공간 확보
       itemCount: _bookmarkedPosts.length,
       itemBuilder: (context, index) {
         final post = _bookmarkedPosts[index];
@@ -301,7 +358,7 @@ class _BookmarkListScreenState extends State<BookmarkListScreen> {
 
         return PostListCard(
           post: post,
-          actionType: PostCardActionType.bookmark,  // 添加这行
+          actionType: PostCardActionType.bookmark, // 북마크 타입
           isSelected: isSelected,
           isSelectionMode: _isSelectionMode,
           onTap: () => _handleCardTap(post),

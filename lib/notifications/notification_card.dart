@@ -1,6 +1,6 @@
 // ============================================
 // lib/notifications/notification_card.dart
-// 职责：负责单个通知卡片的样式和内容展示
+// 역할: 단일 알림 카드의 스타일과 내용 표시
 // ============================================
 
 import 'package:flutter/material.dart';
@@ -8,7 +8,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_model.dart';
 import '../common/app_colors.dart';
 
-/// 单个通知卡片组件（负责样式和内容展示）
+/// 단일 알림 카드 컴포넌트 (스타일과 내용 표시 담당)
+///
+/// 역할:
+/// - 알림 유형(북마크, 댓글, 대댓글)에 따라 다른 UI 표시
+/// - 읽음/안읽음 상태 시각적 표현
+/// - 게시글/댓글 내용 미리보기 제공
 class NotificationCard extends StatelessWidget {
   final NotificationModel notification;
   final VoidCallback onTap;
@@ -24,6 +29,7 @@ class NotificationCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
+        // 읽지 않은 알림은 연한 파란색 배경으로 표시
         color: notification.isRead
             ? Colors.white
             : Colors.blue[50]?.withOpacity(0.3),
@@ -31,12 +37,16 @@ class NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. 왼쪽: 알림 타입 아이콘
             _buildLeadingIcon(),
             SizedBox(width: 12),
+
+            // 2. 중앙: 알림 내용
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 2-1. 상단: 닉네임 + 우측 화살표
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -56,8 +66,12 @@ class NotificationCard extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 4),
+
+                  // 2-2. 중앙: 알림 내용 (타입별로 다름)
                   _buildNotificationContent(context),
                   SizedBox(height: 4),
+
+                  // 2-3. 하단: 시간 표시
                   Text(
                     _formatDate(notification.cdate),
                     style: TextStyle(
@@ -68,6 +82,8 @@ class NotificationCard extends StatelessWidget {
                 ],
               ),
             ),
+
+            // 3. 오른쪽: 읽지 않은 알림 표시 (빨간 점)
             if (!notification.isRead)
               Container(
                 width: 8,
@@ -84,6 +100,10 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
+  /// =====================================================================================
+  /// 알림 타입별 아이콘 빌드
+  /// =====================================================================================
+  /// 알림 타입에 따라 다른 아이콘과 색상 표시
   Widget _buildLeadingIcon() {
     IconData iconData;
     Color iconColor;
@@ -118,6 +138,10 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
+  /// =====================================================================================
+  /// 알림 타입별 내용 빌드
+  /// =====================================================================================
+  /// 알림 타입(북마크/댓글/대댓글)에 따라 다른 내용 표시
   Widget _buildNotificationContent(BuildContext context) {
     switch (notification.type) {
       case NotificationType.bookmark:
@@ -129,6 +153,11 @@ class NotificationCard extends StatelessWidget {
     }
   }
 
+  /// 1. 북마크 알림 내용
+  ///
+  /// 표시 내용:
+  /// - "게시글을 북마크했습니다" 메시지
+  /// - 게시글 제목 미리보기 (회색 박스)
   Widget _buildBookmarkContent() {
     return FutureBuilder<Map<String, dynamic>?>(
       future: _getPostInfo(notification.postId),
@@ -175,6 +204,11 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
+  /// 2. 댓글 알림 내용
+  ///
+  /// 표시 내용:
+  /// - 게시글 제목 (있으면)
+  /// - 댓글 내용 미리보기 (회색 박스)
   Widget _buildCommentContent() {
     final commentContent = notification.commentContent ?? '';
 
@@ -188,6 +222,7 @@ class NotificationCard extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 게시글 제목 표시 (있으면)
             if (postTitle.isNotEmpty) ...[
               Text(
                 postTitle.length > 25
@@ -203,6 +238,7 @@ class NotificationCard extends StatelessWidget {
               ),
               SizedBox(height: 6),
             ],
+            // 댓글 내용 박스
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -228,6 +264,11 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
+  /// 3. 대댓글 알림 내용
+  ///
+  /// 표시 내용:
+  /// - 내 원래 댓글 미리보기 (회색 박스, "내 댓글:" 라벨 포함)
+  /// - 받은 대댓글 내용 (회색 박스)
   Widget _buildReplyContent() {
     final replyContent = notification.commentContent ?? '';
 
@@ -242,6 +283,7 @@ class NotificationCard extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 내 원래 댓글 표시 (있으면)
             if (originalComment.isNotEmpty) ...[
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -272,17 +314,12 @@ class NotificationCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // Spacer(),
-                    // Icon(
-                    //   Icons.chevron_right,
-                    //   size: 22,
-                    //   color: Colors.grey[400],
-                    // ),
                   ],
                 ),
               ),
               SizedBox(height: 8),
             ],
+            // 받은 대댓글 내용 박스
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -308,11 +345,15 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
-  // ============================================
-  // 辅助方法
-  // ============================================
+  /// =====================================================================================
+  /// 보조 함수들
+  /// =====================================================================================
 
-  /// 获取帖子信息
+  /// 게시글 정보 가져오기
+  ///
+  /// 기능:
+  /// - Firestore에서 게시글 문서를 읽어옴
+  /// - 에러 발생 시 null 반환
   Future<Map<String, dynamic>?> _getPostInfo(String postId) async {
     try {
       final doc = await FirebaseFirestore.instance
@@ -325,13 +366,20 @@ class NotificationCard extends StatelessWidget {
       }
       return null;
     } catch (e) {
-      print('게시글 정보 가져오기 실패: $e');
       return null;
     }
   }
 
-  /// ✅ 修改：获取被回复的原始评论内容
-  /// 通过新回复的ID -> 找到它的pComment -> 获取原始评论内容
+  /// 원래 댓글 내용 가져오기 (대댓글용)
+  ///
+  /// 작동 방식:
+  /// 1. 새 대댓글 문서를 읽어옴 (commentId로)
+  /// 2. 대댓글의 pComment 필드에서 원래 댓글 ID 획득
+  /// 3. 원래 댓글 문서를 읽어서 내용 반환
+  ///
+  /// 주의사항:
+  /// - 대댓글이나 원래 댓글이 삭제되었으면 null 반환
+  /// - 에러 발생 시 null 반환
   Future<String?> _getOriginalComment(
       String postId,
       String? replyCommentId,
@@ -339,7 +387,7 @@ class NotificationCard extends StatelessWidget {
     if (replyCommentId == null) return null;
 
     try {
-      // 第1步：获取新回复评论的数据
+      // 1단계: 대댓글 문서 가져오기
       final replyDoc = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
@@ -348,21 +396,17 @@ class NotificationCard extends StatelessWidget {
           .get();
 
       if (!replyDoc.exists) {
-        print('❌ 回复评论不存在: $replyCommentId');
         return null;
       }
 
-      // 第2步：从回复评论中获取 pComment（被回复的评论ID）
+      // 2단계: 대댓글에서 원래 댓글 ID(pComment) 가져오기
       final pCommentId = replyDoc.data()?['pComment'] as String?;
 
       if (pCommentId == null) {
-        print('❌ 没有找到父评论ID');
         return null;
       }
 
-      print('✅ 找到父评论ID: $pCommentId');
-
-      // 第3步：获取被回复的原始评论内容
+      // 3단계: 원래 댓글 내용 가져오기
       final originalDoc = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
@@ -372,18 +416,23 @@ class NotificationCard extends StatelessWidget {
 
       if (originalDoc.exists) {
         final content = originalDoc.data()?['content'] as String?;
-        print('✅ 找到原始评论内容: $content');
         return content;
       }
 
       return null;
     } catch (e) {
-      print('❌ 원본 댓글 가져오기 실패: $e');
       return null;
     }
   }
 
-  /// ✅ 添加：格式化日期显示
+  /// 날짜 포맷팅
+  ///
+  /// 표시 형식:
+  /// - 1분 미만: "방금 전"
+  /// - 1시간 미만: "N분 전"
+  /// - 1일 미만: "N시간 전"
+  /// - 7일 미만: "N일 전"
+  /// - 7일 이상: "YYYY.MM.DD"
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);

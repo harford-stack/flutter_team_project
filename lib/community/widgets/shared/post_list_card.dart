@@ -1,3 +1,6 @@
+// ==================================================================================
+// 2. post_list_card.dart - 게시글 리스트 카드 (공유 컴포넌트)
+// ==================================================================================
 // community/widgets/shared/post_list_card.dart
 
 import 'package:flutter/material.dart';
@@ -5,28 +8,33 @@ import '../../models/post_model.dart';
 import '../../../common/app_colors.dart';
 import '../../../common/bookmark_button.dart';
 
-/// 帖子列表卡片类型
+/// 게시글 리스트 카드 타입
 enum PostCardActionType {
-  bookmark,    // 书签按钮
-  myPost,      // 我的帖子（可能需要编辑/删除按钮）
-  none,        // 无操作按钮
+  bookmark, // 북마크 버튼
+  myPost, // 내 게시글 (수정/삭제 버튼)
+  none, // 액션 없음
 }
 
-/// 通用帖子列表卡片组件
+/// 통합 게시글 리스트 카드 컴포넌트
+/// 사용처: 북마크 목록, 내 게시글 목록
 class PostListCard extends StatelessWidget {
-  final Post post;
-  final PostCardActionType actionType;
-  final bool isSelected;
-  final bool isSelectionMode;
-  final VoidCallback onTap;
+  /// =====================================================================================
+  /// 필드
+  /// =====================================================================================
+  /// 1. 기본 정보
+  final Post post; // 게시글 데이터
+  final PostCardActionType actionType; // 카드 타입
+  final bool isSelected; // 선택 여부
+  final bool isSelectionMode; // 선택 모드 여부
+  final VoidCallback onTap; // 카드 클릭 콜백
 
-  // 书签模式相关
-  final String? currentUserId;
-  final Future<void> Function()? onBookmarkRemove;
+  /// 2. 북마크 모드 관련
+  final String? currentUserId; // 현재 사용자 ID
+  final Future<void> Function()? onBookmarkRemove; // 북마크 해제 콜백
 
-  // 我的帖子模式相关
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  /// 3. 내 게시글 모드 관련
+  final VoidCallback? onEdit; // 수정 콜백
+  final VoidCallback? onDelete; // 삭제 콜백
 
   const PostListCard({
     Key? key,
@@ -41,6 +49,9 @@ class PostListCard extends StatelessWidget {
     this.onDelete,
   }) : super(key: key);
 
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -51,6 +62,7 @@ class PostListCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
+          // 선택된 경우 테두리 표시
           border: isSelected
               ? Border.all(color: AppColors.primaryColor, width: 2)
               : null,
@@ -65,11 +77,12 @@ class PostListCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 顶部：分类标签 + > 图标
+            // 상단: 카테고리 태그 + 화살표 아이콘
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildCategoryTag(),
+                // 선택 모드가 아닐 때만 화살표 표시
                 if (!isSelectionMode)
                   Icon(
                     Icons.chevron_right,
@@ -80,7 +93,7 @@ class PostListCard extends StatelessWidget {
             ),
             SizedBox(height: 12),
 
-            // 中间：图片 + 标题和姓名
+            // 중간: 썸네일 + 제목과 닉네임
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -115,14 +128,18 @@ class PostListCard extends StatelessWidget {
 
             SizedBox(height: 12),
 
-            // 底部：评论数和书签数
+            // 하단: 메타 정보
             _buildMetaInfo(),
           ],
         ),
       ),
     );
   }
-  /// 缩略图
+
+  /// =====================================================================================
+  /// 위젯들
+  /// =====================================================================================
+  /// 썸네일 이미지
   Widget _buildThumbnail() {
     return Padding(
       padding: EdgeInsets.only(right: 16),
@@ -152,7 +169,7 @@ class PostListCard extends StatelessWidget {
     );
   }
 
-  /// 分类标签
+  /// 카테고리 태그
   Widget _buildCategoryTag() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -171,7 +188,7 @@ class PostListCard extends StatelessWidget {
     );
   }
 
-  /// 底部元信息
+  /// 하단 메타 정보
   Widget _buildMetaInfo() {
     return Row(
       children: [
@@ -186,15 +203,16 @@ class PostListCard extends StatelessWidget {
         ),
         Spacer(),
 
-        // 根据不同类型显示不同的操作按钮
+        // 타입에 따른 액션 버튼
         _buildActionButtons(),
       ],
     );
   }
 
-  /// 构建操作按钮区域
+  /// 액션 버튼 영역
+  /// 중요: 선택 모드일 때는 체크박스, 아닐 때는 타입별 액션 버튼
   Widget _buildActionButtons() {
-    // 选择模式：显示复选框
+    // 선택 모드: 체크박스 표시
     if (isSelectionMode) {
       return Container(
         width: 24,
@@ -207,13 +225,11 @@ class PostListCard extends StatelessWidget {
             width: 2,
           ),
         ),
-        child: isSelected
-            ? Icon(Icons.check, size: 16, color: Colors.white)
-            : null,
+        child: isSelected ? Icon(Icons.check, size: 16, color: Colors.white) : null,
       );
     }
 
-    // 非选择模式：根据类型显示不同按钮
+    // 일반 모드: 타입별 버튼
     switch (actionType) {
       case PostCardActionType.bookmark:
         return _buildBookmarkButton();
@@ -227,7 +243,7 @@ class PostListCard extends StatelessWidget {
     }
   }
 
-  /// 书签按钮
+  /// 북마크 버튼
   Widget _buildBookmarkButton() {
     if (currentUserId == null) return SizedBox.shrink();
 
@@ -243,12 +259,12 @@ class PostListCard extends StatelessWidget {
     );
   }
 
-  /// 我的帖子操作按钮（编辑/删除）- 更紧凑
+  /// 내 게시글 액션 버튼 (수정/삭제)
   Widget _buildMyPostActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 编辑按钮
+        // 수정 버튼
         if (onEdit != null)
           InkWell(
             onTap: onEdit,
@@ -265,7 +281,7 @@ class PostListCard extends StatelessWidget {
 
         SizedBox(width: 4),
 
-        // 删除按钮
+        // 삭제 버튼
         if (onDelete != null)
           InkWell(
             onTap: onDelete,

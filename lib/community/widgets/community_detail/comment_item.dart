@@ -1,19 +1,22 @@
-// comment_item_v2.dart - 完整修改版
+// ==================================================================================
+// 2. comment_item.dart - 개별 댓글 아이템 컴포넌트
+// ==================================================================================
+// community/widgets/community_detail/comment_item.dart
 
 import 'package:flutter/material.dart';
 import '../../models/comment_model.dart';
 import '../../../common/app_colors.dart';
 
-/// 单个评论项组件 V2（支持展开/收起）
+/// 개별 댓글 아이템 컴포넌트 (확장/축소 지원)
 class CommentItem extends StatelessWidget {
-  final Comment mainComment;
-  final List<Comment> replies;
-  final bool isExpanded;
-  final String? highlightCommentId;
-  final Map<String, GlobalKey> commentKeys;
-  final Function(Comment) onReplyToComment;
-  final VoidCallback onToggleExpanded;
-  final String? postAuthorId; // ✅ 新增：帖子作者ID
+  final Comment mainComment; // 주 댓글
+  final List<Comment> replies; // 답글 목록
+  final bool isExpanded; // 확장 여부
+  final String? highlightCommentId; // 하이라이트할 댓글 ID
+  final Map<String, GlobalKey> commentKeys; // 댓글 키 맵
+  final Function(Comment) onReplyToComment; // 답글 콜백
+  final VoidCallback onToggleExpanded; // 확장 토글 콜백
+  final String? postAuthorId; // 게시글 작성자 ID
 
   const CommentItem({
     Key? key,
@@ -24,7 +27,7 @@ class CommentItem extends StatelessWidget {
     required this.commentKeys,
     required this.onReplyToComment,
     required this.onToggleExpanded,
-    this.postAuthorId, // ✅ 新增
+    this.postAuthorId,
   }) : super(key: key);
 
   @override
@@ -36,15 +39,15 @@ class CommentItem extends StatelessWidget {
       key: commentKeys[mainComment.id],
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 主评论
+        // 주 댓글
         MainCommentTile(
           comment: mainComment,
           isHighlighted: isMainHighlighted,
           onTap: () => onReplyToComment(mainComment),
-          postAuthorId: postAuthorId, // ✅ 传递
+          postAuthorId: postAuthorId,
         ),
 
-        // 回复区域
+        // 답글 영역
         if (hasReplies)
           RepliesSection(
             replies: replies,
@@ -53,7 +56,7 @@ class CommentItem extends StatelessWidget {
             commentKeys: commentKeys,
             onReplyToComment: onReplyToComment,
             onToggleExpanded: onToggleExpanded,
-            postAuthorId: postAuthorId, // ✅ 传递
+            postAuthorId: postAuthorId,
           ),
 
         Divider(height: 1, thickness: 1, color: Colors.grey[100]),
@@ -62,19 +65,19 @@ class CommentItem extends StatelessWidget {
   }
 }
 
-/// 主评论 Tile
+/// 주 댓글 타일
 class MainCommentTile extends StatelessWidget {
   final Comment comment;
   final bool isHighlighted;
   final VoidCallback onTap;
-  final String? postAuthorId; // ✅ 新增
+  final String? postAuthorId;
 
   const MainCommentTile({
     Key? key,
     required this.comment,
     required this.isHighlighted,
     required this.onTap,
-    this.postAuthorId, // ✅ 新增
+    this.postAuthorId,
   }) : super(key: key);
 
   @override
@@ -85,7 +88,9 @@ class MainCommentTile extends StatelessWidget {
       width: double.infinity,
       margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isHighlighted ? AppColors.secondaryColor.withOpacity(0.1): Colors.transparent,
+        color: isHighlighted
+            ? AppColors.secondaryColor.withOpacity(0.1)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
@@ -95,7 +100,7 @@ class MainCommentTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ 昵称 + 作者标签
+              // 닉네임 + 작성자 태그
               Row(
                 children: [
                   Text(
@@ -144,7 +149,7 @@ class MainCommentTile extends StatelessWidget {
   }
 }
 
-/// 回复区域（支持折叠）
+/// 답글 영역 (확장/축소 지원)
 class RepliesSection extends StatelessWidget {
   final List<Comment> replies;
   final bool isExpanded;
@@ -152,7 +157,7 @@ class RepliesSection extends StatelessWidget {
   final Map<String, GlobalKey> commentKeys;
   final Function(Comment) onReplyToComment;
   final VoidCallback onToggleExpanded;
-  final String? postAuthorId; // ✅ 新增
+  final String? postAuthorId;
 
   const RepliesSection({
     Key? key,
@@ -162,7 +167,7 @@ class RepliesSection extends StatelessWidget {
     required this.commentKeys,
     required this.onReplyToComment,
     required this.onToggleExpanded,
-    this.postAuthorId, // ✅ 新增
+    this.postAuthorId,
   }) : super(key: key);
 
   @override
@@ -180,7 +185,7 @@ class RepliesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 显示的回复
+          // 표시되는 답글들
           ...displayedReplies.map((reply) {
             final isReplyHighlighted = highlightCommentId == reply.id;
             return ReplyTile(
@@ -188,11 +193,11 @@ class RepliesSection extends StatelessWidget {
               reply: reply,
               isHighlighted: isReplyHighlighted,
               onTap: () => onReplyToComment(reply),
-              postAuthorId: postAuthorId, // ✅ 传递
+              postAuthorId: postAuthorId,
             );
           }).toList(),
 
-          // 展开/收起按钮
+          // 확장/축소 버튼
           if (hasMore)
             InkWell(
               onTap: onToggleExpanded,
@@ -200,11 +205,6 @@ class RepliesSection extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                 child: Row(
                   children: [
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 16,
-                      color: Colors.blue[700],
-                    ),
                     SizedBox(width: 4),
                     Text(
                       isExpanded
@@ -226,19 +226,19 @@ class RepliesSection extends StatelessWidget {
   }
 }
 
-/// 单个回复 Tile
+/// 개별 답글 타일
 class ReplyTile extends StatelessWidget {
   final Comment reply;
   final bool isHighlighted;
   final VoidCallback onTap;
-  final String? postAuthorId; // ✅ 新增
+  final String? postAuthorId;
 
   const ReplyTile({
     Key? key,
     required this.reply,
     required this.isHighlighted,
     required this.onTap,
-    this.postAuthorId, // ✅ 新增
+    this.postAuthorId,
   }) : super(key: key);
 
   @override
@@ -251,14 +251,16 @@ class ReplyTile extends StatelessWidget {
         width: double.infinity,
         margin: EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isHighlighted ? AppColors.secondaryColor.withOpacity(0.1) : Colors.transparent,
+          color: isHighlighted
+              ? AppColors.secondaryColor.withOpacity(0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         padding: EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ 昵称 + 作者标签
+            // 닉네임 + 작성자 태그
             Row(
               children: [
                 Text(
@@ -292,7 +294,8 @@ class ReplyTile extends StatelessWidget {
             SizedBox(height: 2),
             Text(
               reply.content,
-              style: TextStyle(fontSize: 14, height: 1.3, color: Colors.black.withOpacity(0.7)),
+              style: TextStyle(
+                  fontSize: 14, height: 1.3, color: Colors.black.withOpacity(0.7)),
             ),
             SizedBox(height: 2),
             Text(

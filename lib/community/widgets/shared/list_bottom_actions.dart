@@ -1,25 +1,28 @@
+// ==================================================================================
+// 3. list_bottom_actions.dart - 하단 액션바 (공유 컴포넌트)
+// ==================================================================================
 // community/widgets/shared/list_bottom_actions.dart
 
 import 'package:flutter/material.dart';
 import '../../../common/app_colors.dart';
 
-/// 底部操作栏类型
+/// 하단 액션바 타입
 enum ListActionType {
-  bookmark,  // 书签解除
-  deletePost, // 帖子删除
+  bookmark, // 북마크 해제
+  deletePost, // 게시글 삭제
 }
 
-/// 通用底部操作栏组件
-///
-/// 使用场景：
-/// - bookmark_list_screen.dart (书签管理)
-/// - my_post_list_screen.dart (我的帖子管理)
+/// 통합 하단 액션바 컴포넌트
+/// 사용처: 북마크 목록, 내 게시글 목록
 class ListBottomActions extends StatelessWidget {
-  final ListActionType actionType;
-  final bool isSelectionMode;
-  final int selectedCount;
-  final VoidCallback onPrimaryAction;
-  final VoidCallback onSecondaryAction;
+  /// =====================================================================================
+  /// 필드
+  /// =====================================================================================
+  final ListActionType actionType; // 액션 타입
+  final bool isSelectionMode; // 선택 모드 여부
+  final int selectedCount; // 선택된 항목 수
+  final VoidCallback onPrimaryAction; // 주 액션 콜백 (삭제/해제)
+  final VoidCallback onSecondaryAction; // 보조 액션 콜백 (취소/돌아가기)
 
   const ListBottomActions({
     Key? key,
@@ -30,6 +33,9 @@ class ListBottomActions extends StatelessWidget {
     required this.onSecondaryAction,
   }) : super(key: key);
 
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,13 +52,13 @@ class ListBottomActions extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 左侧按钮：主要操作
+          // 왼쪽 버튼: 주 액션 (삭제/해제)
           Expanded(
             child: ElevatedButton(
-              // ✅ 修复：按钮始终可点击
+              // 중요: 버튼은 항상 활성화 (내부 로직에서 처리)
               onPressed: onPrimaryAction,
               style: ElevatedButton.styleFrom(
-                // ✅ 修复：根据状态动态改变背景色
+                // 중요: 선택 모드 + 선택된 항목 있을 때만 빨간색
                 backgroundColor: _getButtonColor(),
                 padding: EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -71,7 +77,7 @@ class ListBottomActions extends StatelessWidget {
           ),
           SizedBox(width: 12),
 
-          // 右侧按钮：取消/返回
+          // 오른쪽 버튼: 보조 액션 (취소/돌아가기)
           Expanded(
             child: OutlinedButton(
               onPressed: onSecondaryAction,
@@ -97,32 +103,35 @@ class ListBottomActions extends StatelessWidget {
     );
   }
 
-  /// ✅ 新增：动态获取按钮背景色
+  /// =====================================================================================
+  /// 헬퍼 함수들
+  /// =====================================================================================
+  /// 주 버튼 배경색 결정
+  /// 중요: 선택 모드 + 선택된 항목이 있을 때만 빨간색 (위험한 작업 강조)
   Color _getButtonColor() {
-    // 选择模式 + 已选择项 → 红色（危险操作）
     if (isSelectionMode && selectedCount > 0) {
-      return Colors.red;
+      return Colors.red; // 삭제/해제 작업 시 위험 표시
     }
-    // 其他情况 → 主题色
-    return AppColors.primaryColor;
+    return AppColors.primaryColor; // 기본 상태
   }
 
-  /// 获取主按钮文本
+  /// 주 버튼 텍스트 결정
   String _getPrimaryButtonText() {
     if (isSelectionMode) {
       if (selectedCount == 0) {
+        // 선택 모드이지만 선택된 항목이 없을 때
         return actionType == ListActionType.bookmark
             ? '삭제할 항목 선택'
             : '삭제할 게시글 선택';
       } else {
+        // 선택 모드이고 선택된 항목이 있을 때
         return actionType == ListActionType.bookmark
             ? '북마크 해제 ($selectedCount)'
             : '게시글 삭제 ($selectedCount)';
       }
     } else {
-      return actionType == ListActionType.bookmark
-          ? '북마크 해제'
-          : '게시글 삭제';
+      // 일반 모드일 때
+      return actionType == ListActionType.bookmark ? '북마크 해제' : '게시글 삭제';
     }
   }
 }

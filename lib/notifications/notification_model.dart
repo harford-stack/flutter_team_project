@@ -1,17 +1,24 @@
-// lib/models/notification_model.dart
+// ==================================================================================
+// 2. notification_model.dart - 알림 데이터 모델
+// ==================================================================================
+// lib/notifications/notification_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// 알림 데이터 모델
 class NotificationModel {
-  final String id;
-  final String postId;
-  final String? commentId;
-  final String fromUserId;
-  final String fromNickName;
-  final NotificationType type;  // 이거 없으면 판단 로직이 복잡하고 실용적으로 봤을 때도 문제(후속 알림 범위가 넓히는등)가 있어서 이것을 일단 넣었습니다.
-  final String? commentContent; //
-  final bool isRead;
-  final DateTime cdate;
+  /// =====================================================================================
+  /// 필드
+  /// =====================================================================================
+  final String id; // 알림 ID
+  final String postId; // 게시글 ID
+  final String? commentId; // 댓글 ID (북마크 알림은 null)
+  final String fromUserId; // 알림을 보낸 사용자 ID
+  final String fromNickName; // 알림을 보낸 사용자 닉네임
+  final NotificationType type; // 알림 타입 (중요: 판단 로직 단순화 및 확장성을 위해 필수)
+  final String? commentContent; // 댓글/답글 내용
+  final bool isRead; // 읽음 여부
+  final DateTime cdate; // 생성 날짜
 
   NotificationModel({
     required this.id,
@@ -25,6 +32,7 @@ class NotificationModel {
     required this.cdate,
   });
 
+  /// Firestore 문서에서 모델 생성
   factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
@@ -41,6 +49,7 @@ class NotificationModel {
     );
   }
 
+  /// 모델을 Firestore 문서로 변환
   Map<String, dynamic> toFirestore() {
     return {
       'postId': postId,
@@ -55,17 +64,18 @@ class NotificationModel {
   }
 }
 
-// 알림 유형 나열
+/// 알림 타입 열거형
 enum NotificationType {
-  comment,
-  bookmark,
-  reply;
+  comment, // 댓글 알림
+  bookmark, // 북마크 알림
+  reply; // 답글 알림
 
   @override
   String toString() {
     return name;
   }
 
+  /// 문자열을 NotificationType으로 변환
   static NotificationType fromString(String type) {
     switch (type) {
       case 'comment':
@@ -79,6 +89,7 @@ enum NotificationType {
     }
   }
 
+  /// 표시용 텍스트 생성
   String getDisplayText(String fromNickName) {
     switch (this) {
       case NotificationType.comment:

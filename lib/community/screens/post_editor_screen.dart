@@ -1,3 +1,8 @@
+// ============================================
+// lib/community/screens/post_editor_screen.dart
+// 역할: 게시글 작성 및 수정 화면
+// ============================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/common/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -10,13 +15,21 @@ import '../../common/custom_appbar.dart';
 import '../../common/custom_drawer.dart';
 import '../../common/custom_footer.dart';
 import '../../recipes/ingreCheck_screen.dart';
-import '../../auth/home_screen.dart';  // 添加这一行
+import '../../auth/home_screen.dart';
 import 'community_list_screen.dart';
 
-/// 帖子编辑器页面
-/// 支持创建新帖子和编辑现有帖子
+/// 게시글 편집기 화면
+///
+/// 기능:
+/// 1. 새 게시글 작성
+/// 2. 기존 게시글 수정
+/// 3. 이미지 업로드
+///
+/// 사용 방법:
+/// - 새 게시글: PostEditorScreen()
+/// - 게시글 수정: PostEditorScreen(existingPost: post)
 class PostEditorScreen extends StatefulWidget {
-  final Post? existingPost; // 如果是编辑模式，传入现有帖子
+  final Post? existingPost; // 수정 모드일 때 전달되는 기존 게시글
 
   const PostEditorScreen({
     Key? key,
@@ -28,26 +41,39 @@ class PostEditorScreen extends StatefulWidget {
 }
 
 class _PostEditorScreenState extends State<PostEditorScreen> {
-  /// ========== 变量声明 ==========
+  /// =====================================================================================
+  /// 변수 선언
+  /// =====================================================================================
+  /// 1. 폼 검증용 키
   final _formKey = GlobalKey<FormState>();
+
+  /// 2. 입력 컨트롤러
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
 
+  /// 3. 카테고리
   String _selectedCategory = '자유게시판';
-  File? _imageFile;
-  bool _isLoading = false;
-  bool _deleteExistingImage = false;
-
   final List<String> _categories = ['자유게시판', '문의사항'];
+
+  /// 4. 이미지
+  File? _imageFile; // 새로 선택한 이미지 파일
+  bool _deleteExistingImage = false; // 기존 이미지 삭제 플래그
   final ImagePicker _picker = ImagePicker();
+
+  /// 5. 로딩 상태
+  bool _isLoading = false;
+
+  /// 6. 서비스
   final PostService _postService = PostService();
 
-  /// ========== 初始化 ==========
+  /// =====================================================================================
+  /// 초기화
+  /// =====================================================================================
   @override
   void initState() {
     super.initState();
 
-    // 如果是编辑模式，填充现有数据
+    // 수정 모드인 경우 기존 데이터로 필드 채우기
     if (widget.existingPost != null) {
       _titleController.text = widget.existingPost!.title;
       _contentController.text = widget.existingPost!.content;
@@ -62,7 +88,16 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     super.dispose();
   }
 
-  /// ========== 选择图片 ==========
+  /// =====================================================================================
+  /// 이미지 처리 함수
+  /// =====================================================================================
+
+  /// 갤러리에서 이미지 선택
+  ///
+  /// 작동 방식:
+  /// 1. ImagePicker로 갤러리 열기
+  /// 2. 이미지 크기 최적화 (1920x1080, 품질 85%)
+  /// 3. 선택된 이미지를 _imageFile에 저장
   Future<void> _pickImage() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -75,34 +110,53 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       if (pickedFile != null) {
         setState(() {
           _imageFile = File(pickedFile.path);
-          _deleteExistingImage = false; // 选择新图片时取消删除标记
+          _deleteExistingImage = false; // 새 이미지 선택 시 삭제 플래그 해제
         });
       }
     } catch (e) {
-      print('이미지 선택 실패: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('이미지를 선택할 수 없습니다')),
       );
     }
   }
 
-  /// ========== 删除图片 ==========
+  /// 이미지 삭제
+  ///
+  /// 작동 방식:
+  /// - 새로 선택한 이미지: _imageFile을 null로
+  /// - 기존 이미지: _deleteExistingImage 플래그 설정
   void _removeImage() {
     setState(() {
       _imageFile = null;
       if (widget.existingPost != null &&
           widget.existingPost!.thumbnailUrl.isNotEmpty) {
-        _deleteExistingImage = true; // 标记删除现有图片
+        _deleteExistingImage = true; // 기존 이미지 삭제 표시
       }
     });
   }
 
-  /// ========== 提交表单 ==========
+  /// =====================================================================================
+  /// 폼 제출 함수
+  /// =====================================================================================
+
+  /// 게시글 작성/수정 처리
+  ///
+  /// 작동 순서:
+  /// 1. 폼 유효성 검사
+  /// 2. 로그인 상태 확인
+  /// 3. 새 게시글 작성 또는 기존 게시글 수정
+  /// 4. 성공 시 이전 화면으로 돌아가기
+  ///
+  /// 에러 처리:
+  /// - 이미지 업로드 실패: 에러 메시지 표시 후 재시도 가능
+  /// - 네트워크 오류: 상세 에러 메시지 표시
   Future<void> _submitForm() async {
+    // 1단계: 폼 유효성 검사
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    // 2단계: 로그인 확인
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
 
@@ -119,7 +173,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       bool success;
 
       if (widget.existingPost == null) {
-        // ===== 创建新帖子 =====
+        // ===== 3-1. 새 게시글 작성 =====
         final postId = await _postService.createPost(
           title: _titleController.text.trim(),
           content: _contentController.text.trim(),
@@ -131,7 +185,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
         success = postId != null;
       } else {
-        // ===== 编辑现有帖子 =====
+        // ===== 3-2. 기존 게시글 수정 =====
         success = await _postService.updatePost(
           postId: widget.existingPost!.id,
           title: _titleController.text.trim(),
@@ -144,6 +198,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
       setState(() => _isLoading = false);
 
+      // 4단계: 성공 처리
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +208,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                   : '게시글이 수정되었습니다'),
             ),
           );
-          Navigator.pop(context, true); // 返回并标记成功
+          Navigator.pop(context, true); // true를 반환하여 목록 새로고침 유도
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,8 +217,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      print('게시글 저장 오류: $e');
-      
+
+      // 에러 메시지 상세화
       String errorMessage = '게시글 저장에 실패했습니다';
       if (e.toString().contains('업로드 권한')) {
         errorMessage = '이미지 업로드 권한이 없습니다. Firebase Storage 규칙을 확인해주세요.';
@@ -175,7 +230,6 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       }
 
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -187,24 +241,31 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       }
     }
   }
-  /// ========== bottomnavbar ==========
+
+  /// =====================================================================================
+  /// 네비게이션 처리
+  /// =====================================================================================
+
+  /// 하단 네비게이션 바 탭 처리
   void _handleFooterTap(int index) {
     if (index == 2) {
+      // 커뮤니티 탭
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => CommunityListScreen(
-            showAppBarAndFooter: true, // ✅ 传 true，显示完整的 AppBar 和 Footer
+            showAppBarAndFooter: true,
           ),
         ),
       );
     } else if (index == 1) {
+      // 냉장고 탭
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => IngrecheckScreen()),
       );
     } else if (index == 0) {
-      // ✅ 修改这里：使用 HomeScreen 类
+      // 홈 탭
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -216,9 +277,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     }
   }
 
-
-
-  /// ========== UI 构建 ==========
+  /// =====================================================================================
+  /// UI 구현
+  /// =====================================================================================
   @override
   Widget build(BuildContext context) {
     final isEditMode = widget.existingPost != null;
@@ -238,33 +299,25 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // // 标题
-              // Text(
-              //   isEditMode ? '게시글 수정' : '게시글 작성',
-              //   style: TextStyle(
-              //     fontSize: 24,
-              //     fontWeight: FontWeight.bold,
-              //   ),
-              // ),
               SizedBox(height: 24),
 
-              // 分类选择
+              // 1. 카테고리 선택
               _buildCategorySelector(),
               SizedBox(height: 16),
 
-              // 标题输入
+              // 2. 제목 입력
               _buildTitleField(),
               SizedBox(height: 16),
 
-              // 内容输入
+              // 3. 내용 입력
               _buildContentField(),
               SizedBox(height: 16),
 
-              // 图片选择
+              // 4. 이미지 선택
               _buildImageSection(),
               SizedBox(height: 24),
 
-              // 提交按钮
+              // 5. 제출 버튼
               _buildSubmitButton(isEditMode),
             ],
           ),
@@ -277,7 +330,15 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     );
   }
 
-  /// 分类选择器
+  /// =====================================================================================
+  /// 위젯 빌더들
+  /// =====================================================================================
+
+  /// 1. 카테고리 선택기
+  ///
+  /// 기능:
+  /// - 여러 카테고리 중 하나를 선택
+  /// - ChoiceChip으로 시각적 표현
   Widget _buildCategorySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,7 +348,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color:AppColors.secondaryColor,
+            color: AppColors.secondaryColor,
           ),
         ),
         SizedBox(height: 8),
@@ -318,7 +379,11 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     );
   }
 
-  /// 标题输入框
+  /// 2. 제목 입력 필드
+  ///
+  /// 검증:
+  /// - 빈 값 불가
+  /// - 최대 100자
   Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
@@ -330,22 +395,14 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       decoration: InputDecoration(
         labelText: '제목',
         hintText: '게시글 제목을 입력하세요',
-
-        // label 颜色
         labelStyle: TextStyle(color: Colors.grey),
         floatingLabelStyle: TextStyle(color: AppColors.secondaryColor),
-
-        // 填充背景
         filled: true,
         fillColor: Colors.white,
-
-        // 默认
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.primaryColor),
         ),
-
-        // 聚焦
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
@@ -353,19 +410,14 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
             width: 2,
           ),
         ),
-
-        // 错误
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.red),
         ),
-
-        // 聚焦 + 错误
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.red, width: 2),
         ),
-
         errorStyle: const TextStyle(
           color: Colors.red,
           fontSize: 12,
@@ -381,7 +433,12 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     );
   }
 
-  /// 内容输入框
+  /// 3. 내용 입력 필드
+  ///
+  /// 검증:
+  /// - 빈 값 불가
+  /// - 최대 5000자
+  /// - 여러 줄 입력 가능
   Widget _buildContentField() {
     return TextFormField(
       controller: _contentController,
@@ -394,13 +451,10 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         labelText: '내용',
         hintText: '게시글 내용을 입력하세요',
         alignLabelWithHint: true,
-
         labelStyle: TextStyle(color: Colors.grey),
         floatingLabelStyle: TextStyle(color: AppColors.secondaryColor),
-
         filled: true,
         fillColor: Colors.white,
-
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.primaryColor),
@@ -436,8 +490,12 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     );
   }
 
-
-  /// 图片选择区域
+  /// 4. 이미지 섹션
+  ///
+  /// 기능:
+  /// - 이미지 미리보기 (새 이미지 또는 기존 이미지)
+  /// - 이미지 선택/변경 버튼
+  /// - 이미지 삭제 버튼 (X 아이콘)
   Widget _buildImageSection() {
     final hasExistingImage = widget.existingPost != null &&
         widget.existingPost!.thumbnailUrl.isNotEmpty;
@@ -453,12 +511,12 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color:AppColors.secondaryColor,
+            color: AppColors.secondaryColor,
           ),
         ),
         SizedBox(height: 8),
 
-        // 显示图片预览
+        // 이미지 미리보기
         if (_imageFile != null || showExistingImage)
           Container(
             height: 200,
@@ -469,7 +527,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
             ),
             child: Stack(
               children: [
-                // 图片
+                // 이미지 표시
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: _imageFile != null
@@ -480,7 +538,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                     width: double.infinity,
                   ),
                 ),
-                // 删除按钮
+                // 삭제 버튼
                 Positioned(
                   top: 8,
                   right: 8,
@@ -498,7 +556,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
         SizedBox(height: 8),
 
-        // 选择图片按钮
+        // 이미지 선택/변경 버튼
         OutlinedButton.icon(
           onPressed: _pickImage,
           style: OutlinedButton.styleFrom(
@@ -517,7 +575,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     );
   }
 
-  /// 提交按钮
+  /// 5. 제출 버튼
   Widget _buildSubmitButton(bool isEditMode) {
     return SizedBox(
       width: double.infinity,
@@ -532,7 +590,11 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         ),
         child: Text(
           isEditMode ? '수정 완료' : '작성 완료',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color:Colors.white),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );

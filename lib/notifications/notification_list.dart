@@ -1,4 +1,7 @@
+// ============================================
 // lib/notifications/widgets/notification_list.dart
+// 역할: 알림 목록 표시 및 클릭 처리
+// ============================================
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +11,13 @@ import 'notification_service.dart';
 import 'notification_card.dart';
 import '../../community/screens/community_detail_screen.dart';
 
-/// 通知列表组件
+/// 알림 목록 컴포넌트
+///
+/// 역할:
+/// - 특정 타입(북마크/댓글/대댓글)의 알림 목록 표시
+/// - 실시간 스트림으로 알림 변경사항 반영
+/// - 알림 클릭 시 게시글 상세 페이지로 이동
+/// - 삭제된 게시글/댓글에 대한 알림 처리
 class NotificationList extends StatelessWidget {
   final String userId;
   final NotificationType type;
@@ -25,26 +34,18 @@ class NotificationList extends StatelessWidget {
   Widget build(BuildContext context) {
     final notificationService = NotificationService();
 
-    print('🔔 NotificationList build - userId: $userId, type: $type');
-
     return StreamBuilder<List<NotificationModel>>(
       stream: notificationService.getUserNotificationsByType(userId, type),
       builder: (context, snapshot) {
-        print('📊 Stream state: ${snapshot.connectionState}');
-        print('📊 Has data: ${snapshot.hasData}');
-        print('📊 Data length: ${snapshot.data?.length}');
-        print('📊 Error: ${snapshot.error}');
-
-        // 加载中
+        // 1. 로딩 중
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(strokeWidth: 2),
           );
         }
 
-        // 错误处理
+        // 2. 에러 발생
         if (snapshot.hasError) {
-          print('❌ Stream error: ${snapshot.error}');
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -66,16 +67,15 @@ class NotificationList extends StatelessWidget {
           );
         }
 
-        // 无数据或空列表
+        // 3. 데이터 없음 또는 빈 목록
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          print('📭 Empty notifications');
           return _buildEmptyState();
         }
 
+        // 4. 알림 목록 표시
         List<NotificationModel> notifications = snapshot.data!;
-        print('✅ Showing ${notifications.length} notifications');
 
-        // 限制显示数量
+        // limit이 설정되어 있으면 개수 제한
         if (limit != null && notifications.length > limit!) {
           notifications = notifications.sublist(0, limit!);
         }
@@ -90,7 +90,6 @@ class NotificationList extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final notification = notifications[index];
-            print('🎴 Building card for notification: ${notification.id}');
 
             return NotificationCard(
               notification: notification,
@@ -102,6 +101,10 @@ class NotificationList extends StatelessWidget {
     );
   }
 
+  /// =====================================================================================
+  /// 빈 상태 UI
+  /// =====================================================================================
+  /// 알림이 없을 때 표시되는 화면
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -125,6 +128,7 @@ class NotificationList extends StatelessWidget {
     );
   }
 
+  /// 알림 타입에 따른 빈 상태 아이콘
   IconData _getEmptyIcon() {
     switch (type) {
       case NotificationType.bookmark:
@@ -136,21 +140,31 @@ class NotificationList extends StatelessWidget {
     }
   }
 
-  /// ✅ 点击通知处理
+  /// =====================================================================================
+  /// 알림 클릭 처리
+  /// =====================================================================================
+  /// 알림 클릭 시 실행되는 함수
+  ///
+  /// 처리 순서:
+  /// 1. 게시글 존재 여부 확인 → 없으면 삭제 확인 대화상자
+  /// 2. 댓글/대댓글 존재 여부 확인 → 없으면 삭제 확인 대화상자
+  /// 3. 읽지 않은 알림이면 읽음 처리
+  /// 4. 게시글 상세 페이지로 이동 (해당 댓글 하이라이트)
+  ///
+  /// 주의사항:
+  /// - 삭제된 콘텐츠는 사용자에게 알림 삭제 여부를 물어봄
+  /// - 알림 삭제는 사용자가 직접 선택
   Future<void> _handleNotificationTap(
       BuildContext context,
       NotificationModel notification,
       ) async {
-    print('👆 Notification tapped: ${notification.id}');
-
     final notificationService = NotificationService();
 
-    // ===== 检查帖子是否存在 =====
+    // ===== 1단계: 게시글 존재 여부 확인 =====
     final postExists = await notificationService.checkPostExists(notification.postId);
 
     if (!postExists) {
-      print('❌ 帖子已被删除: ${notification.postId}');
-
+      // 게시글이 삭제된 경우
       if (context.mounted) {
         final shouldDelete = await showDialog<bool>(
           context: context,
@@ -177,6 +191,7 @@ class NotificationList extends StatelessWidget {
           ),
         );
 
+        // 사용자가 삭제를 선택한 경우
         if (shouldDelete == true) {
           await notificationService.deleteNotification(userId, notification.id);
 
@@ -194,7 +209,7 @@ class NotificationList extends StatelessWidget {
       return;
     }
 
-    // ===== ✅ 检查评论/回复是否存在 =====
+    // ===== 2단계: 댓글/대댓글 존재 여부 확인 =====
     if (notification.commentId != null) {
       final commentExists = await notificationService.checkCommentExists(
         notification.postId,
@@ -202,8 +217,7 @@ class NotificationList extends StatelessWidget {
       );
 
       if (!commentExists) {
-        print('❌ 댓글이 삭제되었습니다: ${notification.commentId}');
-
+        // 댓글이 삭제된 경우
         if (context.mounted) {
           final shouldDelete = await showDialog<bool>(
             context: context,
@@ -248,31 +262,24 @@ class NotificationList extends StatelessWidget {
       }
     }
 
-    // ===== 标记为已读 =====
+    // ===== 3단계: 읽지 않은 알림이면 읽음 처리 =====
     if (!notification.isRead) {
       await notificationService.markAsRead(userId, notification.id);
-      print('✅ Marked as read');
     }
 
-    // ===== ✅ 简化：统一使用 commentId 作为高亮ID =====
+    // ===== 4단계: 하이라이트할 댓글 ID 설정 =====
+    // 북마크: null (게시글만 보여줌)
+    // 댓글/대댓글: commentId (해당 댓글을 하이라이트)
     String? highlightId = notification.commentId;
 
-    if (highlightId != null) {
-      print('🎯 Highlight comment: $highlightId');
-    } else {
-      print('📌 No highlight (bookmark notification)');
-    }
-
-    // ===== 跳转到帖子详情页 =====
+    // ===== 5단계: 게시글 상세 페이지로 이동 =====
     if (context.mounted) {
-      print('🚀 Navigating to post: ${notification.postId}');
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PostDetailScreen(
             postId: notification.postId,
-            highlightCommentId: highlightId,  // ✅ 直接使用 commentId
+            highlightCommentId: highlightId,  // 하이라이트할 댓글 ID
           ),
         ),
       );

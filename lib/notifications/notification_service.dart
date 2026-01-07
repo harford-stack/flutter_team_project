@@ -1,12 +1,19 @@
+// ==================================================================================
+// 3. notification_service.dart - 알림 서비스
+// ==================================================================================
 // lib/notifications/notification_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_model.dart';
 
+/// 알림 서비스
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// 새로운 알림을 만드는
+  /// =====================================================================================
+  /// 알림 생성
+  /// =====================================================================================
+  /// 새 알림 생성
   Future<void> createNotification({
     required String userId,
     required String postId,
@@ -41,7 +48,10 @@ class NotificationService {
     }
   }
 
-  /// 해당 사용자의 모든 알림을
+  /// =====================================================================================
+  /// 알림 조회
+  /// =====================================================================================
+  /// 사용자의 모든 알림 스트림
   Stream<List<NotificationModel>> getUserNotificationsStream(String userId) {
     return _firestore
         .collection('users')
@@ -55,7 +65,7 @@ class NotificationService {
         .toList());
   }
 
-  /// 按类型获取通知
+  /// 타입별 알림 스트림
   Stream<List<NotificationModel>> getUserNotificationsByType(
       String userId,
       NotificationType type,
@@ -73,7 +83,7 @@ class NotificationService {
         .toList());
   }
 
-  /// ✅ 新增：按类型获取未读通知数量
+  /// 타입별 미읽음 알림 수 스트림
   Stream<int> getUnreadCountByType(String userId, NotificationType type) {
     return _firestore
         .collection('users')
@@ -85,22 +95,21 @@ class NotificationService {
         .map((snapshot) => snapshot.docs.length);
   }
 
-  /// 检查帖子是否存在
+  /// =====================================================================================
+  /// 유효성 검사
+  /// =====================================================================================
+  /// 게시글 존재 여부 확인
   Future<bool> checkPostExists(String postId) async {
     try {
-      final doc = await _firestore
-          .collection('post')
-          .doc(postId)
-          .get();
-
+      final doc = await _firestore.collection('post').doc(postId).get();
       return doc.exists;
     } catch (e) {
-      print('❌ 帖子检查失败: $e');
+      print(' 게시글 확인 실패: $e');
       return false;
     }
   }
 
-  /// 检查评论是否存在
+  // 댓글 존재 여부 확인
   Future<bool> checkCommentExists(String postId, String commentId) async {
     try {
       final doc = await _firestore
@@ -109,15 +118,17 @@ class NotificationService {
           .collection('comment')
           .doc(commentId)
           .get();
-
       return doc.exists;
     } catch (e) {
-      print('❌ 评论检查失败: $e');
+      print('댓글 확인 실패: $e');
       return false;
     }
   }
 
-  /// isRead가 false인 애를 가져옴
+  /// =====================================================================================
+  /// 읽음 처리
+  /// =====================================================================================
+  /// 미읽음 알림 수 스트림
   Stream<int> getUnreadCountStream(String userId) {
     return _firestore
         .collection('users')
@@ -128,7 +139,7 @@ class NotificationService {
         .map((snapshot) => snapshot.docs.length);
   }
 
-  /// 읽음
+  /// 알림 읽음 처리
   Future<void> markAsRead(String userId, String notificationId) async {
     try {
       await _firestore
@@ -138,11 +149,11 @@ class NotificationService {
           .doc(notificationId)
           .update({'isRead': true});
     } catch (e) {
-      print('해당 알림을 읽었습니다: $e');
+      print('읽음 처리 실패: $e');
     }
   }
 
-  /// 모두 읽음
+  /// 모든 알림 읽음 처리
   Future<void> markAllAsRead(String userId) async {
     try {
       final snapshot = await _firestore
@@ -158,11 +169,14 @@ class NotificationService {
       }
       await batch.commit();
     } catch (e) {
-      print('모두 읽음으로 표시되었습니다: $e');
+      print('전체 읽음 처리 실패: $e');
     }
   }
 
-  /// 删除
+  /// =====================================================================================
+  /// 삭제
+  /// =====================================================================================
+  /// 알림 삭제
   Future<void> deleteNotification(String userId, String notificationId) async {
     try {
       await _firestore
@@ -172,13 +186,13 @@ class NotificationService {
           .doc(notificationId)
           .delete();
 
-      print('✅ 알림 삭제 성공: $notificationId');
+      print('알림 삭제 성공: $notificationId');
     } catch (e) {
-      print('❌ 알림 삭제 실패: $e');
+      print('알림 삭제 실패: $e');
     }
   }
 
-  /// 清理无效通知（帖子已删除的通知）
+  /// 무효 알림 정리 (삭제된 게시글의 알림 제거)
   Future<int> cleanInvalidNotifications(String userId) async {
     int deletedCount = 0;
 
@@ -192,19 +206,19 @@ class NotificationService {
       for (var doc in snapshot.docs) {
         final notification = NotificationModel.fromFirestore(doc);
 
-        // 检查帖子是否存在
+        // 게시글 존재 확인
         final postExists = await checkPostExists(notification.postId);
 
         if (!postExists) {
-          // 删除无效通知
+          // 무효 알림 삭제
           await deleteNotification(userId, notification.id);
           deletedCount++;
         }
       }
 
-      print('✅ 清理了 $deletedCount 个无效通知');
+      print('$deletedCount개의 무효 알림 정리 완료');
     } catch (e) {
-      print('❌ 清理无效通知失败: $e');
+      print('무효 알림 정리 실패: $e');
     }
 
     return deletedCount;

@@ -1,10 +1,13 @@
+// ==================================================================================
+// 4. content_section.dart - 게시글 내용 영역 컴포넌트
+// ==================================================================================
 // community/widgets/community_detail/content_section.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_team_project/common/app_colors.dart';
 import '../../models/post_model.dart';
 
-/// 帖子内容区域组件（高度仿小红书）
+/// 게시글 내용 영역 컴포넌트
 class PostContentSection extends StatelessWidget {
   final Post post;
   final Widget commentsWidget;
@@ -25,36 +28,36 @@ class PostContentSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 图片
+          // 썸네일 이미지
           PostThumbnail(post: post),
 
-          // 分类标签（在标题上方）
+          // 카테고리 태그
           PostCategoryTag(post: post),
           SizedBox(height: 8),
 
-          // 标题
+          // 제목
           PostTitle(post: post),
           SizedBox(height: 8),
 
-          // 作者信息（只显示昵称，放在标题下方）
+          // 작성자 정보
           PostAuthorInfo(post: post),
           SizedBox(height: 18),
 
-          // 正文
+          // 본문
           PostContentText(post: post),
           SizedBox(height: 16),
 
-          // 日期 + Bookmark 数
+          // 메타 정보 (날짜 + 북마크 수)
           PostMetaInfo(post: post),
           SizedBox(height: 16),
 
-          // 分割线
+          // 구분선
           Divider(height: 1, thickness: 6, color: Colors.grey[100]),
 
-          // 评论标题
+          // 댓글 헤더
           PostCommentHeader(commentCount: post.commentCount),
 
-          // 评论列表
+          // 댓글 목록
           commentsWidget,
         ],
       ),
@@ -62,7 +65,7 @@ class PostContentSection extends StatelessWidget {
   }
 }
 
-/// 分类标签（单独放在标题上方）
+/// 카테고리 태그
 class PostCategoryTag extends StatelessWidget {
   final Post post;
 
@@ -82,7 +85,7 @@ class PostCategoryTag extends StatelessWidget {
           post.category,
           style: TextStyle(
             fontSize: 14,
-            color:AppColors.primaryColor,
+            color: AppColors.primaryColor,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -91,7 +94,7 @@ class PostCategoryTag extends StatelessWidget {
   }
 }
 
-/// 帖子标题（简洁）
+/// 게시글 제목
 class PostTitle extends StatelessWidget {
   final Post post;
 
@@ -101,11 +104,11 @@ class PostTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
-      child: IntrinsicHeight( // ✅ 让竖线高度跟随文字
+      child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ✅ 竖线
+            // 세로 강조선
             Container(
               width: 4,
               decoration: BoxDecoration(
@@ -114,7 +117,7 @@ class PostTitle extends StatelessWidget {
               ),
             ),
             SizedBox(width: 12),
-            // 标题文字
+            // 제목 텍스트
             Expanded(
               child: Text(
                 post.title,
@@ -133,9 +136,7 @@ class PostTitle extends StatelessWidget {
   }
 }
 
-
-// content_section.dart - 修改 PostThumbnail
-
+/// 썸네일 이미지
 class PostThumbnail extends StatelessWidget {
   final Post post;
 
@@ -150,7 +151,7 @@ class PostThumbnail extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return GestureDetector(
-      onTap: () => _showFullImage(context), // ✅ 点击查看大图
+      onTap: () => _showFullImage(context),
       child: Container(
         width: screenWidth,
         height: screenWidth,
@@ -172,17 +173,17 @@ class PostThumbnail extends StatelessWidget {
     );
   }
 
-  // ✅ 查看大图（支持缩放、拖拽）
+  /// 전체 이미지 보기 (확대/축소 지원)
   void _showFullImage(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black87, // 半透明黑色背景
+      barrierColor: Colors.black87,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: EdgeInsets.zero,
         child: Stack(
           children: [
-            // 图片（支持双指缩放）
+            // 이미지 (확대/축소 지원)
             Center(
               child: InteractiveViewer(
                 minScale: 0.5,
@@ -194,7 +195,7 @@ class PostThumbnail extends StatelessWidget {
               ),
             ),
 
-            // 关闭按钮
+            // 닫기 버튼
             Positioned(
               top: 40,
               right: 16,
@@ -210,7 +211,7 @@ class PostThumbnail extends StatelessWidget {
   }
 }
 
-/// 作者信息（只显示昵称，放在标题下方）
+/// 작성자 정보
 class PostAuthorInfo extends StatelessWidget {
   final Post post;
 
@@ -219,14 +220,14 @@ class PostAuthorInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20,vertical:20),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Row(
         children: [
           Text(
             post.nickName,
             style: TextStyle(
               fontSize: 16,
-              color:Colors.black.withOpacity(0.6),
+              color: Colors.black.withOpacity(0.6),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -234,7 +235,7 @@ class PostAuthorInfo extends StatelessWidget {
           Icon(
             Icons.person,
             size: 18,
-              color:Colors.black.withOpacity(0.6),
+            color: Colors.black.withOpacity(0.6),
           ),
         ],
       ),
@@ -242,7 +243,7 @@ class PostAuthorInfo extends StatelessWidget {
   }
 }
 
-/// 帖子正文
+/// 게시글 본문
 class PostContentText extends StatelessWidget {
   final Post post;
 
@@ -264,7 +265,7 @@ class PostContentText extends StatelessWidget {
   }
 }
 
-/// 元信息（日期 + Bookmark 数）
+/// 메타 정보 (날짜 + 북마크 수)
 class PostMetaInfo extends StatelessWidget {
   final Post post;
 
@@ -276,7 +277,7 @@ class PostMetaInfo extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // 日期
+          // 날짜
           Text(
             post.cdate.toString().split(' ')[0],
             style: TextStyle(fontSize: 13, color: Colors.grey[500]),
@@ -284,7 +285,7 @@ class PostMetaInfo extends StatelessWidget {
 
           SizedBox(width: 12),
 
-          // Bookmark 数
+          // 북마크 수
           Icon(Icons.bookmark_border, size: 13, color: Colors.grey[500]),
           SizedBox(width: 3),
           Text(
@@ -297,11 +298,12 @@ class PostMetaInfo extends StatelessWidget {
   }
 }
 
-/// 评论标题 + 评论数
+/// 댓글 헤더 (제목 + 댓글 수)
 class PostCommentHeader extends StatelessWidget {
   final int commentCount;
 
-  const PostCommentHeader({Key? key, required this.commentCount}) : super(key: key);
+  const PostCommentHeader({Key? key, required this.commentCount})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +324,7 @@ class PostCommentHeader extends StatelessWidget {
             '$commentCount',
             style: TextStyle(
               fontSize: 15,
-              color:  Colors.black.withOpacity(0.4),
+              color: Colors.black.withOpacity(0.4),
             ),
           ),
         ],
