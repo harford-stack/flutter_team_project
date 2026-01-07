@@ -99,8 +99,6 @@
 | 기술명                                                                                                                  | 설명                                          |
 | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | ![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)                                    | Flutter 3.10.3 - 크로스 플랫폼 모바일 앱 개발 |
-| ![Provider](https://img.shields.io/badge/Provider-6.1.1-FF6B6B?logo=flutter&logoColor=white)                            | Provider 6.1.1 - 상태 관리                    |
-| ![Material Symbols](https://img.shields.io/badge/Material_Symbols-4.2892.0-4285F4?logo=material-design&logoColor=white) | Material Symbols Icons - 최신 아이콘 세트     |
 
 ### Backend & Services
 
