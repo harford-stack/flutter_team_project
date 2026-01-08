@@ -93,13 +93,11 @@ class _CommunityListScreenState extends State<CommunityListScreen> {
     }
 
     // PostService를 통해 게시글 가져오기
-    //await是"强制等待"，但只在当前函数内！其他地方可以继续干别的
     final posts = await _postService.getPosts(
       searchQuery: _searchController.text, // 검색어
       sortOrder: _sortOrder, // 정렬 순서
       categories: selectedCategories, // 카테고리 필터
     );
-    // 抛出异常的时候，会直接跳出函数，所以下面的也就不会执行=>会导致一直loading=>try-catch：e时false，用snackbar显示错误
     setState(() {
       _posts = posts; // 가져온 게시글로 업데이트
       _isLoading = false; // 로딩 종료

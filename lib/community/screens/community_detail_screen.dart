@@ -66,7 +66,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   /// 5. 댓글 관련
   List<Comment> _comments = []; // 댓글 목록
   Comment? _replyingTo; // 답글 대상 댓글
-  final Set<String> _expandedCommentIds = {}; // 확장된 댓글 ID 목록
+  final Set<String> _expandedCommentIds = {}; // 확장된 댓글 ID 목록, set는 중복을 자동으로 제거하는 컬렉션 타입
 
   /// 6. 컨트롤러 및 키
   final TextEditingController _commentController = TextEditingController(); // 댓글 입력 컨트롤러
