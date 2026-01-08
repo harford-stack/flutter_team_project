@@ -18,12 +18,6 @@ class PostDetailService {
   /// ========================================
   /// ID로 게시글 조회
   /// ========================================
-  ///
-  /// 파라미터:
-  /// - postId: 게시글 ID
-  ///
-  /// 리턴:
-  /// - Post? - 게시글 객체 (없으면 null)
   Future<Post?> getPostById(String postId) async {
     try {
       final doc = await _firestore
@@ -43,13 +37,6 @@ class PostDetailService {
   /// ========================================
   /// 북마크 상태 확인
   /// ========================================
-  ///
-  /// 파라미터:
-  /// - postId: 게시글 ID
-  /// - userId: 사용자 ID
-  ///
-  /// 리턴:
-  /// - bool - 북마크 했으면 true, 아니면 false
   Future<bool> isBookmarked(String postId, String userId) async {
     try {
       final bookmarkSnapshot = await _firestore
@@ -68,20 +55,6 @@ class PostDetailService {
   /// ========================================
   /// 북마크 토글
   /// ========================================
-  ///
-  /// 파라미터:
-  /// - postId: 게시글 ID
-  /// - userId: 사용자 ID
-  /// - post: 게시글 객체
-  /// - isBookmarking: true=추가, false=삭제
-  ///
-  /// 작동 방식:
-  /// 1. isBookmarking=true:
-  ///    - 중복 확인 후 UserBookmark에 문서 추가
-  ///    - Post의 bookmarkCount +1
-  /// 2. isBookmarking=false:
-  ///    - UserBookmark에서 문서 삭제
-  ///    - Post의 bookmarkCount -1
   Future<void> toggleBookmark(
       String postId,
       String userId,
