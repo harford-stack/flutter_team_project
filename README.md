@@ -87,7 +87,7 @@
 ---
 
 ## 📄발표 자료
-- [발표 자료 PDF](https://drive.google.com/file/d/13cRIGx4t6NftIaa_tNg8jeiW82hZ45en/view?usp=sharing)
+- [발표 자료 PDF](https://drive.google.com/file/d/1EbO6jGV5vTmq_8vnWB7snf7KZnxxi0ej/view?usp=sharing)
 
 ---
 
