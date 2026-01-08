@@ -84,6 +84,11 @@
 
 ---
 
+## 📄발표 자료
+- [발표 자료 PDF](https://drive.google.com/file/d/11QRYEXFiHkWabiB1nV5s9S61Hw61jbus/view?usp=sharing)
+
+---
+
 ## 🎞시연 영상
 - [시연 영상 - 레시피](https://drive.google.com/file/d/1TPqrsv1HfOuypzmF15YKfcdcK_kkpxq0/view?usp=sharing)
 - [시연 영상 - 사용자 인증](https://drive.google.com/file/d/1dn4GZvbSlUclIDuYLoQFCsw9QQXmMJoF/view?usp=sharing)
