@@ -25,6 +25,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
   int _currentIndex = 0;
   final ImagePicker _picker = ImagePicker();
 
+  // 하단 네비게이션 바 탭 처리 함수
   void _onFooterTap(int index, AuthProvider authProvider) {
     // 로그인이 필요한 메뉴 (재료 등록, 커뮤니티)
     if (index == 1 || index == 2) {
@@ -364,6 +365,7 @@ class _RecipeRecommendScreenState extends State<RecipeRecommendScreen> {
     );
   }
 
+  // 음식 아이콘과 라벨을 표시하는 위젯을 빌드하는 함수
   Widget _buildFoodIcon(IconData icon, String label) {
     return Column(
       children: [

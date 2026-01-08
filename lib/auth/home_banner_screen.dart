@@ -18,6 +18,7 @@ class HomeBannerScreen extends StatelessWidget {
 
   final int _currentIndex = 0;
 
+  // 하단 네비게이션 바 탭 처리 함수
   void _onFooterTap(BuildContext context, int index, AuthProvider authProvider) {
     if (index == 1 || index == 2) {
       if (!authProvider.isAuthenticated) {
