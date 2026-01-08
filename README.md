@@ -9,6 +9,8 @@
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
 ![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?logo=google&logoColor=white)
 
+<img src="img/one.png">
+
 ---
 
 ## 💡 프로젝트 소개
