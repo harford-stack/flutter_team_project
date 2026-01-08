@@ -507,6 +507,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // 소셜 로그인 버튼을 빌드하는 함수
   Widget _buildSocialLoginButton(
     String text,
     Color backgroundColor,

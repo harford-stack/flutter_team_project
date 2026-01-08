@@ -121,6 +121,7 @@ class CustomFooter extends StatelessWidget {
     );
   }
 
+  // 하단 네비게이션 바의 각 항목을 빌드하는 함수
   Widget _buildFooterItem({
     required IconData? icon,
     required String? iconAsset,

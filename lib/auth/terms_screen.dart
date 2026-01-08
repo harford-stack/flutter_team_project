@@ -88,6 +88,7 @@ class _TermsScreenState extends State<TermsScreen> {
     );
   }
 
+  // 이용약관 내용을 반환하는 함수
   String _getTermsContent() {
     return '''
 제1조 (목적)
@@ -151,6 +152,7 @@ class _TermsScreenState extends State<TermsScreen> {
 ''';
   }
 
+  // 개인정보 처리방침 내용을 반환하는 함수
   String _getPrivacyContent() {
     return '''
 제1조 (개인정보의 처리목적)

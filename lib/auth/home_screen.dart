@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentIndex = widget.initialIndex; // initialIndex로 초기화
   }
 
+  // 현재 탭 인덱스에 따라 AppBar 제목을 반환하는 함수
   String _getAppbarTitle(int index){
     switch(index){
       case 0 :
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // 현재 선택된 탭에 따라 화면을 빌드하는 함수
   Widget _buildCurrentScreen() {
     switch (_currentIndex) {
       case 0:
@@ -98,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // 슬라이드 인덱스에 따라 슬라이드 아이템을 빌드하는 함수
   Widget _buildSlideItem(int index) {
     switch (index) {
       case 0:
@@ -345,6 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 홈 화면의 메인 콘텐츠를 빌드하는 함수
   Widget _buildHomeContent() {
     final authProvider = Provider.of<AuthProvider>(context);
 
